@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   Shield,
@@ -24,18 +24,17 @@ import {
   Award,
   Users,
   Handshake,
-  Lock,
   CheckCircle2,
   ArrowRight,
   MessageCircle,
   Globe,
-  Sparkles,
   ShieldCheck,
-  FileText,
-  LifeBuoy,
   Fingerprint,
   Wrench,
   Landmark,
+  Briefcase,
+  Send,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,362 +55,29 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
-// ─── Data Constants ────────────────────────────────────────────────
+// ─── Icon Mapping ────────────────────────────────────────────────
 
-const AGENT = {
-  name: "Suzanne Dwyer",
-  title: "Allstate Insurance Agent",
-  badge: "Elite Agent",
-  phone: "(610) 725-9900",
-  phoneLink: "tel:+16107259900",
-  textNumber: "6107258137",
-  email: "suzannedwyer@allstate.com",
-  address: "Wynnewood, PA 19096",
-  states: ["Pennsylvania", "New Jersey", "Delaware"],
-  languages: ["English", "Spanish"],
-  rating: 4.3,
-  reviews: 273,
-  hours: {
-    "Mon-Fri": "8:30 AM – 5:00 PM",
-    "Sat-Sun": "Closed",
-    afterHours: "After-hours appointments available",
-  },
-  tagline: "You're in good hands®",
+const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>> = {
+  Car,
+  Home,
+  Heart,
+  Building2,
+  Landmark,
+  Bike,
+  Briefcase,
+  Ship,
+  TreePine,
+  Umbrella,
+  Fingerprint,
+  Wrench,
+  Shield,
 };
 
-const NAV_LINKS = [
-  { label: "Home", href: "#hero" },
-  { label: "About", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "Insurance", href: "#insurance" },
-  { label: "Testimonials", href: "#testimonials" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Contact", href: "#contact" },
-];
-
-const INSURANCE_TYPES = [
-  {
-    id: "auto",
-    title: "Auto Insurance",
-    icon: Car,
-    color: "#0033A0",
-    lightBg: "#e8edf5",
-    tagline: "Protection for the road ahead",
-    description:
-      "Get comprehensive auto insurance coverage that protects you, your passengers, and your vehicle. From fender benders to major collisions, Allstate auto insurance has you covered with customizable policies tailored to your needs.",
-    features: [
-      "Liability coverage for bodily injury & property damage",
-      "Collision coverage for vehicle damage",
-      "Comprehensive coverage for non-collision events",
-      "Uninsured/underinsured motorist protection",
-      "Medical payments coverage",
-      "Roadside assistance add-on",
-      "Rental reimbursement coverage",
-    ],
-    tip: "Bundle auto with home insurance and save up to 25% on your premium!",
-  },
-  {
-    id: "home",
-    title: "Home Insurance",
-    icon: Home,
-    color: "#001e60",
-    lightBg: "#e0e7f5",
-    tagline: "Your home, your haven — we protect both",
-    description:
-      "Your home is likely your biggest investment. Allstate homeowners insurance helps protect your home and belongings against covered losses like fire, theft, and severe weather. Suzanne will help you find the right coverage at the right price.",
-    features: [
-      "Dwelling coverage for your home's structure",
-      "Personal property protection",
-      "Liability protection if someone is injured on your property",
-      "Additional living expenses if your home is unlivable",
-      "Other structures coverage (garages, sheds, fences)",
-      "Medical payments to others",
-      "Claim RateGuard® — your rate won't increase due to a claim",
-    ],
-    tip: "Ask about the Claim RateGuard® add-on to keep your rates from increasing after a claim.",
-  },
-  {
-    id: "life",
-    title: "Life Insurance",
-    icon: Heart,
-    color: "#c74e10",
-    lightBg: "#fef3e8",
-    tagline: "Secure your family's future today",
-    description:
-      "Life insurance provides financial protection for your loved ones when they need it most. Whether you're looking for term life, whole life, or universal life insurance, Suzanne can help you find a policy that fits your budget and provides peace of mind.",
-    features: [
-      "Term life insurance for affordable, temporary coverage",
-      "Whole life insurance with cash value accumulation",
-      "Universal life insurance with flexible premiums",
-      "Convertible term policies",
-      "Death benefit protection for your beneficiaries",
-      "Tax-advantaged cash value growth",
-      "Estate planning support",
-    ],
-    tip: "Term life insurance can be 5-15x more affordable than whole life — perfect for young families!",
-  },
-  {
-    id: "renters",
-    title: "Renters Insurance",
-    icon: Building2,
-    color: "#0e7490",
-    lightBg: "#e6f7fa",
-    tagline: "Your landlord's insurance won't cover your stuff",
-    description:
-      "Even if you don't own your home, your personal belongings still need protection. Renters insurance covers your possessions against theft, fire, and other covered perils — often for less than you might think.",
-    features: [
-      "Personal property coverage for belongings",
-      "Liability protection if someone is injured in your home",
-      "Additional living expenses if your rental is damaged",
-      "Medical payments to others",
-      "Coverage for theft, fire, vandalism, and more",
-      "Off-premises theft coverage",
-      "Affordable monthly premiums",
-    ],
-    tip: "Renters insurance can cost as little as $15-30/month — less than a streaming subscription!",
-  },
-  {
-    id: "condo",
-    title: "Condo Insurance",
-    icon: Landmark,
-    color: "#7c3aed",
-    lightBg: "#f0e8ff",
-    tagline: "Tailored coverage for condo living",
-    description:
-      "Condo insurance is different from homeowners insurance because your condo association's master policy covers the building's exterior and common areas. Suzanne will help you understand what's covered and fill in the gaps for your unit.",
-    features: [
-      "Coverage for interior walls and fixtures",
-      "Personal property protection",
-      "Liability coverage",
-      "Loss assessment coverage for shared areas",
-      "Additional living expenses",
-      "Improvements and betterments coverage",
-      "Medical payments to others",
-    ],
-    tip: "Review your condo association's master policy to understand exactly what you need to cover.",
-  },
-  {
-    id: "motorcycle",
-    title: "Motorcycle Insurance",
-    icon: Bike,
-    color: "#dc2626",
-    lightBg: "#fef2f2",
-    tagline: "Ride with confidence and protection",
-    description:
-      "Whether you ride a cruiser, sport bike, touring motorcycle, or scooter, Allstate motorcycle insurance provides the coverage you need. From liability to comprehensive protection, ride knowing you're covered.",
-    features: [
-      "Liability coverage for bodily injury & property damage",
-      "Collision and comprehensive coverage",
-      "Uninsured motorist protection",
-      "Custom parts and equipment coverage",
-      "Roadside assistance for motorcycles",
-      "Guest passenger liability",
-      "Multiple motorcycle discounts",
-    ],
-    tip: "Store your bike in the off-season? Ask about lay-up periods to reduce your premium.",
-  },
-  {
-    id: "business",
-    title: "Business Insurance",
-    icon: BriefcaseIcon,
-    color: "#059669",
-    lightBg: "#ecfdf5",
-    tagline: "Protect what you've built",
-    description:
-      "From small businesses to larger operations, Suzanne offers a range of commercial insurance solutions. Protect your business property, employees, and bottom line with customized coverage that grows with your business.",
-    features: [
-      "General liability insurance",
-      "Commercial property insurance",
-      "Business owner's policy (BOP)",
-      "Workers' compensation",
-      "Commercial auto insurance",
-      "Professional liability / Errors & Omissions",
-      "Cyber liability coverage",
-    ],
-    tip: "A Business Owner's Policy (BOP) bundles property and liability coverage at a reduced rate.",
-  },
-  {
-    id: "boat",
-    title: "Boat Insurance",
-    icon: Ship,
-    color: "#0284c7",
-    lightBg: "#e8f4fd",
-    tagline: "Smooth sailing, insured",
-    description:
-      "Enjoy the water with peace of mind. Allstate boat insurance covers your vessel, motor, trailer, and equipment against a wide range of risks, both on and off the water.",
-    features: [
-      "Physical damage coverage for your boat",
-      "Liability protection on the water",
-      "Medical payments coverage",
-      "Uninsured watercraft coverage",
-      "Personal effects coverage",
-      "Emergency assistance & towing",
-      "Wreck removal coverage",
-    ],
-    tip: "Many boat policies include discounts for completing boating safety courses.",
-  },
-  {
-    id: "atv",
-    title: "ATV / Off-Road Insurance",
-    icon: TreePine,
-    color: "#65a30d",
-    lightBg: "#f0fce4",
-    tagline: "Adventure protected, on and off the trail",
-    description:
-      "ATVs, UTVs, and off-road vehicles need specialized insurance. Whether you're hitting the trails or working the land, Suzanne can get you covered for the unexpected.",
-    features: [
-      "Collision and comprehensive coverage",
-      "Liability protection",
-      "Uninsured motorist coverage",
-      "Custom parts and accessories coverage",
-      "Medical payments",
-      "Trailer coverage",
-      "Multiple vehicle discounts",
-    ],
-    tip: "Some homeowners policies offer limited ATV coverage — but a dedicated policy provides full protection.",
-  },
-  {
-    id: "flood",
-    title: "Flood Insurance",
-    icon: Umbrella,
-    color: "#0d9488",
-    lightBg: "#e6faf8",
-    tagline: "Standard policies don't cover floods — we do",
-    description:
-      "Flooding is the most common and costly natural disaster in the U.S. — and it's not covered by standard homeowners insurance. Suzanne can help you get the flood protection you need through the National Flood Insurance Program (NFIP).",
-    features: [
-      "Building property coverage up to $250,000",
-      "Personal property coverage up to $100,000",
-      "Coverage for flood damage to your home's structure",
-      "Protection for furnace, water heater, and appliances",
-      "Coverage for debris removal",
-      "NFIP-backed policies",
-      "Preferred risk policies for low-to-moderate risk areas",
-    ],
-    tip: "There's typically a 30-day waiting period before a new flood policy takes effect — don't wait for storm season!",
-  },
-  {
-    id: "identity",
-    title: "Identity Protection",
-    icon: Fingerprint,
-    color: "#9333ea",
-    lightBg: "#faf0ff",
-    tagline: "Your identity, your fortress",
-    description:
-      "Identity theft can happen to anyone. Allstate Identity Protection monitors your personal information and helps you recover if your identity is compromised. Get proactive monitoring and expert restoration support.",
-    features: [
-      "Dark web monitoring for your personal information",
-      "Social media account monitoring",
-      "Credit monitoring and alerts",
-      "Identity theft insurance up to $1 million",
-      "Dedicated restoration specialists",
-      "Lost wallet protection",
-      "Financial account takeover monitoring",
-    ],
-    tip: "Over 14 million Americans were victims of identity theft last year — protect yourself proactively.",
-  },
-  {
-    id: "roadside",
-    title: "Roadside Assistance",
-    icon: Wrench,
-    color: "#ea580c",
-    lightBg: "#fff5eb",
-    tagline: "Help when you need it, 24/7",
-    description:
-      "Never get stranded again. Allstate Roadside Assistance provides 24/7 help for common roadside emergencies, from flat tires and dead batteries to lockouts and towing. Available as an add-on to your auto policy or as a standalone plan.",
-    features: [
-      "Towing service up to your coverage limit",
-      "Jump-starts for dead batteries",
-      "Flat tire changes",
-      "Lockout service",
-      "Fuel delivery",
-      "24/7 nationwide coverage",
-      "No deductible or copay",
-    ],
-    tip: "Good Hands Rescue® lets you request help with just a tap in the Allstate mobile app.",
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    name: "Jennifer T.",
-    rating: 5,
-    text: "Suzanne is absolutely wonderful! She took the time to explain all my options and helped me save money by bundling my policies. I couldn't be happier with the service!",
-    date: "May 2025",
-  },
-  {
-    name: "Keith M.",
-    rating: 4.5,
-    text: "Very professional and knowledgeable agent. Suzanne helped me find the right coverage for my home and auto. The claims process was smooth and hassle-free.",
-    date: "May 2025",
-  },
-  {
-    name: "Michael T.",
-    rating: 5,
-    text: "Outstanding service! Suzanne goes above and beyond for her clients. She's always available to answer questions and genuinely cares about getting you the best coverage.",
-    date: "May 2025",
-  },
-  {
-    name: "Moses B.",
-    rating: 5,
-    text: "I switched to Allstate because of Suzanne and I'm so glad I did. She found me better coverage at a lower price than my previous insurer. Highly recommend!",
-    date: "April 2025",
-  },
-  {
-    name: "Sarah K.",
-    rating: 5,
-    text: "Suzanne made the insurance process so easy to understand. She patiently answered all my questions and helped me choose the perfect policy for my family's needs.",
-    date: "April 2025",
-  },
-  {
-    name: "Robert L.",
-    rating: 4.5,
-    text: "Great experience working with Suzanne. She's responsive, thorough, and genuinely cares about her clients' well-being. My family has been with her for years.",
-    date: "March 2025",
-  },
-];
-
-const FAQS = [
-  {
-    q: "Can I text your agency with questions?",
-    a: "Yes! We have text messaging services available. You can reach us at (610) 725-8137 for quick questions, policy updates, or to schedule an appointment.",
-  },
-  {
-    q: "What languages do you speak?",
-    a: "We have staff members available who speak English and Spanish. We're committed to serving our diverse community in their preferred language.",
-  },
-  {
-    q: "What states are you licensed in?",
-    a: "Suzanne Dwyer is insurance licensed in Delaware, New Jersey, and Pennsylvania. If you reside outside these states, we can help connect you with another Allstate agent.",
-  },
-  {
-    q: "How can I save money on my insurance?",
-    a: "We offer multiple discounts including multi-policy bundling (save up to 25%), safe driver discounts, claim-free discounts, good student discounts, and more. Contact us for a personalized quote and savings review.",
-  },
-  {
-    q: "Do you offer virtual appointments?",
-    a: "Yes! We offer both in-person and virtual appointments for your convenience. Schedule an appointment that works for you — evenings and weekends available by request.",
-  },
-  {
-    q: "What happens after I file a claim?",
-    a: "Once you file a claim, you'll be assigned a dedicated claims adjuster who will guide you through the process. Allstate's Claim Satisfaction Guarantee ensures you're happy with the outcome, or we'll make it right.",
-  },
-  {
-    q: "How do I know if I need flood insurance?",
-    a: "Flood damage is not covered by standard homeowners insurance. If you live in a flood zone or near water, flood insurance is essential. Even in low-risk areas, about 25% of flood claims come from outside high-risk zones. We can assess your risk and help you decide.",
-  },
-  {
-    q: "Can I bundle different types of insurance?",
-    a: "Absolutely! Bundling your policies (like auto + home) with Allstate can save you up to 25% on your premiums. We also offer multi-car discounts, safe driving bonuses, and loyalty rewards.",
-  },
-];
-
-// ─── Helper Components ─────────────────────────────────────────────
-
-function BriefcaseIcon(props: React.SVGProps<SVGSVGElement> & { size?: number }) {
-  const { size = 24, ...rest } = props;
+function BriefcaseIcon(props: { size?: number; className?: string }) {
+  const { size = 24, className } = props;
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -423,13 +89,125 @@ function BriefcaseIcon(props: React.SVGProps<SVGSVGElement> & { size?: number })
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      {...rest}
+      className={className}
     >
       <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
       <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
     </svg>
   );
 }
+
+function getIcon(iconName: string) {
+  if (iconName === "Briefcase") return BriefcaseIcon;
+  return iconMap[iconName] || Shield;
+}
+
+// ─── Types ───────────────────────────────────────────────────────
+
+interface Settings {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  lightColor: string;
+  darkColor: string;
+  headingFont: string;
+  bodyFont: string;
+  baseFontSize: string;
+  headingFontSize: string;
+  borderRadius: string;
+  siteName: string;
+  siteDescription: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroDescription: string;
+  heroCtaText: string;
+  heroCta2Text: string;
+  footerText: string;
+  footerCopyright: string;
+  [key: string]: string;
+}
+
+interface MenuItem {
+  id: string;
+  label: string;
+  href: string;
+  order: number;
+  visible: boolean;
+  isDropdown: boolean;
+}
+
+interface AgentInfo {
+  name: string;
+  title: string;
+  badge: string;
+  phone: string;
+  phoneLink: string;
+  textNumber: string;
+  email: string;
+  address: string;
+  states: string;
+  languages: string;
+  rating: string;
+  reviewCount: string;
+  photo: string;
+  tagline: string;
+  [key: string]: string;
+}
+
+interface InsurancePage {
+  id: string;
+  slug: string;
+  title: string;
+  tagline: string;
+  description: string;
+  features: string[];
+  tip: string;
+  iconColor: string;
+  iconBgColor: string;
+  iconName: string;
+  order: number;
+  visible: boolean;
+}
+
+interface PageSection {
+  id: string;
+  section: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  content: string;
+  visible: boolean;
+}
+
+interface Testimonial {
+  id: string;
+  name: string;
+  rating: number;
+  text: string;
+  date: string;
+  order: number;
+  visible: boolean;
+}
+
+interface Faq {
+  id: string;
+  question: string;
+  answer: string;
+  order: number;
+  visible: boolean;
+}
+
+interface SiteData {
+  settings: Settings;
+  menuItems: MenuItem[];
+  agentInfo: AgentInfo;
+  insurancePages: InsurancePage[];
+  pageSections: PageSection[];
+  testimonials: Testimonial[];
+  faqs: Faq[];
+}
+
+// ─── Helper Components ───────────────────────────────────────────
 
 function AnimatedSection({
   children,
@@ -441,7 +219,7 @@ function AnimatedSection({
   delay?: number;
 }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
     <motion.div
@@ -476,17 +254,112 @@ function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
   );
 }
 
-// ─── Navigation ────────────────────────────────────────────────────
+// ─── Loading Skeleton ────────────────────────────────────────────
 
-function Navigation() {
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Nav skeleton */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 lg:h-20">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <div className="hidden sm:block space-y-1">
+              <Skeleton className="w-36 h-5" />
+              <Skeleton className="w-28 h-3" />
+            </div>
+          </div>
+          <div className="hidden lg:flex items-center gap-6">
+            {[...Array(7)].map((_, i) => (
+              <Skeleton key={i} className="w-16 h-4" />
+            ))}
+            <Skeleton className="w-28 h-9 rounded-md" />
+          </div>
+          <Skeleton className="lg:hidden w-8 h-8" />
+        </div>
+      </div>
+
+      {/* Hero skeleton */}
+      <div className="min-h-screen flex items-center pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <Skeleton className="w-48 h-8 rounded-full" />
+              <Skeleton className="w-64 h-16" />
+              <Skeleton className="w-48 h-12" />
+              <Skeleton className="w-full max-w-lg h-24" />
+              <div className="flex gap-4">
+                <Skeleton className="w-48 h-14 rounded-xl" />
+                <Skeleton className="w-48 h-14 rounded-xl" />
+              </div>
+            </div>
+            <div className="hidden lg:flex justify-center">
+              <Skeleton className="w-80 h-80 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Services skeleton */}
+      <div className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 space-y-4">
+            <Skeleton className="w-32 h-8 rounded-full mx-auto" />
+            <Skeleton className="w-80 h-10 mx-auto" />
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i} className="border-gray-200">
+                <CardHeader className="pb-3">
+                  <Skeleton className="w-14 h-14 rounded-2xl mb-3" />
+                  <Skeleton className="w-32 h-5" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="w-full h-4 mb-2" />
+                  <Skeleton className="w-24 h-4" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Navigation ──────────────────────────────────────────────────
+
+function Navigation({
+  menuItems,
+  agentInfo,
+  insurancePages,
+  settings,
+}: {
+  menuItems: MenuItem[];
+  agentInfo: AgentInfo;
+  insurancePages: InsurancePage[];
+  settings: Settings;
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Separate top-level nav items and the dropdown item
+  const dropdownItem = menuItems.find((item) => item.isDropdown);
+  const topNavItems = menuItems.filter((item) => !item.isDropdown);
+  // Insurance pages that are NOT already in the top nav
+  const topNavInsuranceHrefs = menuItems
+    .filter((item) => item.href.startsWith("/insurance/"))
+    .map((item) => item.href);
+  const dropdownInsurancePages = insurancePages.filter(
+    (page) => !topNavInsuranceHrefs.includes(`/insurance/${page.slug}`)
+  );
 
   return (
     <motion.nav
@@ -495,46 +368,124 @@ function Navigation() {
       transition={{ duration: 0.5 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-allstate-gray/30"
+          ? "bg-white/95 backdrop-blur-md shadow-lg"
           : "bg-transparent"
       }`}
+      style={scrolled ? { borderBottom: `1px solid ${settings.lightColor}30` } : undefined}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <a href="#hero" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-allstate-blue flex items-center justify-center">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: settings.primaryColor }}
+            >
               <Shield className="w-6 h-6 text-white" />
             </div>
             <div className="hidden sm:block">
-              <p className={`font-bold text-lg leading-tight ${scrolled ? "text-allstate-navy" : "text-white"}`}>
-                Suzanne Dwyer
+              <p
+                className={`font-bold text-lg leading-tight ${scrolled ? "" : "text-white"}`}
+                style={scrolled ? { color: settings.secondaryColor } : undefined}
+              >
+                {agentInfo.name}
               </p>
-              <p className={`text-xs leading-tight ${scrolled ? "text-allstate-blue" : "text-allstate-light"}`}>
-                Allstate Insurance Agent
+              <p
+                className={`text-xs leading-tight ${scrolled ? "" : "text-white/70"}`}
+                style={scrolled ? { color: settings.primaryColor } : undefined}
+              >
+                {agentInfo.title}
               </p>
             </div>
           </a>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-6">
-            {NAV_LINKS.map((link) => (
+          <div className="hidden lg:flex items-center gap-1">
+            {topNavItems.map((item) => (
               <a
-                key={link.href}
-                href={link.href}
-                className={`nav-link text-sm font-medium transition-colors ${
+                key={item.id}
+                href={item.href}
+                className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors ${
                   scrolled
-                    ? "text-allstate-navy hover:text-allstate-blue"
-                    : "text-white/90 hover:text-white"
+                    ? "hover:bg-gray-100"
+                    : "text-white/90 hover:text-white hover:bg-white/10"
                 }`}
+                style={scrolled ? { color: settings.secondaryColor } : undefined}
               >
-                {link.label}
+                {item.label}
               </a>
             ))}
-            <a href={AGENT.phoneLink}>
+
+            {/* More Insurance dropdown */}
+            {dropdownItem && dropdownInsurancePages.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  onMouseEnter={() => setDropdownOpen(true)}
+                  className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 ${
+                    scrolled
+                      ? "hover:bg-gray-100"
+                      : "text-white/90 hover:text-white hover:bg-white/10"
+                  }`}
+                  style={scrolled ? { color: settings.secondaryColor } : undefined}
+                >
+                  {dropdownItem.label}
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                <AnimatePresence>
+                  {dropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.15 }}
+                      onMouseLeave={() => setDropdownOpen(false)}
+                      className="absolute top-full right-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                    >
+                      <div className="py-2">
+                        {dropdownInsurancePages.map((page) => {
+                          const IconComp = getIcon(page.iconName);
+                          return (
+                            <a
+                              key={page.id}
+                              href={`/insurance/${page.slug}`}
+                              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                            >
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                                style={{ backgroundColor: page.iconBgColor }}
+                              >
+                                <IconComp
+                                  size={16}
+                                  style={{ color: page.iconColor }}
+                                />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {page.title}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate max-w-[160px]">
+                                  {page.tagline}
+                                </p>
+                              </div>
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            <a href={agentInfo.phoneLink} className="ml-3">
               <Button
                 size="sm"
-                className="bg-allstate-orange hover:bg-orange-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+                className="text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+                style={{ backgroundColor: settings.accentColor }}
               >
                 <Phone className="w-4 h-4 mr-2" />
                 Get a Quote
@@ -549,9 +500,9 @@ function Navigation() {
             aria-label="Toggle menu"
           >
             {mobileOpen ? (
-              <X className={scrolled ? "text-allstate-navy" : "text-white"} size={24} />
+              <X className={scrolled ? "" : "text-white"} size={24} style={scrolled ? { color: settings.secondaryColor } : undefined} />
             ) : (
-              <Menu className={scrolled ? "text-allstate-navy" : "text-white"} size={24} />
+              <Menu className={scrolled ? "" : "text-white"} size={24} style={scrolled ? { color: settings.secondaryColor } : undefined} />
             )}
           </button>
         </div>
@@ -564,23 +515,83 @@ function Navigation() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white shadow-xl border-t border-allstate-gray/30"
+            className="lg:hidden bg-white shadow-xl border-t border-gray-100"
           >
-            <div className="px-4 py-4 space-y-1">
-              {NAV_LINKS.map((link) => (
+            <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
+              {topNavItems.map((item) => (
                 <a
-                  key={link.href}
-                  href={link.href}
+                  key={item.id}
+                  href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 text-allstate-navy hover:bg-allstate-light/10 hover:text-allstate-blue rounded-lg transition-colors font-medium"
+                  className="block px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
+                  style={{ color: settings.secondaryColor }}
                 >
-                  {link.label}
+                  {item.label}
                 </a>
               ))}
-              <a href={AGENT.phoneLink} className="block pt-2">
-                <Button className="w-full bg-allstate-orange hover:bg-orange-600 text-white font-semibold">
+
+              {/* Mobile dropdown for more insurance */}
+              {dropdownItem && dropdownInsurancePages.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
+                    style={{ color: settings.secondaryColor }}
+                  >
+                    {dropdownItem.label}
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  <AnimatePresence>
+                    {dropdownOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pl-6 space-y-1">
+                          {dropdownInsurancePages.map((page) => {
+                            const IconComp = getIcon(page.iconName);
+                            return (
+                              <a
+                                key={page.id}
+                                href={`/insurance/${page.slug}`}
+                                onClick={() => setMobileOpen(false)}
+                                className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                <div
+                                  className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
+                                  style={{ backgroundColor: page.iconBgColor }}
+                                >
+                                  <IconComp
+                                    size={14}
+                                    style={{ color: page.iconColor }}
+                                  />
+                                </div>
+                                <span className="text-sm" style={{ color: settings.secondaryColor }}>
+                                  {page.title}
+                                </span>
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              <Separator className="my-2" />
+              <a href={agentInfo.phoneLink} className="block pt-2">
+                <Button
+                  className="w-full text-white font-semibold"
+                  style={{ backgroundColor: settings.accentColor }}
+                >
                   <Phone className="w-4 h-4 mr-2" />
-                  Get a Quote: {AGENT.phone}
+                  Get a Quote: {agentInfo.phone}
                 </Button>
               </a>
             </div>
@@ -591,38 +602,54 @@ function Navigation() {
   );
 }
 
-// ─── Hero Section ──────────────────────────────────────────────────
+// ─── Hero Section ────────────────────────────────────────────────
 
-function HeroSection() {
+function HeroSection({
+  settings,
+  agentInfo,
+  heroSection,
+}: {
+  settings: Settings;
+  agentInfo: AgentInfo;
+  heroSection: PageSection | undefined;
+}) {
+  const rating = parseFloat(agentInfo.rating) || 0;
+  const reviewCount = parseInt(agentInfo.reviewCount) || 0;
+  const states = agentInfo.states.split(",").map((s) => s.trim());
+  const languages = agentInfo.languages.split(",").map((s) => s.trim());
+
   return (
     <section
       id="hero"
       className="relative min-h-screen flex items-center overflow-hidden"
     >
-      {/* Background image with overlay */}
+      {/* Gradient background - no house image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/hero-bg.png')" }}
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(135deg, ${settings.darkColor} 0%, ${settings.primaryColor} 40%, ${settings.primaryColor} 60%, ${settings.secondaryColor} 100%)`,
+        }}
       />
-      {/* Dark overlay with Allstate gradient */}
-      <div className="absolute inset-0 bg-allstate-hero/85" />
 
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
           animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-20 left-10 w-72 h-72 bg-allstate-light/10 rounded-full blur-3xl"
+          className="absolute top-20 left-10 w-72 h-72 rounded-full blur-3xl"
+          style={{ backgroundColor: `${settings.lightColor}15` }}
         />
         <motion.div
           animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
           transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-20 right-10 w-96 h-96 bg-allstate-orange/10 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 rounded-full blur-3xl"
+          style={{ backgroundColor: `${settings.accentColor}15` }}
         />
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-allstate-blue/5 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl"
+          style={{ backgroundColor: `${settings.primaryColor}10` }}
         />
         {/* Grid pattern overlay */}
         <div
@@ -644,9 +671,15 @@ function HeroSection() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <Badge className="bg-allstate-orange/20 text-allstate-orange border-allstate-orange/30 mb-6 px-4 py-2 text-sm font-semibold">
+              <Badge
+                className="mb-6 px-4 py-2 text-sm font-semibold border-0"
+                style={{
+                  backgroundColor: `${settings.accentColor}25`,
+                  color: settings.accentColor,
+                }}
+              >
                 <Award className="w-4 h-4 mr-2" />
-                Elite Agent — Allstate
+                {agentInfo.badge} — Allstate
               </Badge>
             </motion.div>
 
@@ -654,10 +687,24 @@ function HeroSection() {
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
+              className="font-bold text-white leading-tight"
+              style={{
+                fontFamily: settings.headingFont,
+                fontSize: `${settings.headingFontSize}px`,
+              }}
             >
-              Suzanne Dwyer
-              <span className="block text-gradient mt-2">Allstate Insurance</span>
+              {heroSection?.title || settings.heroTitle}
+              <span
+                className="block mt-2"
+                style={{
+                  background: `linear-gradient(135deg, ${settings.lightColor}, ${settings.accentColor})`,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {heroSection?.subtitle || settings.heroSubtitle}
+              </span>
             </motion.h1>
 
             <motion.p
@@ -666,7 +713,7 @@ function HeroSection() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="mt-6 text-lg sm:text-xl text-white/80 max-w-lg"
             >
-              Protecting what matters most to you in Wynnewood, PA and across Pennsylvania, New Jersey, and Delaware.
+              {heroSection?.description || settings.heroDescription}
             </motion.p>
 
             {/* Rating */}
@@ -676,10 +723,12 @@ function HeroSection() {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="mt-6 flex items-center gap-3"
             >
-              <StarRating rating={AGENT.rating} size={20} />
-              <span className="text-white font-bold text-lg">{AGENT.rating}</span>
+              <StarRating rating={rating} size={20} />
+              <span className="text-white font-bold text-lg">{rating}</span>
               <span className="text-white/60">|</span>
-              <span className="text-allstate-light font-medium">{AGENT.reviews}+ Reviews</span>
+              <span className="font-medium" style={{ color: settings.lightColor }}>
+                {reviewCount}+ Reviews
+              </span>
             </motion.div>
 
             {/* CTA Buttons */}
@@ -689,23 +738,24 @@ function HeroSection() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="mt-8 flex flex-col sm:flex-row gap-4"
             >
-              <a href={AGENT.phoneLink}>
+              <a href={agentInfo.phoneLink}>
                 <Button
                   size="lg"
-                  className="bg-allstate-orange hover:bg-orange-600 text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                  className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                  style={{ backgroundColor: settings.accentColor }}
                 >
                   <Phone className="w-5 h-5 mr-2" />
-                  Call {AGENT.phone}
+                  {settings.heroCta2Text} {agentInfo.phone}
                 </Button>
               </a>
               <a href="#contact">
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-allstate-light/50 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
+                  className="border-white/30 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />
-                  Get a Free Quote
+                  {settings.heroCtaText}
                 </Button>
               </a>
             </motion.div>
@@ -719,11 +769,19 @@ function HeroSection() {
             >
               {[
                 { icon: Clock, label: "Mon–Fri", value: "8:30–5:00 PM" },
-                { icon: Globe, label: "Languages", value: "EN / ES" },
-                { icon: MapPin, label: "Serving", value: "PA, NJ, DE" },
+                {
+                  icon: Globe,
+                  label: "Languages",
+                  value: languages.map((l) => l.substring(0, 2).toUpperCase()).join(" / "),
+                },
+                {
+                  icon: MapPin,
+                  label: "Serving",
+                  value: states.map((s) => s.substring(0, 2).toUpperCase()).join(", "),
+                },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-2 text-white/70">
-                  <item.icon className="w-4 h-4 text-allstate-light" />
+                  <item.icon className="w-4 h-4 flex-shrink-0" style={{ color: settings.lightColor }} />
                   <div>
                     <p className="text-xs text-white/50">{item.label}</p>
                     <p className="text-sm font-medium text-white/90">{item.value}</p>
@@ -733,49 +791,83 @@ function HeroSection() {
             </motion.div>
           </div>
 
-          {/* Right - Insurance Cards Stack */}
+          {/* Right - Suzanne's Photo */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, delay: 0.3 }}
-            className="hidden lg:block relative"
+            className="hidden lg:flex justify-center items-center"
           >
-            <div className="relative w-full max-w-md mx-auto">
-              {/* Floating insurance cards */}
-              {INSURANCE_TYPES.slice(0, 6).map((item, i) => (
-                <motion.div
-                  key={item.id}
-                  animate={{
-                    y: [0, -8, 0],
-                    rotateZ: i % 2 === 0 ? [-1, 1, -1] : [1, -1, 1],
-                  }}
-                  transition={{
-                    duration: 4 + i * 0.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: i * 0.3,
-                  }}
-                  className="absolute glass rounded-2xl p-4 cursor-pointer hover:scale-105 transition-transform"
-                  style={{
-                    top: `${i * 80}px`,
-                    left: `${i * 15 - 30}px`,
-                    zIndex: 6 - i,
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: `${item.color}20` }}
-                    >
-                      <item.icon size={24} style={{ color: item.color }} />
-                    </div>
-                    <div>
-                      <p className="text-white font-semibold text-sm">{item.title}</p>
-                      <p className="text-white/60 text-xs">{item.tagline}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+            <div className="relative">
+              {/* Decorative ring */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 rounded-full"
+                style={{
+                  border: `2px dashed ${settings.lightColor}40`,
+                  margin: "-16px",
+                }}
+              />
+              {/* Outer glow */}
+              <motion.div
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 rounded-full blur-xl"
+                style={{
+                  backgroundColor: `${settings.lightColor}20`,
+                  margin: "-20px",
+                }}
+              />
+              {/* Photo container */}
+              <div
+                className="relative w-72 h-72 xl:w-80 xl:h-80 rounded-full overflow-hidden shadow-2xl"
+                style={{
+                  border: `6px solid ${settings.lightColor}`,
+                  boxShadow: `0 0 40px ${settings.lightColor}30`,
+                }}
+              >
+                <img
+                  src={agentInfo.photo}
+                  alt={`${agentInfo.name} - ${agentInfo.title}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* Badge floating */}
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-xl text-white font-bold text-sm whitespace-nowrap"
+                style={{ backgroundColor: settings.accentColor }}
+              >
+                <div className="flex items-center gap-2">
+                  <Award className="w-5 h-5" />
+                  {agentInfo.badge}
+                </div>
+              </motion.div>
+              {/* Rating badge */}
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="absolute -right-4 top-8 px-4 py-2 rounded-xl shadow-xl bg-white"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  <span className="font-bold text-gray-900">{rating}</span>
+                  <span className="text-xs text-gray-500">/5</span>
+                </div>
+              </motion.div>
+              {/* Tagline */}
+              <motion.div
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute -left-8 top-16 px-4 py-2 rounded-xl shadow-xl"
+                style={{ backgroundColor: settings.secondaryColor }}
+              >
+                <p className="text-white text-sm font-medium italic">
+                  &ldquo;{agentInfo.tagline}&rdquo;
+                </p>
+              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -793,31 +885,74 @@ function HeroSection() {
   );
 }
 
-// ─── About Section ─────────────────────────────────────────────────
+// ─── About Section ───────────────────────────────────────────────
 
-function AboutSection() {
+function AboutSection({
+  settings,
+  agentInfo,
+  aboutSection,
+}: {
+  settings: Settings;
+  agentInfo: AgentInfo;
+  aboutSection: PageSection | undefined;
+}) {
+  const rating = parseFloat(agentInfo.rating) || 0;
+  const reviewCount = parseInt(agentInfo.reviewCount) || 0;
+  const states = agentInfo.states.split(",").map((s) => s.trim());
+
+  // Parse stats from section content if available
+  let stats: { number: string; label: string }[] = [
+    { number: `${reviewCount}+`, label: "Happy Clients" },
+    { number: agentInfo.rating, label: "Star Rating" },
+    { number: `${states.length}`, label: "States Licensed" },
+    { number: "12+", label: "Insurance Types" },
+  ];
+
+  if (aboutSection?.content) {
+    try {
+      const parsed = JSON.parse(aboutSection.content);
+      if (parsed.stats) stats = parsed.stats;
+    } catch {
+      // use defaults
+    }
+  }
+
   return (
     <section id="about" className="py-20 lg:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Image/Visual Side */}
+          {/* Visual Side */}
           <AnimatedSection>
             <div className="relative">
-              <div className="bg-allstate-gradient rounded-3xl p-8 lg:p-12 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-allstate-light/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-allstate-orange/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+              <div
+                className="rounded-3xl p-8 lg:p-12 text-white relative overflow-hidden"
+                style={{
+                  background: `linear-gradient(135deg, ${settings.secondaryColor} 0%, ${settings.primaryColor} 50%, ${settings.darkColor} 100%)`,
+                }}
+              >
+                <div
+                  className="absolute top-0 right-0 w-40 h-40 rounded-full -translate-y-1/2 translate-x-1/2"
+                  style={{ backgroundColor: `${settings.lightColor}15` }}
+                />
+                <div
+                  className="absolute bottom-0 left-0 w-32 h-32 rounded-full translate-y-1/2 -translate-x-1/2"
+                  style={{ backgroundColor: `${settings.accentColor}15` }}
+                />
 
                 <div className="relative z-10">
-                  <div className="w-24 h-24 rounded-full border-4 border-allstate-light bg-allstate-dark flex items-center justify-center mb-6 overflow-hidden">
+                  <div
+                    className="w-28 h-28 rounded-full border-4 overflow-hidden mb-6 mx-auto lg:mx-0"
+                    style={{ borderColor: settings.lightColor, backgroundColor: settings.darkColor }}
+                  >
                     <img
-                      src="/agent-photo.png"
-                      alt="Suzanne Dwyer - Allstate Insurance Agent"
+                      src={agentInfo.photo}
+                      alt={`${agentInfo.name} - ${agentInfo.title}`}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <h3 className="text-3xl font-bold mb-2">Suzanne Dwyer</h3>
-                  <p className="text-allstate-light font-medium text-lg mb-4">
-                    Allstate Elite Agent
+                  <h3 className="text-3xl font-bold mb-2">{agentInfo.name}</h3>
+                  <p className="font-medium text-lg mb-4" style={{ color: settings.lightColor }}>
+                    Allstate {agentInfo.badge}
                   </p>
                   <p className="text-white/80 mb-6">
                     Dedicated to providing personalized insurance solutions with the backing of
@@ -825,17 +960,14 @@ function AboutSection() {
                   </p>
 
                   <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { number: "273+", label: "Happy Clients" },
-                      { number: "4.3", label: "Star Rating" },
-                      { number: "3", label: "States Licensed" },
-                      { number: "12+", label: "Insurance Types" },
-                    ].map((stat) => (
+                    {stats.map((stat) => (
                       <div
                         key={stat.label}
                         className="bg-white/10 rounded-xl p-4 text-center backdrop-blur-sm"
                       >
-                        <p className="text-2xl font-bold text-allstate-light">{stat.number}</p>
+                        <p className="text-2xl font-bold" style={{ color: settings.lightColor }}>
+                          {stat.number}
+                        </p>
                         <p className="text-sm text-white/70">{stat.label}</p>
                       </div>
                     ))}
@@ -847,11 +979,12 @@ function AboutSection() {
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-4 -right-4 bg-allstate-orange text-white rounded-2xl px-4 py-3 shadow-xl"
+                className="absolute -top-4 -right-4 text-white rounded-2xl px-4 py-3 shadow-xl"
+                style={{ backgroundColor: settings.accentColor }}
               >
                 <div className="flex items-center gap-2">
                   <Award className="w-5 h-5" />
-                  <span className="font-bold text-sm">Elite Agent</span>
+                  <span className="font-bold text-sm">{agentInfo.badge}</span>
                 </div>
               </motion.div>
             </div>
@@ -859,25 +992,28 @@ function AboutSection() {
 
           {/* Content Side */}
           <AnimatedSection delay={0.2}>
-            <Badge className="bg-allstate-blue/10 text-allstate-blue border-allstate-blue/20 mb-4">
-              About Suzanne
+            <Badge
+              className="mb-4 border-0"
+              style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+            >
+              {aboutSection?.subtitle || "About Suzanne"}
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-allstate-navy mb-6">
-              Your Trusted Insurance
-              <span className="text-allstate-blue"> Partner in Wynnewood</span>
+            <h2
+              className="text-3xl sm:text-4xl font-bold mb-6"
+              style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+            >
+              {aboutSection?.title || "Your Trusted Insurance Partner"}
+              <span style={{ color: settings.primaryColor }}> in Wynnewood</span>
             </h2>
-            <p className="text-muted-foreground text-lg mb-6">
-              As an Allstate Elite Agent serving the Wynnewood community, Suzanne Dwyer brings
-              dedication, expertise, and a personal touch to every client relationship. She
-              understands that insurance isn&apos;t just about policies — it&apos;s about protecting
-              the people and things that matter most to you.
-            </p>
-            <p className="text-muted-foreground mb-8">
-              Whether you&apos;re purchasing your first home, starting a business, or looking to
-              protect your family&apos;s future, Suzanne takes the time to understand your unique
-              situation and find the right coverage at the right price. With in-person and virtual
-              appointments available, getting the protection you need has never been easier.
-            </p>
+            {aboutSection?.description && (
+              <>
+                {aboutSection.description.split("\n\n").map((paragraph, i) => (
+                  <p key={i} className="text-muted-foreground text-lg mb-4">
+                    {paragraph}
+                  </p>
+                ))}
+              </>
+            )}
 
             <div className="space-y-4 mb-8">
               {[
@@ -899,15 +1035,20 @@ function AboutSection() {
                 {
                   icon: Globe,
                   title: "Bilingual Service",
-                  desc: "Serving clients in both English and Spanish",
+                  desc: `Serving clients in ${agentInfo.languages}`,
                 },
               ].map((item) => (
                 <div key={item.title} className="flex items-start gap-4 group">
-                  <div className="w-12 h-12 rounded-xl bg-allstate-blue/10 flex items-center justify-center flex-shrink-0 group-hover:bg-allstate-blue/20 transition-colors">
-                    <item.icon className="w-6 h-6 text-allstate-blue" />
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-80 transition-opacity"
+                    style={{ backgroundColor: `${settings.primaryColor}12` }}
+                  >
+                    <item.icon className="w-6 h-6" style={{ color: settings.primaryColor }} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-allstate-navy">{item.title}</h4>
+                    <h4 className="font-semibold" style={{ color: settings.secondaryColor }}>
+                      {item.title}
+                    </h4>
                     <p className="text-sm text-muted-foreground">{item.desc}</p>
                   </div>
                 </div>
@@ -915,7 +1056,10 @@ function AboutSection() {
             </div>
 
             <a href="#contact">
-              <Button className="bg-allstate-blue hover:bg-allstate-navy text-white font-semibold px-8 shadow-lg hover:shadow-xl transition-all">
+              <Button
+                className="text-white font-semibold px-8 shadow-lg hover:shadow-xl transition-all"
+                style={{ backgroundColor: settings.primaryColor }}
+              >
                 Schedule a Consultation
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -927,396 +1071,245 @@ function AboutSection() {
   );
 }
 
-// ─── Services Overview ─────────────────────────────────────────────
+// ─── Services Section ────────────────────────────────────────────
 
-function ServicesSection() {
+function ServicesSection({
+  settings,
+  insurancePages,
+  servicesSection,
+}: {
+  settings: Settings;
+  insurancePages: InsurancePage[];
+  servicesSection: PageSection | undefined;
+}) {
   return (
-    <section id="services" className="py-20 lg:py-28 bg-allstate-light-gradient">
+    <section id="services" className="py-20 lg:py-28" style={{ background: `linear-gradient(180deg, #f8fafc 0%, ${settings.primaryColor}08 100%)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
-          <Badge className="bg-allstate-blue/10 text-allstate-blue border-allstate-blue/20 mb-4">
-            Our Services
+          <Badge
+            className="mb-4 border-0"
+            style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+          >
+            {servicesSection?.subtitle || "Our Services"}
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-allstate-navy mb-4">
-            Comprehensive Insurance <span className="text-allstate-blue">Solutions</span>
+          <h2
+            className="text-3xl sm:text-4xl font-bold mb-4"
+            style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+          >
+            Comprehensive Insurance{" "}
+            <span style={{ color: settings.primaryColor }}>Solutions</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            From auto and home to life and business, Suzanne Dwyer offers a full range of Allstate
-            insurance products to protect every aspect of your life.
+            {servicesSection?.description ||
+              "From auto and home to life and business, we offer a full range of Allstate insurance products to protect every aspect of your life."}
           </p>
         </AnimatedSection>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {INSURANCE_TYPES.map((item, i) => (
-            <AnimatedSection key={item.id} delay={i * 0.05}>
-              <a href={`#insurance-${item.id}`}>
-                <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-allstate-gray/30 h-full">
-                  <CardHeader className="pb-3">
-                    <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
-                      style={{ backgroundColor: item.lightBg }}
-                    >
-                      <item.icon size={28} style={{ color: item.color }} />
-                    </div>
-                    <CardTitle className="text-lg text-allstate-navy group-hover:text-allstate-blue transition-colors">
-                      {item.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-muted-foreground text-sm">
-                      {item.tagline}
-                    </CardDescription>
-                    <div className="mt-4 flex items-center text-allstate-blue font-medium text-sm group-hover:gap-2 transition-all">
-                      Learn More <ArrowRight className="w-4 h-4 ml-1" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </a>
-            </AnimatedSection>
-          ))}
+          {insurancePages.map((page, i) => {
+            const IconComp = getIcon(page.iconName);
+            return (
+              <AnimatedSection key={page.id} delay={i * 0.04}>
+                <a href={`/insurance/${page.slug}`}>
+                  <Card
+                    className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full"
+                    style={{ borderRadius: `${settings.borderRadius}px` }}
+                  >
+                    <CardHeader className="pb-3">
+                      <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+                        style={{ backgroundColor: page.iconBgColor }}
+                      >
+                        <IconComp size={28} style={{ color: page.iconColor }} />
+                      </div>
+                      <CardTitle
+                        className="text-lg group-hover:transition-colors"
+                        style={{ color: settings.secondaryColor }}
+                      >
+                        {page.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-muted-foreground text-sm">
+                        {page.tagline}
+                      </CardDescription>
+                      <div
+                        className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all"
+                        style={{ color: settings.primaryColor }}
+                      >
+                        Learn More <ArrowRight className="w-4 h-4 ml-1" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </a>
+              </AnimatedSection>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-// ─── Insurance Detail Sections ─────────────────────────────────────
+// ─── Why Choose Us Section ───────────────────────────────────────
 
-function InsuranceDetailSections() {
-  return (
-    <section id="insurance" className="py-0">
-      {INSURANCE_TYPES.map((item, index) => (
-        <InsuranceDetail key={item.id} item={item} index={index} />
-      ))}
-    </section>
-  );
-}
-
-function InsuranceDetail({
-  item,
-  index,
+function WhyChooseUsSection({
+  settings,
+  agentInfo,
+  whySection,
 }: {
-  item: (typeof INSURANCE_TYPES)[number];
-  index: number;
+  settings: Settings;
+  agentInfo: AgentInfo;
+  whySection: PageSection | undefined;
 }) {
-  const isEven = index % 2 === 0;
-
-  return (
-    <div
-      id={`insurance-${item.id}`}
-      className={`py-16 lg:py-20 ${isEven ? "bg-white" : "bg-allstate-light-gradient"}`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          className={`grid lg:grid-cols-2 gap-12 lg:gap-16 items-center ${!isEven ? "lg:flex-row-reverse" : ""}`}
-        >
-          {/* Visual Side */}
-          <AnimatedSection className={isEven ? "lg:order-1" : "lg:order-2"}>
-            <div className="relative">
-              <div
-                className="rounded-3xl p-8 lg:p-10 relative overflow-hidden"
-                style={{ backgroundColor: `${item.color}10` }}
-              >
-                <div
-                  className="absolute top-0 right-0 w-48 h-48 rounded-full -translate-y-1/2 translate-x-1/2"
-                  style={{ backgroundColor: `${item.color}15` }}
-                />
-                <div
-                  className="absolute bottom-0 left-0 w-32 h-32 rounded-full translate-y-1/2 -translate-x-1/2"
-                  style={{ backgroundColor: `${item.color}10` }}
-                />
-
-                <div className="relative z-10">
-                  <motion.div
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
-                    style={{ backgroundColor: item.color }}
-                  >
-                    <item.icon size={40} className="text-white" />
-                  </motion.div>
-
-                  <h3
-                    className="text-2xl lg:text-3xl font-bold mb-3"
-                    style={{ color: item.color }}
-                  >
-                    {item.title}
-                  </h3>
-                  <p className="text-lg font-medium" style={{ color: `${item.color}cc` }}>
-                    {item.tagline}
-                  </p>
-
-                  {/* Tip callout */}
-                  <motion.div
-                    animate={{ scale: [1, 1.02, 1] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="mt-8 rounded-2xl p-5 border-l-4"
-                    style={{
-                      backgroundColor: `${item.color}08`,
-                      borderColor: item.color,
-                    }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Sparkles
-                        size={20}
-                        className="flex-shrink-0 mt-0.5"
-                        style={{ color: item.color }}
-                      />
-                      <p className="text-sm font-medium" style={{ color: `${item.color}dd` }}>
-                        {item.tip}
-                      </p>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
-            </div>
-          </AnimatedSection>
-
-          {/* Content Side */}
-          <AnimatedSection
-            delay={0.2}
-            className={isEven ? "lg:order-2" : "lg:order-1"}
-          >
-            <Badge
-              className="mb-4"
-              style={{
-                backgroundColor: `${item.color}15`,
-                color: item.color,
-                borderColor: `${item.color}30`,
-              }}
-            >
-              {item.title}
-            </Badge>
-            <h3 className="text-2xl sm:text-3xl font-bold text-allstate-navy mb-4">
-              {item.tagline}
-            </h3>
-            <p className="text-muted-foreground text-lg mb-8">{item.description}</p>
-
-            <div className="space-y-3 mb-8">
-              {item.features.map((feature) => (
-                <div key={feature} className="flex items-start gap-3">
-                  <CheckCircle2
-                    size={20}
-                    className="flex-shrink-0 mt-0.5"
-                    style={{ color: item.color }}
-                  />
-                  <span className="text-muted-foreground">{feature}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <a href={AGENT.phoneLink}>
-                <Button
-                  className="font-semibold shadow-lg hover:shadow-xl transition-all text-white"
-                  style={{ backgroundColor: item.color }}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Get a Quote
-                </Button>
-              </a>
-              <a href="#contact">
-                <Button
-                  variant="outline"
-                  className="font-semibold"
-                  style={{ borderColor: `${item.color}50`, color: item.color }}
-                >
-                  Contact Suzanne
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </a>
-            </div>
-          </AnimatedSection>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Why Choose Us ─────────────────────────────────────────────────
-
-function WhyChooseUsSection() {
   const reasons = [
     {
+      icon: Shield,
+      title: "Allstate Financial Strength",
+      desc: "Backed by one of the largest insurance companies in America with over 90 years of experience.",
+    },
+    {
       icon: Award,
-      title: "Elite Agent Status",
-      description:
-        "Suzanne has earned Allstate's Elite Agent designation, recognizing exceptional service and client satisfaction year after year.",
+      title: `${agentInfo.badge} Recognition`,
+      desc: "Suzanne's elite status reflects her commitment to exceptional service and client satisfaction.",
     },
     {
       icon: Users,
-      title: "273+ Satisfied Clients",
-      description:
-        "With a 4.3-star rating from over 273 reviews, our clients consistently praise Suzanne's dedication and expertise.",
+      title: "Personalized Attention",
+      desc: "Every client gets a customized insurance review. No cookie-cutter policies here.",
     },
     {
       icon: Handshake,
-      title: "Personal Relationship",
-      description:
-        "You're not just a policy number. Suzanne builds lasting relationships, understanding your evolving needs and adjusting coverage accordingly.",
+      title: "Local Community Expert",
+      desc: `Based in ${agentInfo.address}, Suzanne understands the unique needs of the community.`,
     },
     {
-      icon: Lock,
-      title: "Allstate Financial Strength",
-      description:
-        "Backed by Allstate's financial strength and claims-paying ability, you can trust your coverage will be there when you need it most.",
+      icon: CheckCircle2,
+      title: "Claims Satisfaction Guarantee",
+      desc: "Allstate's Claim Satisfaction Guarantee means you're happy with the outcome, or we make it right.",
     },
     {
-      icon: LifeBuoy,
-      title: "24/7 Claims Support",
-      description:
-        "File a claim anytime, day or night. Allstate's 24/7 claims support means help is always just a phone call away.",
-    },
-    {
-      icon: FileText,
-      title: "Multi-Policy Discounts",
-      description:
-        "Save up to 25% when you bundle auto and home insurance. More coverage, more savings, one trusted agent.",
+      icon: Phone,
+      title: "Easy to Reach",
+      desc: `Call ${agentInfo.phone}, text ${agentInfo.textNumber}, or email — Suzanne is always accessible.`,
     },
   ];
 
   return (
-    <section className="py-20 lg:py-28 bg-allstate-gradient relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10">
-        <div
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 25% 25%, rgba(87,182,255,0.3) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,158,22,0.3) 0%, transparent 50%)",
-          }}
-          className="w-full h-full"
-        />
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <AnimatedSection className="text-center mb-16">
-          <Badge className="bg-white/10 text-allstate-light border-white/20 mb-4">
-            Why Choose Us
-          </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Why Families Trust <span className="text-gradient">Suzanne Dwyer</span>
-          </h2>
-          <p className="text-white/70 text-lg max-w-2xl mx-auto">
-            Choosing the right insurance agent makes all the difference. Here&apos;s why hundreds of
-            families trust Suzanne with their protection.
-          </p>
-        </AnimatedSection>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reasons.map((reason, i) => (
-            <AnimatedSection key={reason.title} delay={i * 0.08}>
-              <Card className="bg-white/10 backdrop-blur-md border-white/10 text-white hover:bg-white/15 transition-all duration-300 hover:-translate-y-1 h-full">
-                <CardHeader>
-                  <div className="w-14 h-14 rounded-2xl bg-allstate-light/20 flex items-center justify-center mb-3">
-                    <reason.icon className="w-7 h-7 text-allstate-light" />
-                  </div>
-                  <CardTitle className="text-white text-lg">{reason.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-white/70 text-sm">{reason.description}</p>
-                </CardContent>
-              </Card>
-            </AnimatedSection>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Testimonials ──────────────────────────────────────────────────
-
-function TestimonialsSection() {
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % TESTIMONIALS.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <section id="testimonials" className="py-20 lg:py-28 bg-white">
+    <section id="why-choose-us" className="py-20 lg:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
-          <Badge className="bg-allstate-blue/10 text-allstate-blue border-allstate-blue/20 mb-4">
-            Testimonials
+          <Badge
+            className="mb-4 border-0"
+            style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+          >
+            {whySection?.subtitle || "Why Choose Us"}
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-allstate-navy mb-4">
-            What Our Clients <span className="text-allstate-blue">Say</span>
+          <h2
+            className="text-3xl sm:text-4xl font-bold mb-4"
+            style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+          >
+            {whySection?.title || "Why Families Trust Suzanne Dwyer"}
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Don&apos;t just take our word for it — hear from the families and individuals who trust
-            Suzanne Dwyer with their insurance needs.
+            {whySection?.description ||
+              "Choosing the right insurance agent makes all the difference. Here's why hundreds of families trust Suzanne with their protection."}
           </p>
         </AnimatedSection>
 
-        {/* Featured testimonial */}
-        <AnimatedSection className="mb-12">
-          <div className="max-w-3xl mx-auto">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                className="text-center"
-              >
-                <div className="mb-6 flex justify-center">
-                  <StarRating rating={TESTIMONIALS[activeIndex].rating} size={24} />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {reasons.map((reason, i) => (
+            <AnimatedSection key={reason.title} delay={i * 0.08}>
+              <div className="group text-center">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform"
+                  style={{ backgroundColor: `${settings.primaryColor}10` }}
+                >
+                  <reason.icon className="w-8 h-8" style={{ color: settings.primaryColor }} />
                 </div>
-                <blockquote className="text-xl lg:text-2xl text-allstate-navy font-medium leading-relaxed mb-6">
-                  &ldquo;{TESTIMONIALS[activeIndex].text}&rdquo;
-                </blockquote>
-                <p className="font-semibold text-allstate-blue text-lg">
-                  {TESTIMONIALS[activeIndex].name}
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  {TESTIMONIALS[activeIndex].date}
-                </p>
-              </motion.div>
-            </AnimatePresence>
+                <h3 className="text-xl font-bold mb-3" style={{ color: settings.secondaryColor }}>
+                  {reason.title}
+                </h3>
+                <p className="text-muted-foreground">{reason.desc}</p>
+              </div>
+            </AnimatedSection>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-            {/* Dots */}
-            <div className="flex justify-center gap-2 mt-8">
-              {TESTIMONIALS.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveIndex(i)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    i === activeIndex
-                      ? "bg-allstate-blue w-8"
-                      : "bg-allstate-gray hover:bg-allstate-blue/30"
-                  }`}
-                  aria-label={`View testimonial ${i + 1}`}
-                />
-              ))}
-            </div>
-          </div>
+// ─── Testimonials Section ────────────────────────────────────────
+
+function TestimonialsSection({
+  settings,
+  testimonials,
+  testimonialsSection,
+}: {
+  settings: Settings;
+  testimonials: Testimonial[];
+  testimonialsSection: PageSection | undefined;
+}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const displayedTestimonials = testimonials.slice(0, 6);
+
+  return (
+    <section
+      id="testimonials"
+      className="py-20 lg:py-28"
+      style={{ background: `linear-gradient(180deg, #f8fafc 0%, ${settings.primaryColor}08 100%)` }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AnimatedSection className="text-center mb-16">
+          <Badge
+            className="mb-4 border-0"
+            style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+          >
+            {testimonialsSection?.subtitle || "Testimonials"}
+          </Badge>
+          <h2
+            className="text-3xl sm:text-4xl font-bold mb-4"
+            style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+          >
+            {testimonialsSection?.title || "What Our Clients Say"}
+          </h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            {testimonialsSection?.description ||
+              "Don't just take our word for it — hear from the families and individuals who trust Suzanne Dwyer with their insurance needs."}
+          </p>
         </AnimatedSection>
 
-        {/* Review cards grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-h-96 overflow-y-auto pr-2">
-          {TESTIMONIALS.map((review, i) => (
-            <AnimatedSection key={i} delay={i * 0.05}>
-              <Card className="h-full border-allstate-gray/30 hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <StarRating rating={review.rating} size={14} />
-                    <span className="text-xs text-muted-foreground">{review.date}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-4">
-                    &ldquo;{review.text}&rdquo;
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-allstate-blue/10 flex items-center justify-center">
-                      <span className="text-allstate-blue font-bold text-sm">
-                        {review.name.charAt(0)}
-                      </span>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayedTestimonials.map((testimonial, i) => (
+            <AnimatedSection key={testimonial.id} delay={i * 0.08}>
+              <Card
+                className="h-full hover:shadow-lg transition-shadow"
+                style={{ borderRadius: `${settings.borderRadius}px` }}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                        style={{ backgroundColor: settings.primaryColor }}
+                      >
+                        {testimonial.name.charAt(0)}
+                      </div>
+                      <div>
+                        <CardTitle className="text-base" style={{ color: settings.secondaryColor }}>
+                          {testimonial.name}
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">{testimonial.date}</p>
+                      </div>
                     </div>
-                    <span className="font-medium text-sm text-allstate-navy">{review.name}</span>
                   </div>
+                  <StarRating rating={testimonial.rating} size={14} />
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-sm leading-relaxed italic">
+                    &ldquo;{testimonial.text}&rdquo;
+                  </p>
                 </CardContent>
               </Card>
             </AnimatedSection>
@@ -1327,38 +1320,56 @@ function TestimonialsSection() {
   );
 }
 
-// ─── FAQ Section ───────────────────────────────────────────────────
+// ─── FAQ Section ─────────────────────────────────────────────────
 
-function FAQSection() {
+function FaqSection({
+  settings,
+  faqs,
+  faqSection,
+}: {
+  settings: Settings;
+  faqs: Faq[];
+  faqSection: PageSection | undefined;
+}) {
   return (
-    <section id="faq" className="py-20 lg:py-28 bg-allstate-light-gradient">
+    <section id="faq" className="py-20 lg:py-28 bg-white">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <AnimatedSection className="text-center mb-12">
-          <Badge className="bg-allstate-blue/10 text-allstate-blue border-allstate-blue/20 mb-4">
-            FAQ
+        <AnimatedSection className="text-center mb-16">
+          <Badge
+            className="mb-4 border-0"
+            style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+          >
+            {faqSection?.subtitle || "FAQ"}
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-allstate-navy mb-4">
-            Frequently Asked <span className="text-allstate-blue">Questions</span>
+          <h2
+            className="text-3xl sm:text-4xl font-bold mb-4"
+            style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+          >
+            {faqSection?.title || "Frequently Asked Questions"}
           </h2>
           <p className="text-muted-foreground text-lg">
-            Have questions? We have answers. If you don&apos;t see what you&apos;re looking for,
-            feel free to contact us directly.
+            {faqSection?.description ||
+              "Have questions? We have answers. If you don't see what you're looking for, feel free to contact us directly."}
           </p>
         </AnimatedSection>
 
-        <AnimatedSection delay={0.1}>
+        <AnimatedSection>
           <Accordion type="single" collapsible className="space-y-3">
-            {FAQS.map((faq, i) => (
+            {faqs.map((faq, i) => (
               <AccordionItem
-                key={i}
-                value={`item-${i}`}
-                className="bg-white rounded-xl border border-allstate-gray/30 px-6 shadow-sm"
+                key={faq.id}
+                value={faq.id}
+                className="border rounded-xl px-6 data-[state=open]:shadow-md transition-shadow"
+                style={{ borderColor: `${settings.primaryColor}20` }}
               >
-                <AccordionTrigger className="text-left text-allstate-navy font-semibold hover:text-allstate-blue hover:no-underline">
-                  {faq.q}
+                <AccordionTrigger
+                  className="text-left font-semibold hover:no-underline py-5"
+                  style={{ color: settings.secondaryColor }}
+                >
+                  {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  {faq.a}
+                <AccordionContent className="text-muted-foreground pb-5 leading-relaxed">
+                  {faq.answer}
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -1369,265 +1380,339 @@ function FAQSection() {
   );
 }
 
-// ─── Contact Section ───────────────────────────────────────────────
+// ─── Contact Section ─────────────────────────────────────────────
 
-function ContactSection() {
+function ContactSection({
+  settings,
+  agentInfo,
+  insurancePages,
+  contactSection,
+}: {
+  settings: Settings;
+  agentInfo: AgentInfo;
+  insurancePages: InsurancePage[];
+  contactSection: PageSection | undefined;
+}) {
   const { toast } = useToast();
-  const [formState, setFormState] = useState({
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     insuranceType: "",
     message: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formState),
-      });
-
-      if (!res.ok) throw new Error("Failed to send message");
-
-      toast({
-        title: "Message Sent!",
-        description: "Thank you for reaching out. Suzanne will get back to you shortly.",
-      });
-      setFormState({ name: "", email: "", phone: "", insuranceType: "", message: "" });
-    } catch {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try calling us directly.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setSubmitting(true);
+      try {
+        const res = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast({
+            title: "Message Sent!",
+            description:
+              data.message ||
+              "Thank you for your inquiry. Suzanne will get back to you within 24 hours.",
+          });
+          setFormData({ name: "", email: "", phone: "", insuranceType: "", message: "" });
+        } else {
+          toast({
+            title: "Error",
+            description: data.error || "Failed to send message. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } catch {
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [formData, toast]
+  );
 
   return (
-    <section id="contact" className="py-20 lg:py-28 bg-white">
+    <section
+      id="contact"
+      className="py-20 lg:py-28"
+      style={{ background: `linear-gradient(180deg, #f8fafc 0%, ${settings.primaryColor}08 100%)` }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
-          <Badge className="bg-allstate-blue/10 text-allstate-blue border-allstate-blue/20 mb-4">
-            Contact Us
+          <Badge
+            className="mb-4 border-0"
+            style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+          >
+            {contactSection?.subtitle || "Contact Us"}
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-allstate-navy mb-4">
-            Get in <span className="text-allstate-blue">Touch</span>
+          <h2
+            className="text-3xl sm:text-4xl font-bold mb-4"
+            style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+          >
+            {contactSection?.title || "Get in Touch"}
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Ready to protect what matters most? Contact Suzanne today for a free, no-obligation
-            insurance consultation and quote.
+            {contactSection?.description ||
+              "Ready to protect what matters most? Contact Suzanne today for a free, no-obligation insurance consultation and quote."}
           </p>
         </AnimatedSection>
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Contact Form */}
           <AnimatedSection>
-            <Card className="border-allstate-gray/30 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-allstate-navy">Request a Free Quote</CardTitle>
-                <CardDescription>
-                  Fill out the form below and Suzanne will get back to you within 24 hours.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name *</Label>
-                      <Input
-                        id="name"
-                        placeholder="John Smith"
-                        required
-                        value={formState.name}
-                        onChange={(e) =>
-                          setFormState((s) => ({ ...s, name: e.target.value }))
-                        }
-                        className="border-allstate-gray/50 focus:border-allstate-blue"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="john@example.com"
-                        required
-                        value={formState.email}
-                        onChange={(e) =>
-                          setFormState((s) => ({ ...s, email: e.target.value }))
-                        }
-                        className="border-allstate-gray/50 focus:border-allstate-blue"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="(555) 123-4567"
-                        value={formState.phone}
-                        onChange={(e) =>
-                          setFormState((s) => ({ ...s, phone: e.target.value }))
-                        }
-                        className="border-allstate-gray/50 focus:border-allstate-blue"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="insuranceType">Insurance Type</Label>
-                      <select
-                        id="insuranceType"
-                        value={formState.insuranceType}
-                        onChange={(e) =>
-                          setFormState((s) => ({ ...s, insuranceType: e.target.value }))
-                        }
-                        className="flex h-10 w-full rounded-md border border-allstate-gray/50 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-allstate-blue focus-visible:ring-offset-2"
-                      >
-                        <option value="">Select a type...</option>
-                        {INSURANCE_TYPES.map((type) => (
-                          <option key={type.id} value={type.id}>
-                            {type.title}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
+            <Card
+              className="p-6 lg:p-8"
+              style={{ borderRadius: `${settings.borderRadius}px` }}
+            >
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid sm:grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      placeholder="Tell us about your insurance needs..."
-                      rows={4}
-                      value={formState.message}
+                    <Label htmlFor="name">
+                      Full Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      placeholder="John Smith"
+                      value={formData.name}
                       onChange={(e) =>
-                        setFormState((s) => ({ ...s, message: e.target.value }))
+                        setFormData((prev) => ({ ...prev, name: e.target.value }))
                       }
-                      className="border-allstate-gray/50 focus:border-allstate-blue"
+                      required
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">
+                      Email <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="john@example.com"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, email: e.target.value }))
+                      }
+                      required
+                    />
+                  </div>
+                </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-allstate-blue hover:bg-allstate-navy text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-                  >
-                    {isSubmitting ? (
-                      "Sending..."
-                    ) : (
-                      <>
-                        Send Message <ArrowRight className="w-4 h-4 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="(610) 555-1234"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="insuranceType">Insurance Type</Label>
+                    <select
+                      id="insuranceType"
+                      value={formData.insuranceType}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, insuranceType: e.target.value }))
+                      }
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">Select insurance type</option>
+                      {insurancePages.map((page) => (
+                        <option key={page.id} value={page.title}>
+                          {page.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="message">Message</Label>
+                  <Textarea
+                    id="message"
+                    placeholder="Tell us about your insurance needs..."
+                    rows={4}
+                    value={formData.message}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, message: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full text-white font-semibold py-6 text-lg"
+                  style={{ backgroundColor: settings.primaryColor }}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full mr-2"
+                      />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5 mr-2" />
+                      Send Message
+                    </>
+                  )}
+                </Button>
+              </form>
             </Card>
           </AnimatedSection>
 
           {/* Contact Info */}
           <AnimatedSection delay={0.2}>
             <div className="space-y-6">
-              {/* Phone Card */}
-              <Card className="border-allstate-gray/30 hover:shadow-lg transition-shadow">
-                <CardContent className="flex items-center gap-4 pt-6">
-                  <div className="w-14 h-14 rounded-2xl bg-allstate-blue/10 flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-7 h-7 text-allstate-blue" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-allstate-navy">Call Us</h4>
-                    <a
-                      href={AGENT.phoneLink}
-                      className="text-allstate-blue font-bold text-lg hover:underline"
+              <Card
+                className="p-6"
+                style={{ borderRadius: `${settings.borderRadius}px` }}
+              >
+                <h3 className="text-xl font-bold mb-6" style={{ color: settings.secondaryColor }}>
+                  Contact Information
+                </h3>
+                <div className="space-y-5">
+                  <a
+                    href={agentInfo.phoneLink}
+                    className="flex items-center gap-4 group hover:bg-gray-50 -mx-3 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: `${settings.primaryColor}12` }}
                     >
-                      {AGENT.phone}
-                    </a>
-                    <p className="text-sm text-muted-foreground">24/7 Support Available</p>
+                      <Phone className="w-5 h-5" style={{ color: settings.primaryColor }} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Call Us</p>
+                      <p className="font-semibold group-hover:underline" style={{ color: settings.secondaryColor }}>
+                        {agentInfo.phone}
+                      </p>
+                    </div>
+                  </a>
+
+                  <a
+                    href={`sms:${agentInfo.textNumber}`}
+                    className="flex items-center gap-4 group hover:bg-gray-50 -mx-3 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: `${settings.accentColor}15` }}
+                    >
+                      <MessageCircle className="w-5 h-5" style={{ color: settings.accentColor }} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Text Us</p>
+                      <p className="font-semibold group-hover:underline" style={{ color: settings.secondaryColor }}>
+                        {agentInfo.textNumber}
+                      </p>
+                    </div>
+                  </a>
+
+                  <a
+                    href={`mailto:${agentInfo.email}`}
+                    className="flex items-center gap-4 group hover:bg-gray-50 -mx-3 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: `${settings.primaryColor}12` }}
+                    >
+                      <Mail className="w-5 h-5" style={{ color: settings.primaryColor }} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Email Us</p>
+                      <p className="font-semibold group-hover:underline text-sm" style={{ color: settings.secondaryColor }}>
+                        {agentInfo.email}
+                      </p>
+                    </div>
+                  </a>
+
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: `${settings.primaryColor}12` }}
+                    >
+                      <MapPin className="w-5 h-5" style={{ color: settings.primaryColor }} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Visit Us</p>
+                      <p className="font-semibold" style={{ color: settings.secondaryColor }}>
+                        {agentInfo.address}
+                      </p>
+                    </div>
                   </div>
-                </CardContent>
+                </div>
               </Card>
 
-              {/* Text Card */}
-              <Card className="border-allstate-gray/30 hover:shadow-lg transition-shadow">
-                <CardContent className="flex items-center gap-4 pt-6">
-                  <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center flex-shrink-0">
-                    <MessageCircle className="w-7 h-7 text-green-600" />
+              <Card
+                className="p-6"
+                style={{ borderRadius: `${settings.borderRadius}px` }}
+              >
+                <h3 className="text-xl font-bold mb-4" style={{ color: settings.secondaryColor }}>
+                  Office Hours
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 flex-shrink-0" style={{ color: settings.primaryColor }} />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium" style={{ color: settings.secondaryColor }}>Monday – Friday</span>
+                        <span className="text-sm text-muted-foreground">8:30 AM – 5:00 PM</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium" style={{ color: settings.secondaryColor }}>Saturday – Sunday</span>
+                        <span className="text-sm text-muted-foreground">Closed</span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-allstate-navy">Text Us</h4>
-                    <a
-                      href={`sms:${AGENT.textNumber}`}
-                      className="text-green-600 font-bold text-lg hover:underline"
-                    >
-                      {AGENT.textNumber}
-                    </a>
-                    <p className="text-sm text-muted-foreground">Quick questions welcome</p>
-                  </div>
-                </CardContent>
+                  <Separator />
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Phone className="w-4 h-4" style={{ color: settings.accentColor }} />
+                    After-hours appointments available by request
+                  </p>
+                </div>
               </Card>
 
-              {/* Email Card */}
-              <Card className="border-allstate-gray/30 hover:shadow-lg transition-shadow">
-                <CardContent className="flex items-center gap-4 pt-6">
-                  <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-7 h-7 text-allstate-orange" />
-                  </div>
+              <Card
+                className="p-6 text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${settings.secondaryColor}, ${settings.primaryColor})`,
+                  borderRadius: `${settings.borderRadius}px`,
+                }}
+              >
+                <div className="flex items-start gap-4">
+                  <img
+                    src={agentInfo.photo}
+                    alt={agentInfo.name}
+                    className="w-16 h-16 rounded-full border-2 object-cover flex-shrink-0"
+                    style={{ borderColor: settings.lightColor }}
+                  />
                   <div>
-                    <h4 className="font-semibold text-allstate-navy">Email Us</h4>
-                    <a
-                      href={`mailto:${AGENT.email}`}
-                      className="text-allstate-orange font-bold hover:underline break-all"
-                    >
-                      {AGENT.email}
-                    </a>
-                    <p className="text-sm text-muted-foreground">Response within 24 hours</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Location Card */}
-              <Card className="border-allstate-gray/30 hover:shadow-lg transition-shadow">
-                <CardContent className="flex items-center gap-4 pt-6">
-                  <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-7 h-7 text-red-500" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-allstate-navy">Visit Us</h4>
-                    <p className="text-allstate-navy font-medium">{AGENT.address}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Serving {AGENT.states.join(", ")}
+                    <p className="font-bold text-lg">{agentInfo.name}</p>
+                    <p className="text-sm opacity-80">{agentInfo.title}</p>
+                    <p className="text-sm mt-2 italic" style={{ color: settings.lightColor }}>
+                      &ldquo;{agentInfo.tagline}&rdquo;
                     </p>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Hours Card */}
-              <Card className="border-allstate-gray/30 hover:shadow-lg transition-shadow">
-                <CardContent className="flex items-center gap-4 pt-6">
-                  <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-7 h-7 text-purple-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-allstate-navy">Office Hours</h4>
-                    <p className="text-muted-foreground">
-                      {Object.entries(AGENT.hours).map(([key, val]) => (
-                        <span key={key} className="block text-sm">
-                          <span className="font-medium text-allstate-navy">{key}:</span> {val}
-                        </span>
-                      ))}
-                    </p>
-                  </div>
-                </CardContent>
+                </div>
               </Card>
             </div>
           </AnimatedSection>
@@ -1637,43 +1722,67 @@ function ContactSection() {
   );
 }
 
-// ─── CTA Banner ────────────────────────────────────────────────────
+// ─── CTA Banner ──────────────────────────────────────────────────
 
-function CTABanner() {
+function CtaBanner({
+  settings,
+  agentInfo,
+  ctaSection,
+}: {
+  settings: Settings;
+  agentInfo: AgentInfo;
+  ctaSection: PageSection | undefined;
+}) {
   return (
-    <section className="py-16 bg-allstate-gradient relative overflow-hidden">
-      <motion.div
-        animate={{ x: [0, 30, 0], y: [0, -15, 0] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute top-0 left-0 w-64 h-64 bg-allstate-light/10 rounded-full blur-3xl"
-      />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+    <section
+      className="py-16 lg:py-20 relative overflow-hidden"
+      style={{
+        background: `linear-gradient(135deg, ${settings.darkColor} 0%, ${settings.primaryColor} 50%, ${settings.secondaryColor} 100%)`,
+      }}
+    >
+      {/* Decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-3xl"
+          style={{ backgroundColor: `${settings.lightColor}10` }}
+        />
+        <div
+          className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full blur-3xl"
+          style={{ backgroundColor: `${settings.accentColor}10` }}
+        />
+      </div>
+
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <AnimatedSection>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Ready to Protect What Matters Most?
+          <h2
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6"
+            style={{ fontFamily: settings.headingFont }}
+          >
+            {ctaSection?.title || "Ready to Protect What Matters Most?"}
           </h2>
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-            Get a personalized insurance quote from Suzanne Dwyer today. Bundle and save up to 25%
-            on your premiums!
+            {ctaSection?.description ||
+              "Get a personalized insurance quote from Suzanne Dwyer today. Bundle and save up to 25% on your premiums!"}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href={AGENT.phoneLink}>
+            <a href={agentInfo.phoneLink}>
               <Button
                 size="lg"
-                className="bg-allstate-orange hover:bg-orange-600 text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                className="text-white font-bold text-lg px-10 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                style={{ backgroundColor: settings.accentColor }}
               >
                 <Phone className="w-5 h-5 mr-2" />
-                Call {AGENT.phone}
+                Call {agentInfo.phone}
               </Button>
             </a>
             <a href="#contact">
               <Button
                 size="lg"
                 variant="outline"
-                className="border-allstate-light/50 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
+                className="border-white/30 text-white hover:bg-white/10 font-bold text-lg px-10 py-6 bg-transparent"
               >
-                <FileText className="w-5 h-5 mr-2" />
-                Request a Quote Online
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Get a Free Quote
               </Button>
             </a>
           </div>
@@ -1683,143 +1792,259 @@ function CTABanner() {
   );
 }
 
-// ─── Footer ────────────────────────────────────────────────────────
+// ─── Footer ──────────────────────────────────────────────────────
 
-function Footer() {
+function Footer({
+  settings,
+  agentInfo,
+  insurancePages,
+}: {
+  settings: Settings;
+  agentInfo: AgentInfo;
+  insurancePages: InsurancePage[];
+}) {
+  const states = agentInfo.states.split(",").map((s) => s.trim());
+  const topInsurance = insurancePages.slice(0, 6);
+  const moreInsurance = insurancePages.slice(6);
+
   return (
-    <footer className="bg-allstate-dark text-white">
+    <footer
+      className="text-white"
+      style={{ backgroundColor: settings.darkColor }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Agent Info */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-allstate-blue flex items-center justify-center">
+            <div className="flex items-center gap-3 mb-5">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: settings.primaryColor }}
+              >
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="font-bold text-lg">Suzanne Dwyer</p>
-                <p className="text-allstate-light text-sm">Allstate Insurance Agent</p>
+                <p className="font-bold text-lg">{agentInfo.name}</p>
+                <p className="text-xs text-white/60">{agentInfo.title}</p>
               </div>
             </div>
-            <p className="text-white/60 text-sm mb-4">
-              Elite Agent serving Wynnewood, PA and the surrounding communities in Pennsylvania, New
-              Jersey, and Delaware.
+            <p className="text-white/70 text-sm mb-4">{settings.siteDescription}</p>
+            <p className="text-sm italic" style={{ color: settings.lightColor }}>
+              &ldquo;{agentInfo.tagline}&rdquo;
             </p>
-            <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-allstate-orange" />
-              <span className="text-allstate-orange font-semibold text-sm">Elite Agent</span>
-            </div>
           </div>
 
-          {/* Insurance Links */}
+          {/* Insurance Products */}
           <div>
-            <h4 className="font-semibold text-white mb-4">Insurance</h4>
-            <ul className="space-y-2">
-              {INSURANCE_TYPES.slice(0, 6).map((type) => (
-                <li key={type.id}>
+            <h4 className="font-bold text-lg mb-5">Insurance Products</h4>
+            <ul className="space-y-2.5">
+              {topInsurance.map((page) => (
+                <li key={page.id}>
                   <a
-                    href={`#insurance-${type.id}`}
-                    className="text-white/60 hover:text-allstate-light text-sm transition-colors"
+                    href={`/insurance/${page.slug}`}
+                    className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1.5"
                   >
-                    {type.title}
+                    <ChevronRight size={12} />
+                    {page.title}
+                  </a>
+                </li>
+              ))}
+              {moreInsurance.length > 0 && (
+                <li className="pt-2">
+                  <p className="text-xs text-white/40 mb-2 uppercase tracking-wider">More Products</p>
+                  {moreInsurance.map((page) => (
+                    <a
+                      key={page.id}
+                      href={`/insurance/${page.slug}`}
+                      className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1.5 py-1"
+                    >
+                      <ChevronRight size={12} />
+                      {page.title}
+                    </a>
+                  ))}
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="font-bold text-lg mb-5">Quick Links</h4>
+            <ul className="space-y-2.5">
+              {[
+                { label: "Home", href: "/" },
+                { label: "About Suzanne", href: "/#about" },
+                { label: "Our Services", href: "/#services" },
+                { label: "Why Choose Us", href: "/#why-choose-us" },
+                { label: "Testimonials", href: "/#testimonials" },
+                { label: "FAQ", href: "/#faq" },
+                { label: "Contact Us", href: "/#contact" },
+              ].map((link) => (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1.5"
+                  >
+                    <ChevronRight size={12} />
+                    {link.label}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* More Insurance */}
+          {/* Contact */}
           <div>
-            <h4 className="font-semibold text-white mb-4">More Services</h4>
-            <ul className="space-y-2">
-              {INSURANCE_TYPES.slice(6).map((type) => (
-                <li key={type.id}>
-                  <a
-                    href={`#insurance-${type.id}`}
-                    className="text-white/60 hover:text-allstate-light text-sm transition-colors"
-                  >
-                    {type.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Contact</h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-allstate-light" />
-                <a href={AGENT.phoneLink} className="text-white/60 hover:text-allstate-light text-sm">
-                  {AGENT.phone}
-                </a>
+            <h4 className="font-bold text-lg mb-5">Contact Us</h4>
+            <div className="space-y-4">
+              <a
+                href={agentInfo.phoneLink}
+                className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-sm"
+              >
+                <Phone size={16} style={{ color: settings.lightColor }} />
+                {agentInfo.phone}
+              </a>
+              <a
+                href={`sms:${agentInfo.textNumber}`}
+                className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-sm"
+              >
+                <MessageCircle size={16} style={{ color: settings.accentColor }} />
+                Text: {agentInfo.textNumber}
+              </a>
+              <a
+                href={`mailto:${agentInfo.email}`}
+                className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-sm"
+              >
+                <Mail size={16} style={{ color: settings.lightColor }} />
+                {agentInfo.email}
+              </a>
+              <div className="flex items-start gap-3 text-white/70 text-sm">
+                <MapPin size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
+                {agentInfo.address}
               </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-allstate-light" />
-                <a href={`mailto:${AGENT.email}`} className="text-white/60 hover:text-allstate-light text-sm break-all">
-                  {AGENT.email}
-                </a>
+              <div className="flex items-start gap-3 text-white/70 text-sm">
+                <Globe size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
+                Licensed in {agentInfo.states}
               </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-allstate-light" />
-                <span className="text-white/60 text-sm">{AGENT.address}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-allstate-light" />
-                <span className="text-white/60 text-sm">Mon–Fri: 8:30 AM – 5:00 PM</span>
+              <div className="flex items-start gap-3 text-white/70 text-sm">
+                <Clock size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
+                Mon–Fri: 8:30 AM – 5:00 PM
               </div>
             </div>
           </div>
         </div>
 
-        <Separator className="bg-white/10 mb-8" />
+        <Separator className="my-10 bg-white/10" />
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-center sm:text-left">
-            <p className="text-white/50 text-xs">
-              © {new Date().getFullYear()} Suzanne Dwyer – Allstate Insurance Agent. All Rights
-              Reserved.
-            </p>
-            <p className="text-white/30 text-xs mt-1">
-              You&apos;re in good hands® — Allstate Insurance Company
-            </p>
-          </div>
-          <div className="flex items-center gap-4 text-xs text-white/40">
-            <a href="https://www.allstate.com/" target="_blank" rel="noopener noreferrer" className="hover:text-allstate-light transition-colors">
-              Allstate.com
-            </a>
-            <a href="https://www.allstate.com/privacy-center" target="_blank" rel="noopener noreferrer" className="hover:text-allstate-light transition-colors">
-              Privacy
-            </a>
-            <a href="https://www.allstate.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-allstate-light transition-colors">
-              Terms
-            </a>
-          </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/50">
+          <p>&copy; {new Date().getFullYear()} {settings.footerCopyright}</p>
+          <p>{settings.footerText}</p>
         </div>
       </div>
     </footer>
   );
 }
 
-// ─── Main Page ─────────────────────────────────────────────────────
+// ─── Main Page ───────────────────────────────────────────────────
 
 export default function HomePage() {
+  const [data, setData] = useState<SiteData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch("/api/site-data");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const json: SiteData = await res.json();
+        setData(json);
+      } catch (err) {
+        console.error("Error fetching site data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading || !data) {
+    return <LoadingSkeleton />;
+  }
+
+  const { settings, menuItems, agentInfo, insurancePages, pageSections, testimonials, faqs } = data;
+
+  // Helper to get section by name
+  const getSection = (name: string) => pageSections.find((s) => s.section === name);
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navigation />
+    <div
+      style={
+        {
+          "--dynamic-primary": settings.primaryColor,
+          "--dynamic-secondary": settings.secondaryColor,
+          "--dynamic-accent": settings.accentColor,
+          "--dynamic-light": settings.lightColor,
+          "--dynamic-dark": settings.darkColor,
+          fontFamily: settings.bodyFont,
+          fontSize: `${settings.baseFontSize}px`,
+        } as React.CSSProperties
+      }
+      className="min-h-screen flex flex-col"
+    >
+      <Navigation
+        menuItems={menuItems}
+        agentInfo={agentInfo}
+        insurancePages={insurancePages}
+        settings={settings}
+      />
       <main className="flex-1">
-        <HeroSection />
-        <AboutSection />
-        <ServicesSection />
-        <InsuranceDetailSections />
-        <WhyChooseUsSection />
-        <TestimonialsSection />
-        <FAQSection />
-        <ContactSection />
-        <CTABanner />
+        <HeroSection
+          settings={settings}
+          agentInfo={agentInfo}
+          heroSection={getSection("hero")}
+        />
+        <AboutSection
+          settings={settings}
+          agentInfo={agentInfo}
+          aboutSection={getSection("about")}
+        />
+        <ServicesSection
+          settings={settings}
+          insurancePages={insurancePages}
+          servicesSection={getSection("services")}
+        />
+        <WhyChooseUsSection
+          settings={settings}
+          agentInfo={agentInfo}
+          whySection={getSection("whyChooseUs")}
+        />
+        <TestimonialsSection
+          settings={settings}
+          testimonials={testimonials}
+          testimonialsSection={getSection("testimonials")}
+        />
+        <FaqSection
+          settings={settings}
+          faqs={faqs}
+          faqSection={getSection("faq")}
+        />
+        <ContactSection
+          settings={settings}
+          agentInfo={agentInfo}
+          insurancePages={insurancePages}
+          contactSection={getSection("contact")}
+        />
+        <CtaBanner
+          settings={settings}
+          agentInfo={agentInfo}
+          ctaSection={getSection("ctaBanner")}
+        />
       </main>
-      <Footer />
+      <Footer
+        settings={settings}
+        agentInfo={agentInfo}
+        insurancePages={insurancePages}
+      />
     </div>
   );
 }
