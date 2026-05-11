@@ -122,6 +122,12 @@ interface Settings {
   heroDescription: string;
   heroCtaText: string;
   heroCta2Text: string;
+  heroBannerImage: string;
+  heroBannerOverlay: string;
+  heroBannerOverlayOpacity: string;
+  aboutBgColor: string;
+  servicesBgColor: string;
+  footerBgColor: string;
   footerText: string;
   footerCopyright: string;
   [key: string]: string;
@@ -614,18 +620,35 @@ function HeroSection({
   const states = agentInfo.states.split(",").map((s) => s.trim());
   const languages = agentInfo.languages.split(",").map((s) => s.trim());
 
+  const hasBannerImage = !!settings.heroBannerImage;
+  const overlayColor = settings.heroBannerOverlay || "#001e60";
+  const overlayOpacity = Math.min(100, Math.max(0, parseInt(settings.heroBannerOverlayOpacity || "80"))) / 100;
+
   return (
     <section
       id="hero"
       className="relative min-h-screen flex items-center overflow-hidden"
     >
-      {/* Gradient background - no house image */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `linear-gradient(135deg, ${settings.darkColor} 0%, ${settings.primaryColor} 40%, ${settings.primaryColor} 60%, ${settings.secondaryColor} 100%)`,
-        }}
-      />
+      {/* Background - banner image or gradient */}
+      {hasBannerImage ? (
+        <>
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${settings.heroBannerImage})` }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: overlayColor, opacity: overlayOpacity }}
+          />
+        </>
+      ) : (
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(135deg, ${settings.darkColor} 0%, ${settings.primaryColor} 40%, ${settings.primaryColor} 60%, ${settings.secondaryColor} 100%)`,
+          }}
+        />
+      )}
 
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -914,7 +937,7 @@ function AboutSection({
   }
 
   return (
-    <section id="about" className="py-20 lg:py-28 bg-white">
+    <section id="about" className={`py-20 lg:py-28 ${settings.aboutBgColor ? "" : "bg-white"}`} style={settings.aboutBgColor ? { backgroundColor: settings.aboutBgColor } : undefined}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Visual Side */}
@@ -1079,7 +1102,7 @@ function ServicesSection({
   servicesSection: PageSection | undefined;
 }) {
   return (
-    <section id="services" className="py-20 lg:py-28" style={{ background: `linear-gradient(180deg, #f8fafc 0%, ${settings.primaryColor}08 100%)` }}>
+    <section id="services" className="py-20 lg:py-28" style={settings.servicesBgColor ? { backgroundColor: settings.servicesBgColor } : { background: `linear-gradient(180deg, #f8fafc 0%, ${settings.primaryColor}08 100%)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
           <Badge
@@ -1806,7 +1829,7 @@ function Footer({
   return (
     <footer
       className="text-white"
-      style={{ backgroundColor: settings.darkColor }}
+      style={{ backgroundColor: settings.footerBgColor || settings.darkColor }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">

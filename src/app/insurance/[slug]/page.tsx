@@ -93,6 +93,12 @@ interface InsurancePageData {
   iconName: string;
   order: number;
   visible: boolean;
+  bannerImage: string;
+  bannerColorFrom: string;
+  bannerColorTo: string;
+  backgroundColor: string;
+  cardAccentColor: string;
+  textColor: string;
 }
 
 interface MenuItemData {
@@ -414,13 +420,31 @@ function Navigation({
 function InsuranceHero({ page }: { page: InsurancePageData }) {
   const color = page.iconColor || "#0033A0";
 
+  // Determine banner gradient: custom fields override iconColor-based default
+  const gradientFrom = page.bannerColorFrom || color;
+  const gradientTo = page.bannerColorTo || "#001e60";
+  const hasCustomGradient = !!(page.bannerColorFrom || page.bannerColorTo);
+  const hasBannerImage = !!page.bannerImage;
+
   return (
     <section className="relative min-h-[70vh] flex items-center overflow-hidden">
-      {/* Gradient background */}
+      {/* Banner image background */}
+      {hasBannerImage && (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${page.bannerImage})` }}
+        />
+      )}
+
+      {/* Gradient overlay — covers full section; doubles as overlay when image is present */}
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(135deg, ${color} 0%, ${color}cc 40%, ${color}99 70%, #001e60 100%)`,
+          background: hasBannerImage
+            ? `linear-gradient(135deg, ${gradientFrom}cc 0%, ${gradientTo}cc 100%)`
+            : hasCustomGradient
+              ? `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientFrom}cc 40%, ${gradientTo}cc 70%, ${gradientTo} 100%)`
+              : `linear-gradient(135deg, ${color} 0%, ${color}cc 40%, ${color}99 70%, #001e60 100%)`,
         }}
       />
 
@@ -430,7 +454,7 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
           animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           className="absolute top-20 left-10 w-72 h-72 rounded-full blur-3xl"
-          style={{ backgroundColor: `${color}40` }}
+          style={{ backgroundColor: `${gradientFrom}40` }}
         />
         <motion.div
           animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
@@ -441,7 +465,7 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl"
-          style={{ backgroundColor: `${color}20` }}
+          style={{ backgroundColor: `${gradientFrom}20` }}
         />
         {/* Grid pattern overlay */}
         <div
@@ -476,7 +500,7 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
               className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
             >
               {page.title}
-              <span className="block mt-2" style={{ color: `${color}50` }}>
+              <span className="block mt-2" style={{ color: `${gradientFrom}50` }}>
                 {page.tagline}
               </span>
             </motion.h1>
@@ -533,18 +557,18 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
             >
               <div
                 className="w-48 h-48 rounded-3xl flex items-center justify-center shadow-2xl"
-                style={{ backgroundColor: `${color}90` }}
+                style={{ backgroundColor: `${gradientFrom}90` }}
               >
                 <DynamicIcon name={page.iconName} size={80} className="text-white" />
               </div>
               {/* Decorative circles */}
               <div
                 className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-30"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: gradientFrom }}
               />
               <div
                 className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full opacity-20"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: gradientFrom }}
               />
             </motion.div>
           </motion.div>
@@ -558,9 +582,14 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
 
 function DescriptionSection({ page }: { page: InsurancePageData }) {
   const color = page.iconColor || "#0033A0";
+  const accentColor = page.cardAccentColor || color;
+  const textOverride = page.textColor || "";
 
   return (
-    <section className="py-20 lg:py-28 bg-white">
+    <section
+      className={`py-20 lg:py-28 ${!page.backgroundColor ? "bg-white" : ""}`}
+      style={page.backgroundColor ? { backgroundColor: page.backgroundColor } : undefined}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Visual Side */}
@@ -568,15 +597,15 @@ function DescriptionSection({ page }: { page: InsurancePageData }) {
             <div className="relative">
               <div
                 className="rounded-3xl p-8 lg:p-10 relative overflow-hidden"
-                style={{ backgroundColor: `${color}10` }}
+                style={{ backgroundColor: `${accentColor}10` }}
               >
                 <div
                   className="absolute top-0 right-0 w-48 h-48 rounded-full -translate-y-1/2 translate-x-1/2"
-                  style={{ backgroundColor: `${color}15` }}
+                  style={{ backgroundColor: `${accentColor}15` }}
                 />
                 <div
                   className="absolute bottom-0 left-0 w-32 h-32 rounded-full translate-y-1/2 -translate-x-1/2"
-                  style={{ backgroundColor: `${color}10` }}
+                  style={{ backgroundColor: `${accentColor}10` }}
                 />
 
                 <div className="relative z-10">
@@ -584,18 +613,18 @@ function DescriptionSection({ page }: { page: InsurancePageData }) {
                     animate={{ y: [0, -6, 0] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                     className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
-                    style={{ backgroundColor: color }}
+                    style={{ backgroundColor: accentColor }}
                   >
                     <DynamicIcon name={page.iconName} size={40} className="text-white" />
                   </motion.div>
 
                   <h3
                     className="text-2xl lg:text-3xl font-bold mb-3"
-                    style={{ color }}
+                    style={{ color: accentColor }}
                   >
                     {page.title}
                   </h3>
-                  <p className="text-lg font-medium" style={{ color: `${color}cc` }}>
+                  <p className="text-lg font-medium" style={{ color: `${accentColor}cc` }}>
                     {page.tagline}
                   </p>
 
@@ -610,10 +639,10 @@ function DescriptionSection({ page }: { page: InsurancePageData }) {
                       <div
                         key={stat.label}
                         className="rounded-xl p-4 text-center"
-                        style={{ backgroundColor: `${color}12` }}
+                        style={{ backgroundColor: `${accentColor}12` }}
                       >
-                        <p className="text-2xl font-bold" style={{ color }}>{stat.number}</p>
-                        <p className="text-sm" style={{ color: `${color}aa` }}>{stat.label}</p>
+                        <p className="text-2xl font-bold" style={{ color: accentColor }}>{stat.number}</p>
+                        <p className="text-sm" style={{ color: `${accentColor}aa` }}>{stat.label}</p>
                       </div>
                     ))}
                   </div>
@@ -627,27 +656,27 @@ function DescriptionSection({ page }: { page: InsurancePageData }) {
             <Badge
               className="mb-4"
               style={{
-                backgroundColor: `${color}15`,
-                color,
-                borderColor: `${color}30`,
+                backgroundColor: `${accentColor}15`,
+                color: accentColor,
+                borderColor: `${accentColor}30`,
               }}
             >
               {page.title}
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-allstate-navy mb-6">
+            <h2 className={`text-3xl sm:text-4xl font-bold mb-6 ${!textOverride ? "text-allstate-navy" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
               {page.tagline}
             </h2>
-            <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
+            <p className={`text-lg mb-6 leading-relaxed ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
               {page.description}
             </p>
-            <p className="text-muted-foreground mb-8">
+            <p className={`mb-8 ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
               As an Allstate Elite Agent, Suzanne Dwyer takes the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
             </p>
 
             <a href="tel:16107259900">
               <Button
                 className="font-semibold shadow-lg hover:shadow-xl transition-all text-white"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: accentColor }}
               >
                 <Phone className="w-4 h-4 mr-2" />
                 Get a Free Quote
@@ -664,25 +693,30 @@ function DescriptionSection({ page }: { page: InsurancePageData }) {
 
 function FeaturesGrid({ page }: { page: InsurancePageData }) {
   const color = page.iconColor || "#0033A0";
+  const accentColor = page.cardAccentColor || color;
+  const textOverride = page.textColor || "";
 
   return (
-    <section className="py-20 lg:py-28 bg-allstate-light-gradient">
+    <section
+      className={`py-20 lg:py-28 ${!page.backgroundColor ? "bg-allstate-light-gradient" : ""}`}
+      style={page.backgroundColor ? { backgroundColor: page.backgroundColor } : undefined}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
           <Badge
             className="mb-4"
             style={{
-              backgroundColor: `${color}15`,
-              color,
-              borderColor: `${color}30`,
+              backgroundColor: `${accentColor}15`,
+              color: accentColor,
+              borderColor: `${accentColor}30`,
             }}
           >
             Coverage Details
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-allstate-navy mb-4">
-            What&apos;s <span style={{ color }}>Covered</span>
+          <h2 className={`text-3xl sm:text-4xl font-bold mb-4 ${!textOverride ? "text-allstate-navy" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+            What&apos;s <span style={{ color: accentColor }}>Covered</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className={`text-lg max-w-2xl mx-auto ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
             {page.title} from Allstate provides comprehensive protection. Here&apos;s what your policy includes:
           </p>
         </AnimatedSection>
@@ -695,15 +729,15 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
                   <div className="flex items-start gap-4">
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
-                      style={{ backgroundColor: `${color}15` }}
+                      style={{ backgroundColor: `${accentColor}15` }}
                     >
                       <CheckCircle2
                         size={20}
                         className="flex-shrink-0"
-                        style={{ color }}
+                        style={{ color: accentColor }}
                       />
                     </div>
-                    <p className="text-allstate-navy font-medium text-sm leading-relaxed">
+                    <p className={`font-medium text-sm leading-relaxed ${!textOverride ? "text-allstate-navy" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
                       {feature}
                     </p>
                   </div>
@@ -721,11 +755,16 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
 
 function ProTipCallout({ page }: { page: InsurancePageData }) {
   const color = page.iconColor || "#0033A0";
+  const accentColor = page.cardAccentColor || color;
+  const textOverride = page.textColor || "";
 
   if (!page.tip) return null;
 
   return (
-    <section className="py-16 bg-white">
+    <section
+      className={`py-16 ${!page.backgroundColor ? "bg-white" : ""}`}
+      style={page.backgroundColor ? { backgroundColor: page.backgroundColor } : undefined}
+    >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection>
           <motion.div
@@ -733,22 +772,22 @@ function ProTipCallout({ page }: { page: InsurancePageData }) {
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="rounded-3xl p-8 lg:p-10 border-l-4 shadow-lg"
             style={{
-              backgroundColor: `${color}08`,
-              borderColor: color,
+              backgroundColor: `${accentColor}08`,
+              borderColor: accentColor,
             }}
           >
             <div className="flex items-start gap-4">
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: `${color}20` }}
+                style={{ backgroundColor: `${accentColor}20` }}
               >
-                <Sparkles size={28} style={{ color }} />
+                <Sparkles size={28} style={{ color: accentColor }} />
               </div>
               <div>
-                <h3 className="font-bold text-xl mb-2" style={{ color }}>
+                <h3 className="font-bold text-xl mb-2" style={{ color: accentColor }}>
                   Pro Tip from Suzanne
                 </h3>
-                <p className="text-muted-foreground text-lg leading-relaxed">
+                <p className={`text-lg leading-relaxed ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
                   {page.tip}
                 </p>
               </div>

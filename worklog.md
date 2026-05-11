@@ -199,3 +199,174 @@ Stage Summary:
 - Children can be moved between parents via edit mode
 - Cascade delete when removing a dropdown group
 - Both homepage and insurance sub-pages render the same dropdown navigation
+
+---
+Task ID: 9
+Agent: API Update Agent
+Task: Update Insurance Page API routes to handle new banner/color fields
+
+Work Log:
+- Read Prisma schema: confirmed new fields already exist (bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor)
+- Updated /api/admin/insurance/route.ts POST handler:
+  - Added 6 new fields to destructured body type (bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor)
+  - Added all 6 fields to db.insurancePage.create() data with empty string defaults
+- Updated /api/admin/insurance/route.ts PUT handler:
+  - Added 6 new fields to destructured body type
+  - Added conditional assignments to data object for all 6 new fields
+- Verified /api/site-data/route.ts: Prisma findMany returns all columns by default, and the `...page` spread in the map includes all fields — no changes needed
+- Ran `bun run db:push` — database already in sync with schema
+- Ran `bun run lint` — passes cleanly with zero errors
+
+Stage Summary:
+- POST and PUT handlers for /api/admin/insurance now accept and store all 6 new banner/color fields
+- GET handlers (both admin and site-data) automatically return the new fields via Prisma
+- No changes needed to site-data route since Prisma findMany includes all model columns
+- Lint passes cleanly
+
+---
+Task ID: 3
+Agent: Admin Dashboard Update Agent
+Task: Update Admin Dashboard with Page Appearance tab and Insurance Form banner/appearance fields
+
+Work Log:
+- Added 6 new SiteSetting entries to seed.ts (heroBannerImage, heroBannerOverlay, heroBannerOverlayOpacity, aboutBgColor, servicesBgColor, footerBgColor) and ran seed to populate DB
+- Added Palette, ChevronsUpDown, Eye icon imports from lucide-react
+- Updated TabId type to include 'appearance'
+- Added 'Page Appearance' tab to TABS array with Palette icon (positioned second, after Site Settings)
+- Added AppearanceTab rendering in main dashboard content area
+- Created AppearanceTab component with:
+  - Two grouped sections: "Homepage Banner" (heroBannerImage, heroBannerOverlay, heroBannerOverlayOpacity) and "Section Backgrounds" (aboutBgColor, servicesBgColor, footerBgColor)
+  - Color picker + text input + live swatch for color fields
+  - Image URL input with preview for heroBannerImage
+  - Slider + quick-preset buttons (0/25/50/75/100%) + live opacity preview for heroBannerOverlayOpacity
+  - "Live Color Preview" card showing all 4 section colors as swatches
+  - Save via PUT /api/admin/settings (only saves appearance-related keys)
+- Updated InsurancePage interface with 6 new fields: bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor
+- Updated InsuranceForm with collapsible "Banner & Appearance" section at bottom:
+  - Toggle button with Palette icon and ChevronsUpDown indicator
+  - "Customized" badge shown when any appearance field has a value
+  - Banner Image URL input with image preview
+  - Banner Gradient Start/End color pickers with gradient preview bar
+  - Background Color, Card Accent Color, Text Color Override pickers with preview swatches
+  - All color fields have both native color picker and text input
+- Lint passes cleanly with zero errors
+- Dev server compiles and serves /admin/dashboard with HTTP 200
+
+Stage Summary:
+- Admin dashboard now has 8 tabs (added Page Appearance as 2nd tab)
+- Page Appearance tab manages homepage hero banner image/overlay/opacity and section background colors
+- Insurance page edit form includes collapsible Banner & Appearance section with 6 new fields
+- All appearance settings support live preview swatches
+- Settings API verified to return all 25 settings including 6 new appearance entries
+
+---
+Task ID: 5
+Agent: Homepage Banner/Background Settings Agent
+Task: Update Homepage to use banner/background settings from SiteSetting
+
+Work Log:
+- Read worklog.md and full page.tsx (2046 lines) to understand existing codebase
+- Updated Settings interface with 6 new keys: heroBannerImage, heroBannerOverlay, heroBannerOverlayOpacity, aboutBgColor, servicesBgColor, footerBgColor
+- Updated HeroSection component:
+  - Added hasBannerImage flag from settings.heroBannerImage (non-empty check)
+  - Computed overlayColor from settings.heroBannerOverlay (default: #001e60)
+  - Computed overlayOpacity from settings.heroBannerOverlayOpacity (default: 80, clamped 0-100, divided by 100 for CSS opacity)
+  - If banner image is set: renders background-image div (bg-cover bg-center bg-no-repeat) + semi-transparent overlay div on top
+  - If no banner image: keeps existing gradient behavior unchanged
+- Updated AboutSection component:
+  - If settings.aboutBgColor is set (non-empty): uses inline backgroundColor style, removes bg-white class
+  - If not set: keeps bg-white class for default white background
+- Updated ServicesSection component:
+  - If settings.servicesBgColor is set: uses inline backgroundColor style instead of the default gradient
+  - If not set: keeps existing linear-gradient(180deg, #f8fafc → primaryColor08) background
+- Updated Footer component:
+  - If settings.footerBgColor is set: uses it as backgroundColor instead of settings.darkColor
+  - If not set: falls back to settings.darkColor
+- All changes follow the principle: if a custom setting is set (non-empty string), use it; otherwise fall back to existing default behavior
+- Lint passes cleanly with zero errors
+- Dev server compiles and renders successfully
+
+Stage Summary:
+- Homepage now respects all 6 new SiteSetting keys for banner/background customization
+- Hero section supports optional banner image with configurable overlay color and opacity
+- About, Services, and Footer sections support custom background colors from admin settings
+- All changes are backward-compatible — empty settings fall back to original behavior
+
+---
+Task ID: 4
+Agent: Insurance Sub-Page Update Agent
+Task: Update Insurance Sub-Page to use new banner/color fields from InsurancePage model
+
+Work Log:
+- Read worklog.md to understand previous agent work (Tasks 1-9, plus Tasks 3/5 homepage agents)
+- Read /src/app/insurance/[slug]/page.tsx (1121 lines) to understand existing structure
+- Updated InsurancePageData interface with 6 new fields: bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor
+- Updated InsuranceHero component:
+  - Added gradientFrom/gradientTo derived from bannerColorFrom/bannerColorTo with iconColor/#001e60 fallbacks
+  - Added hasCustomGradient flag (bannerColorFrom or bannerColorTo is set)
+  - Added hasBannerImage flag (bannerImage is set)
+  - If bannerImage is set: renders background-image div (bg-cover bg-center) then semi-transparent gradient overlay on top
+  - If custom gradient is set (no image): uses gradientFrom/gradientTo for the 4-stop gradient
+  - If neither: falls back to existing iconColor-based gradient (original behavior)
+  - Updated tagline color, icon card, and decorative circles to use gradientFrom instead of color
+- Updated DescriptionSection component:
+  - Added accentColor = page.cardAccentColor || color for card/icon/button accents
+  - Added textOverride = page.textColor for heading/description text color override
+  - Section background: if page.backgroundColor is set, uses inline backgroundColor style; otherwise bg-white class
+  - Visual side card: all color references changed from `color` to `accentColor` (backgrounds, icon, headings, stats)
+  - Content side: headings/descriptions use textOverride if set, otherwise text-allstate-navy/text-muted-foreground
+  - Button and Badge use accentColor instead of color
+- Updated FeaturesGrid component:
+  - Added accentColor = page.cardAccentColor || color
+  - Added textOverride = page.textColor
+  - Section background: if page.backgroundColor is set, uses inline style; otherwise bg-allstate-light-gradient class
+  - Badge and feature card check icons use accentColor instead of color
+  - Headings and feature text use textOverride if set
+- Updated ProTipCallout component:
+  - Added accentColor = page.cardAccentColor || color
+  - Added textOverride = page.textColor
+  - Section background: if page.backgroundColor is set, uses inline style; otherwise bg-white class
+  - Tip card border, icon, and heading use accentColor instead of color
+  - Tip description text uses textOverride if set
+- Key principle: if a custom field is non-empty, it overrides; otherwise existing default behavior (based on iconColor) is preserved
+- Verified Prisma schema already has the 6 new fields (added by Task 9 agent)
+- Regenerated Prisma Client and cleared .next cache so API returns new fields
+- Confirmed /api/site-data now returns all 6 new fields in insurancePages objects
+- bun run lint passes cleanly with zero errors
+- Dev server compiles and serves /insurance/auto with HTTP 200
+
+Stage Summary:
+- Insurance sub-page now fully supports all 6 new InsurancePage banner/color fields
+- Hero section: banner image with overlay, custom gradient colors, or fallback to iconColor gradient
+- Description and Features sections: custom background color, card accent color, text color override
+- Pro Tip callout: custom background color, accent color, text color override
+- All changes are backward-compatible — empty field values fall back to original iconColor-based behavior
+
+---
+Task ID: 10
+Agent: Main Agent
+Task: Reorganize menu into "Insurance Types" dropdown with Auto/Home/Life/Business + More Insurance; add admin page banner/background/color editing
+
+Work Log:
+- Updated Prisma schema: added 6 new fields to InsurancePage model (bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor)
+- Ran db:push to sync schema changes
+- Created and ran menu reorganization script (scripts/reorganize-menu.ts):
+  - Deleted all existing flat menu items
+  - Created new structure: Home | About | Insurance Types (dropdown) | Contact
+  - Insurance Types children: Auto Insurance, Home Insurance, Life Insurance, Business Insurance, More Insurance
+- Added 6 new SiteSetting entries for homepage appearance (heroBannerImage, heroBannerOverlay, heroBannerOverlayOpacity, aboutBgColor, servicesBgColor, footerBgColor)
+- Delegated to sub-agents for parallel work:
+  - Agent 3: Updated admin dashboard with new "Page Appearance" tab (Palette icon) + updated InsuranceForm with collapsible Banner & Appearance section
+  - Agent 6: Updated /api/admin/insurance POST/PUT routes to handle 6 new banner/color fields
+  - Agent 4: Updated insurance sub-page to use new banner/color fields with fallback behavior
+  - Agent 5: Updated homepage to use banner/background settings from SiteSetting
+- Lint passes cleanly, all pages serve HTTP 200
+- All changes are backward-compatible
+
+Stage Summary:
+- Menu reorganized: "Insurance Types" dropdown with Auto, Home, Life, Business, More Insurance as children
+- Admin can manage submenus (add, move, remove, reorder) via Menu Items tab
+- Admin "Page Appearance" tab controls homepage hero banner image, overlay color/opacity, section backgrounds
+- Insurance page edit form includes collapsible Banner & Appearance section with 6 color/image fields
+- Both homepage and insurance pages respect custom banner/color settings when set
+- Empty settings fall back to original default behavior

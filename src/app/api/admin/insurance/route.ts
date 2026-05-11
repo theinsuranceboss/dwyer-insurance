@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible } = body as {
+    const { slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor } = body as {
       slug: string;
       title: string;
       tagline?: string;
@@ -51,6 +51,12 @@ export async function POST(request: NextRequest) {
       iconName?: string;
       order?: number;
       visible?: boolean;
+      bannerImage?: string;
+      bannerColorFrom?: string;
+      bannerColorTo?: string;
+      backgroundColor?: string;
+      cardAccentColor?: string;
+      textColor?: string;
     };
 
     if (!slug || !title) {
@@ -73,6 +79,12 @@ export async function POST(request: NextRequest) {
         iconName: iconName ?? "Shield",
         order: order ?? 0,
         visible: visible ?? true,
+        bannerImage: bannerImage ?? "",
+        bannerColorFrom: bannerColorFrom ?? "",
+        bannerColorTo: bannerColorTo ?? "",
+        backgroundColor: backgroundColor ?? "",
+        cardAccentColor: cardAccentColor ?? "",
+        textColor: textColor ?? "",
       },
     });
 
@@ -95,7 +107,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { id, slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible } = body as {
+    const { id, slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor } = body as {
       id: string;
       slug?: string;
       title?: string;
@@ -108,6 +120,12 @@ export async function PUT(request: NextRequest) {
       iconName?: string;
       order?: number;
       visible?: boolean;
+      bannerImage?: string;
+      bannerColorFrom?: string;
+      bannerColorTo?: string;
+      backgroundColor?: string;
+      cardAccentColor?: string;
+      textColor?: string;
     };
 
     if (!id) {
@@ -129,6 +147,12 @@ export async function PUT(request: NextRequest) {
     if (iconName !== undefined) data.iconName = iconName;
     if (order !== undefined) data.order = order;
     if (visible !== undefined) data.visible = visible;
+    if (bannerImage !== undefined) data.bannerImage = bannerImage;
+    if (bannerColorFrom !== undefined) data.bannerColorFrom = bannerColorFrom;
+    if (bannerColorTo !== undefined) data.bannerColorTo = bannerColorTo;
+    if (backgroundColor !== undefined) data.backgroundColor = backgroundColor;
+    if (cardAccentColor !== undefined) data.cardAccentColor = cardAccentColor;
+    if (textColor !== undefined) data.textColor = textColor;
 
     const insurancePage = await db.insurancePage.update({
       where: { id },
