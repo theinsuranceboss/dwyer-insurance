@@ -134,6 +134,7 @@ interface MenuItem {
   order: number;
   visible: boolean;
   isDropdown: boolean;
+  parent: string | null;
 }
 
 interface AgentInfo {

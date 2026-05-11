@@ -3,10 +3,10 @@ import { db } from "@/lib/db";
 
 export async function GET() {
   try {
-    const [settings, menuItems, agentInfo, insurancePages, pageSections, testimonials, faqs] =
+    const [settings, allMenuItems, agentInfo, insurancePages, pageSections, testimonials, faqs] =
       await Promise.all([
         db.siteSetting.findMany(),
-        db.menuItem.findMany({ where: { visible: true }, orderBy: { order: "asc" } }),
+        db.menuItem.findMany({ orderBy: { order: "asc" } }),
         db.agentInfo.findMany(),
         db.insurancePage.findMany({
           where: { visible: true },
@@ -16,6 +16,17 @@ export async function GET() {
         db.testimonial.findMany({ where: { visible: true }, orderBy: { order: "asc" } }),
         db.faqItem.findMany({ where: { visible: true }, orderBy: { order: "asc" } }),
       ]);
+
+    // Filter menu items: hide invisible items and children of invisible parents
+    const invisibleParentIds = new Set(
+      allMenuItems.filter((item) => !item.visible && !item.parent).map((item) => item.id)
+    );
+    const menuItems = allMenuItems.filter((item) => {
+      if (!item.visible) return false;
+      // If this is a child item, check if its parent is visible
+      if (item.parent && invisibleParentIds.has(item.parent)) return false;
+      return true;
+    });
 
     // Convert settings array to key-value map
     const settingsMap: Record<string, string> = {};
