@@ -52,6 +52,9 @@ import {
   MapPin,
   Globe,
   MessageSquare,
+  Palette,
+  ChevronsUpDown,
+  Eye,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -88,6 +91,12 @@ interface InsurancePage {
   iconName: string;
   order: number;
   visible: boolean;
+  bannerImage: string;
+  bannerColorFrom: string;
+  bannerColorTo: string;
+  backgroundColor: string;
+  cardAccentColor: string;
+  textColor: string;
 }
 
 interface PageSection {
@@ -126,7 +135,7 @@ interface FaqItem {
   visible: boolean;
 }
 
-type TabId = 'settings' | 'menu' | 'insurance' | 'sections' | 'agent' | 'testimonials' | 'faqs';
+type TabId = 'settings' | 'menu' | 'insurance' | 'sections' | 'agent' | 'testimonials' | 'faqs' | 'appearance';
 
 // ─── API helper ───────────────────────────────────────────────────────────────
 
@@ -178,6 +187,7 @@ const SECTION_LABELS: Record<string, string> = {
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'settings', label: 'Site Settings', icon: <Settings className="w-4 h-4" /> },
+  { id: 'appearance', label: 'Page Appearance', icon: <Palette className="w-4 h-4" /> },
   { id: 'menu', label: 'Menu Items', icon: <Menu className="w-4 h-4" /> },
   { id: 'insurance', label: 'Insurance Pages', icon: <Shield className="w-4 h-4" /> },
   { id: 'sections', label: 'Page Sections', icon: <LayoutTemplate className="w-4 h-4" /> },
@@ -288,6 +298,7 @@ export default function AdminDashboard() {
 
         <div className="p-6">
           {activeTab === 'settings' && <SettingsTab />}
+          {activeTab === 'appearance' && <AppearanceTab />}
           {activeTab === 'menu' && <MenuTab />}
           {activeTab === 'insurance' && <InsuranceTab />}
           {activeTab === 'sections' && <SectionsTab />}
@@ -412,6 +423,247 @@ function SettingsTab() {
       <Button onClick={handleSave} disabled={saving} className="bg-[#0033A0] hover:bg-[#001e60]">
         {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
         Save Settings
+      </Button>
+    </div>
+  );
+}
+
+// ─── Page Appearance Tab ──────────────────────────────────────────────────────
+
+const APPEARANCE_SECTIONS: {
+  title: string;
+  description: string;
+  keys: string[];
+}[] = [
+  {
+    title: 'Homepage Banner',
+    description: 'Configure the hero section background image, overlay color, and opacity.',
+    keys: ['heroBannerImage', 'heroBannerOverlay', 'heroBannerOverlayOpacity'],
+  },
+  {
+    title: 'Section Backgrounds',
+    description: 'Set background colors for different page sections.',
+    keys: ['aboutBgColor', 'servicesBgColor', 'footerBgColor'],
+  },
+];
+
+function AppearanceTab() {
+  const { toast } = useToast();
+  const [settings, setSettings] = useState<SiteSetting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const fetchSettings = useCallback(async () => {
+    try {
+      const res = await apiFetch('/api/admin/settings');
+      const data = await res.json();
+      setSettings(data.settings || []);
+    } catch {
+      toast({ title: 'Error', description: 'Failed to load settings', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => { fetchSettings(); }, [fetchSettings]);
+
+  const updateValue = (key: string, value: string) => {
+    setSettings((prev) => prev.map((s) => (s.key === key ? { ...s, value } : s)));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Only save appearance-related settings
+      const appearanceKeys = APPEARANCE_SECTIONS.flatMap((s) => s.keys);
+      const appearanceSettings = settings.filter((s) => appearanceKeys.includes(s.key));
+      const res = await apiFetch('/api/admin/settings', {
+        method: 'PUT',
+        body: JSON.stringify({ settings: appearanceSettings.map(({ key, value }) => ({ key, value })) }),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: 'Success', description: 'Appearance settings saved successfully' });
+    } catch {
+      toast({ title: 'Error', description: 'Failed to save appearance settings', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <LoadingSpinner />;
+
+  const getSetting = (key: string) => settings.find((s) => s.key === key);
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      {APPEARANCE_SECTIONS.map((section) => {
+        const sectionSettings = section.keys
+          .map((key) => getSetting(key))
+          .filter((s): s is SiteSetting => !!s);
+
+        return (
+          <Card key={section.title}>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Palette className="w-5 h-5 text-[#0033A0]" />
+                {section.title}
+              </CardTitle>
+              <p className="text-sm text-gray-500">{section.description}</p>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {sectionSettings.map((setting) => (
+                <div key={setting.id} className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    {setting.label || setting.key}
+                  </Label>
+                  {setting.type === 'color' ? (
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={setting.value || '#ffffff'}
+                        onChange={(e) => updateValue(setting.key, e.target.value)}
+                        className="w-10 h-10 rounded cursor-pointer border border-gray-200"
+                      />
+                      <Input
+                        value={setting.value}
+                        onChange={(e) => updateValue(setting.key, e.target.value)}
+                        className="w-36 font-mono text-sm"
+                        placeholder="#ffffff"
+                      />
+                      <div
+                        className="w-10 h-10 rounded-lg border shadow-sm"
+                        style={{ backgroundColor: setting.value || '#ffffff' }}
+                      />
+                      {setting.value && (
+                        <span className="text-xs text-gray-400">
+                          {setting.value}
+                        </span>
+                      )}
+                    </div>
+                  ) : setting.type === 'image' ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-gray-400" />
+                        <Input
+                          value={setting.value}
+                          onChange={(e) => updateValue(setting.key, e.target.value)}
+                          placeholder="https://example.com/image.jpg"
+                          className="flex-1"
+                        />
+                      </div>
+                      {setting.value && (
+                        <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden border bg-gray-50">
+                          <img
+                            src={setting.value}
+                            alt="Banner preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          <div className="absolute bottom-1 right-1">
+                            <Badge variant="secondary" className="text-[10px]">
+                              <Eye className="w-3 h-3 mr-1" /> Preview
+                            </Badge>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : setting.key.includes('Opacity') ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-4">
+                        <Slider
+                          value={[parseInt(setting.value) || 0]}
+                          onValueChange={([v]) => updateValue(setting.key, v.toString())}
+                          min={0}
+                          max={100}
+                          step={1}
+                          className="w-64"
+                        />
+                        <span className="text-sm font-medium w-12 text-center bg-gray-100 rounded px-2 py-1">
+                          {setting.value}%
+                        </span>
+                      </div>
+                      <div className="flex gap-1">
+                        {[0, 25, 50, 75, 100].map((v) => (
+                          <Button
+                            key={v}
+                            size="sm"
+                            variant={setting.value === v.toString() ? 'default' : 'outline'}
+                            className="text-xs h-7"
+                            onClick={() => updateValue(setting.key, v.toString())}
+                          >
+                            {v}%
+                          </Button>
+                        ))}
+                      </div>
+                      {/* Live opacity preview */}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-400">Preview:</span>
+                        <div className="relative w-32 h-8 rounded overflow-hidden border">
+                          <div className="absolute inset-0 bg-gradient-to-r from-gray-200 to-white" />
+                          <div
+                            className="absolute inset-0"
+                            style={{
+                              backgroundColor: getSetting('heroBannerOverlay')?.value || '#001e60',
+                              opacity: (parseInt(setting.value) || 0) / 100,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Input
+                      value={setting.value}
+                      onChange={(e) => updateValue(setting.key, e.target.value)}
+                      type={setting.type === 'size' ? 'number' : 'text'}
+                    />
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {/* Color Palette Preview */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Eye className="w-5 h-5 text-[#0033A0]" />
+            Live Color Preview
+          </CardTitle>
+          <p className="text-sm text-gray-500">Quick overview of all appearance colors</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { key: 'heroBannerOverlay', label: 'Hero Overlay' },
+              { key: 'aboutBgColor', label: 'About BG' },
+              { key: 'servicesBgColor', label: 'Services BG' },
+              { key: 'footerBgColor', label: 'Footer BG' },
+            ].map(({ key, label }) => {
+              const setting = getSetting(key);
+              const color = setting?.value || '#ffffff';
+              return (
+                <div key={key} className="text-center">
+                  <div
+                    className="w-full h-16 rounded-lg border shadow-sm mb-1"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span className="text-xs text-gray-500">{label}</span>
+                  <br />
+                  <span className="text-[10px] font-mono text-gray-400">{color}</span>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button onClick={handleSave} disabled={saving} className="bg-[#0033A0] hover:bg-[#001e60]">
+        {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+        Save Appearance Settings
       </Button>
     </div>
   );
@@ -977,6 +1229,7 @@ function InsuranceForm({
   isNew?: boolean;
 }) {
   const [newFeature, setNewFeature] = useState('');
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
 
   const addFeature = () => {
     if (newFeature.trim()) {
@@ -990,6 +1243,9 @@ function InsuranceForm({
     features.splice(index, 1);
     onChange({ ...data, features });
   };
+
+  // Check if any appearance field has a value to show indicator
+  const hasAppearanceValues = !!(data.bannerImage || data.bannerColorFrom || data.bannerColorTo || data.backgroundColor || data.cardAccentColor || data.textColor);
 
   return (
     <Card className="border-[#0033A0]/20">
@@ -1073,6 +1329,175 @@ function InsuranceForm({
             <Switch checked={data.visible !== false} onCheckedChange={(v) => onChange({ ...data, visible: v })} />
           </div>
         </div>
+
+        {/* Banner & Appearance Section */}
+        <Separator className="my-2" />
+        <button
+          type="button"
+          onClick={() => setAppearanceOpen(!appearanceOpen)}
+          className="w-full flex items-center justify-between py-2 group"
+        >
+          <div className="flex items-center gap-2">
+            <Palette className="w-4 h-4 text-[#0033A0]" />
+            <span className="font-medium text-sm text-[#001e60]">Banner &amp; Appearance</span>
+            {hasAppearanceValues && (
+              <Badge className="text-[10px] bg-emerald-100 text-emerald-700">Customized</Badge>
+            )}
+          </div>
+          <ChevronsUpDown className={`w-4 h-4 text-gray-400 transition-transform ${appearanceOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {appearanceOpen && (
+          <div className="space-y-4 border-l-2 border-[#0033A0]/20 pl-4">
+            {/* Banner Image */}
+            <div className="space-y-2">
+              <Label className="text-sm">Banner Image URL</Label>
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <Input
+                  value={data.bannerImage || ''}
+                  onChange={(e) => onChange({ ...data, bannerImage: e.target.value })}
+                  placeholder="https://example.com/banner.jpg"
+                />
+              </div>
+              {data.bannerImage && (
+                <div className="relative w-full h-24 rounded-lg overflow-hidden border bg-gray-50">
+                  <img
+                    src={data.bannerImage}
+                    alt="Banner preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Banner Gradient Colors */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm">Banner Gradient Start</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={data.bannerColorFrom || '#0033A0'}
+                    onChange={(e) => onChange({ ...data, bannerColorFrom: e.target.value })}
+                    className="w-8 h-8 rounded cursor-pointer"
+                  />
+                  <Input
+                    value={data.bannerColorFrom || ''}
+                    onChange={(e) => onChange({ ...data, bannerColorFrom: e.target.value })}
+                    className="font-mono text-xs"
+                    placeholder="#0033A0"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Banner Gradient End</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={data.bannerColorTo || '#001e60'}
+                    onChange={(e) => onChange({ ...data, bannerColorTo: e.target.value })}
+                    className="w-8 h-8 rounded cursor-pointer"
+                  />
+                  <Input
+                    value={data.bannerColorTo || ''}
+                    onChange={(e) => onChange({ ...data, bannerColorTo: e.target.value })}
+                    className="font-mono text-xs"
+                    placeholder="#001e60"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Banner gradient preview */}
+            {(data.bannerColorFrom || data.bannerColorTo) && (
+              <div
+                className="h-10 rounded-lg border"
+                style={{
+                  background: `linear-gradient(to right, ${data.bannerColorFrom || '#0033A0'}, ${data.bannerColorTo || '#001e60'})`,
+                }}
+              />
+            )}
+
+            {/* Background, Accent, Text Colors */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm">Background Color</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={data.backgroundColor || '#ffffff'}
+                    onChange={(e) => onChange({ ...data, backgroundColor: e.target.value })}
+                    className="w-8 h-8 rounded cursor-pointer"
+                  />
+                  <Input
+                    value={data.backgroundColor || ''}
+                    onChange={(e) => onChange({ ...data, backgroundColor: e.target.value })}
+                    className="font-mono text-xs"
+                    placeholder="#ffffff"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Card Accent Color</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={data.cardAccentColor || '#0033A0'}
+                    onChange={(e) => onChange({ ...data, cardAccentColor: e.target.value })}
+                    className="w-8 h-8 rounded cursor-pointer"
+                  />
+                  <Input
+                    value={data.cardAccentColor || ''}
+                    onChange={(e) => onChange({ ...data, cardAccentColor: e.target.value })}
+                    className="font-mono text-xs"
+                    placeholder="#0033A0"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Text Color Override</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={data.textColor || '#1f2937'}
+                    onChange={(e) => onChange({ ...data, textColor: e.target.value })}
+                    className="w-8 h-8 rounded cursor-pointer"
+                  />
+                  <Input
+                    value={data.textColor || ''}
+                    onChange={(e) => onChange({ ...data, textColor: e.target.value })}
+                    className="font-mono text-xs"
+                    placeholder="#1f2937"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Color preview row */}
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-xs text-gray-400">Preview:</span>
+              <div className="flex gap-1">
+                {[
+                  { color: data.backgroundColor || '#ffffff', label: 'BG' },
+                  { color: data.cardAccentColor || '#0033A0', label: 'Accent' },
+                  { color: data.textColor || '#1f2937', label: 'Text' },
+                ].map(({ color, label }) => (
+                  <div key={label} className="text-center">
+                    <div
+                      className="w-10 h-10 rounded border shadow-sm"
+                      style={{ backgroundColor: color }}
+                    />
+                    <span className="text-[9px] text-gray-400">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-2 pt-2">
           <Button onClick={onSave} className="bg-[#0033A0] hover:bg-[#001e60]">

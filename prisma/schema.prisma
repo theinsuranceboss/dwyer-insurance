@@ -31,20 +31,27 @@ model MenuItem {
 }
 
 model InsurancePage {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  tagline     String
-  description String
-  features    String   @default("[]") // JSON array of strings
-  tip         String   @default("")
-  iconColor   String   @default("#0033A0")
-  iconBgColor String   @default("#e8edf5")
-  iconName    String   @default("Shield") // Lucide icon name
-  order       Int      @default(0)
-  visible     Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  title             String
+  tagline           String
+  description       String
+  features          String   @default("[]") // JSON array of strings
+  tip               String   @default("")
+  iconColor         String   @default("#0033A0")
+  iconBgColor       String   @default("#e8edf5")
+  iconName          String   @default("Shield") // Lucide icon name
+  order             Int      @default(0)
+  visible           Boolean  @default(true)
+  // Banner & Appearance
+  bannerImage       String   @default("") // URL for banner background image
+  bannerColorFrom   String   @default("") // Gradient start color for banner
+  bannerColorTo     String   @default("") // Gradient end color for banner
+  backgroundColor   String   @default("") // Section background color
+  cardAccentColor   String   @default("") // Accent color for cards/highlights
+  textColor         String   @default("") // Override text color
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model PageSection {

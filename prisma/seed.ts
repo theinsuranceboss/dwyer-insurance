@@ -50,6 +50,14 @@ async function seed() {
     { key: "heroDescription", value: "Protecting what matters most to you in Wynnewood, PA and across Pennsylvania, New Jersey, and Delaware.", type: "text", category: "hero", label: "Hero Description" },
     { key: "heroCtaText", value: "Get a Free Quote", type: "text", category: "hero", label: "Hero CTA Text" },
     { key: "heroCta2Text", value: "Call Now", type: "text", category: "hero", label: "Hero CTA 2 Text" },
+    // Hero Appearance
+    { key: "heroBannerImage", value: "", type: "image", category: "hero", label: "Hero Banner Image URL" },
+    { key: "heroBannerOverlay", value: "#001e60", type: "color", category: "hero", label: "Hero Banner Overlay Color" },
+    { key: "heroBannerOverlayOpacity", value: "70", type: "size", category: "hero", label: "Hero Overlay Opacity (0-100)" },
+    // Section Backgrounds
+    { key: "aboutBgColor", value: "#ffffff", type: "color", category: "about", label: "About Section Background" },
+    { key: "servicesBgColor", value: "#f8fafc", type: "color", category: "services", label: "Services Section Background" },
+    { key: "footerBgColor", value: "#001e60", type: "color", category: "footer", label: "Footer Background Color" },
     // Footer
     { key: "footerText", value: "You're in good hands® — Allstate Insurance Company", type: "text", category: "footer", label: "Footer Tagline" },
     { key: "footerCopyright", value: "Suzanne Dwyer – Allstate Insurance Agent. All Rights Reserved.", type: "text", category: "footer", label: "Footer Copyright" },
