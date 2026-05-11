@@ -333,17 +333,16 @@ function LoadingSkeleton() {
 function Navigation({
   menuItems,
   agentInfo,
-  insurancePages,
   settings,
 }: {
   menuItems: MenuItem[];
   agentInfo: AgentInfo;
-  insurancePages: InsurancePage[];
   settings: Settings;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -351,16 +350,32 @@ function Navigation({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Separate top-level nav items and the dropdown item
-  const dropdownItem = menuItems.find((item) => item.isDropdown);
-  const topNavItems = menuItems.filter((item) => !item.isDropdown);
-  // Insurance pages that are NOT already in the top nav
-  const topNavInsuranceHrefs = menuItems
-    .filter((item) => item.href.startsWith("/insurance/"))
-    .map((item) => item.href);
-  const dropdownInsurancePages = insurancePages.filter(
-    (page) => !topNavInsuranceHrefs.includes(`/insurance/${page.slug}`)
-  );
+  // Build parent/child structure from flat menu items
+  const topLevelItems = menuItems.filter((item) => !item.parent);
+  const childrenByParent = menuItems.reduce<Record<string, MenuItem[]>>((acc, item) => {
+    if (item.parent) {
+      if (!acc[item.parent]) acc[item.parent] = [];
+      acc[item.parent].push(item);
+    }
+    return acc;
+  }, {});
+
+  const toggleDesktopDropdown = (id: string, open: boolean) => {
+    setOpenDropdowns((prev) => ({ ...prev, [id]: open }));
+  };
+
+  const toggleMobileExpand = (id: string) => {
+    setMobileExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const navLinkClass = (isDropdown = false) =>
+    `nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 ${
+      isDropdown ? "cursor-pointer" : ""
+    } ${
+      scrolled
+        ? "hover:bg-gray-100"
+        : "text-white/90 hover:text-white hover:bg-white/10"
+    }`;
 
   return (
     <motion.nav
@@ -402,85 +417,71 @@ function Navigation({
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-1">
-            {topNavItems.map((item) => (
-              <a
-                key={item.id}
-                href={item.href}
-                className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors ${
-                  scrolled
-                    ? "hover:bg-gray-100"
-                    : "text-white/90 hover:text-white hover:bg-white/10"
-                }`}
-                style={scrolled ? { color: settings.secondaryColor } : undefined}
-              >
-                {item.label}
-              </a>
-            ))}
+            {topLevelItems.map((item) => {
+              const children = childrenByParent[item.id] || [];
 
-            {/* More Insurance dropdown */}
-            {dropdownItem && dropdownInsurancePages.length > 0 && (
-              <div className="relative">
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  onMouseEnter={() => setDropdownOpen(true)}
-                  className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 ${
-                    scrolled
-                      ? "hover:bg-gray-100"
-                      : "text-white/90 hover:text-white hover:bg-white/10"
-                  }`}
+              if (item.isDropdown && children.length > 0) {
+                // Dropdown parent with children
+                return (
+                  <div
+                    key={item.id}
+                    className="relative"
+                    onMouseEnter={() => toggleDesktopDropdown(item.id, true)}
+                    onMouseLeave={() => toggleDesktopDropdown(item.id, false)}
+                  >
+                    <button
+                      onClick={() => toggleDesktopDropdown(item.id, !openDropdowns[item.id])}
+                      className={navLinkClass(true)}
+                      style={scrolled ? { color: settings.secondaryColor } : undefined}
+                    >
+                      {item.label}
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform ${openDropdowns[item.id] ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    <AnimatePresence>
+                      {openDropdowns[item.id] && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                        >
+                          <div className="py-1.5">
+                            {children.map((child) => (
+                              <a
+                                key={child.id}
+                                href={child.href}
+                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                              >
+                                <ChevronRight size={12} className="text-gray-400 flex-shrink-0" />
+                                <span className="text-sm font-medium text-gray-700">
+                                  {child.label}
+                                </span>
+                              </a>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              }
+
+              // Regular link (no dropdown)
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  className={navLinkClass()}
                   style={scrolled ? { color: settings.secondaryColor } : undefined}
                 >
-                  {dropdownItem.label}
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
-                <AnimatePresence>
-                  {dropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.15 }}
-                      onMouseLeave={() => setDropdownOpen(false)}
-                      className="absolute top-full right-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-                    >
-                      <div className="py-2">
-                        {dropdownInsurancePages.map((page) => {
-                          const IconComp = getIcon(page.iconName);
-                          return (
-                            <a
-                              key={page.id}
-                              href={`/insurance/${page.slug}`}
-                              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-                            >
-                              <div
-                                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                                style={{ backgroundColor: page.iconBgColor }}
-                              >
-                                <IconComp
-                                  size={16}
-                                  style={{ color: page.iconColor }}
-                                />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">
-                                  {page.title}
-                                </p>
-                                <p className="text-xs text-gray-500 truncate max-w-[160px]">
-                                  {page.tagline}
-                                </p>
-                              </div>
-                            </a>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
+                  {item.label}
+                </a>
+              );
+            })}
 
             <a href={agentInfo.phoneLink} className="ml-3">
               <Button
@@ -519,71 +520,65 @@ function Navigation({
             className="lg:hidden bg-white shadow-xl border-t border-gray-100"
           >
             <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
-              {topNavItems.map((item) => (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
-                  style={{ color: settings.secondaryColor }}
-                >
-                  {item.label}
-                </a>
-              ))}
+              {topLevelItems.map((item) => {
+                const children = childrenByParent[item.id] || [];
 
-              {/* Mobile dropdown for more insurance */}
-              {dropdownItem && dropdownInsurancePages.length > 0 && (
-                <div>
-                  <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
+                if (item.isDropdown && children.length > 0) {
+                  return (
+                    <div key={item.id}>
+                      <button
+                        onClick={() => toggleMobileExpand(item.id)}
+                        className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
+                        style={{ color: settings.secondaryColor }}
+                      >
+                        {item.label}
+                        <ChevronDown
+                          size={16}
+                          className={`transition-transform ${mobileExpanded[item.id] ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      <AnimatePresence>
+                        {mobileExpanded[item.id] && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pl-4 space-y-0.5 border-l-2 ml-4" style={{ borderColor: `${settings.primaryColor}30` }}>
+                              {children.map((child) => (
+                                <a
+                                  key={child.id}
+                                  href={child.href}
+                                  onClick={() => setMobileOpen(false)}
+                                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                  <ChevronRight size={12} className="text-gray-400" />
+                                  <span className="text-sm font-medium" style={{ color: settings.secondaryColor }}>
+                                    {child.label}
+                                  </span>
+                                </a>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                }
+
+                return (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
                     style={{ color: settings.secondaryColor }}
                   >
-                    {dropdownItem.label}
-                    <ChevronDown
-                      size={16}
-                      className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  <AnimatePresence>
-                    {dropdownOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pl-6 space-y-1">
-                          {dropdownInsurancePages.map((page) => {
-                            const IconComp = getIcon(page.iconName);
-                            return (
-                              <a
-                                key={page.id}
-                                href={`/insurance/${page.slug}`}
-                                onClick={() => setMobileOpen(false)}
-                                className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                              >
-                                <div
-                                  className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
-                                  style={{ backgroundColor: page.iconBgColor }}
-                                >
-                                  <IconComp
-                                    size={14}
-                                    style={{ color: page.iconColor }}
-                                  />
-                                </div>
-                                <span className="text-sm" style={{ color: settings.secondaryColor }}>
-                                  {page.title}
-                                </span>
-                              </a>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
+                    {item.label}
+                  </a>
+                );
+              })}
 
               <Separator className="my-2" />
               <a href={agentInfo.phoneLink} className="block pt-2">
@@ -1995,7 +1990,6 @@ export default function HomePage() {
       <Navigation
         menuItems={menuItems}
         agentInfo={agentInfo}
-        insurancePages={insurancePages}
         settings={settings}
       />
       <main className="flex-1">

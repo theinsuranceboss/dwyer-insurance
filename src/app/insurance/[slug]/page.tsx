@@ -28,6 +28,8 @@ import {
   Wrench,
   Landmark,
   FileText,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -170,6 +172,8 @@ function Navigation({
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -180,6 +184,24 @@ function Navigation({
   const phone = agentInfo.phone || "(610) 725-9900";
   const agentName = agentInfo.name || "Suzanne Dwyer";
   const agentTitle = agentInfo.title || "Allstate Insurance Agent";
+
+  // Build parent/child structure from flat menu items
+  const topLevelItems = menuItems.filter((item) => !item.parent);
+  const childrenByParent = menuItems.reduce<Record<string, MenuItemData[]>>((acc, item) => {
+    if (item.parent) {
+      if (!acc[item.parent]) acc[item.parent] = [];
+      acc[item.parent].push(item);
+    }
+    return acc;
+  }, {});
+
+  const toggleDesktopDropdown = (id: string, open: boolean) => {
+    setOpenDropdowns((prev) => ({ ...prev, [id]: open }));
+  };
+
+  const toggleMobileExpand = (id: string) => {
+    setMobileExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <motion.nav
@@ -210,21 +232,77 @@ function Navigation({
           </a>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-6">
-            {menuItems.map((link) => (
-              <a
-                key={link.id}
-                href={link.href}
-                className={`nav-link text-sm font-medium transition-colors ${
-                  scrolled
-                    ? "text-allstate-navy hover:text-allstate-blue"
-                    : "text-white/90 hover:text-white"
-                }`}
-              >
-                {link.label}
-              </a>
-            ))}
-            <a href={`tel:${phone.replace(/[^\d+]/g, "")}`}>
+          <div className="hidden lg:flex items-center gap-1">
+            {topLevelItems.map((item) => {
+              const children = childrenByParent[item.id] || [];
+
+              if (item.isDropdown && children.length > 0) {
+                return (
+                  <div
+                    key={item.id}
+                    className="relative"
+                    onMouseEnter={() => toggleDesktopDropdown(item.id, true)}
+                    onMouseLeave={() => toggleDesktopDropdown(item.id, false)}
+                  >
+                    <button
+                      onClick={() => toggleDesktopDropdown(item.id, !openDropdowns[item.id])}
+                      className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 cursor-pointer ${
+                        scrolled
+                          ? "text-allstate-navy hover:bg-gray-100"
+                          : "text-white/90 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      {item.label}
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform ${openDropdowns[item.id] ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    <AnimatePresence>
+                      {openDropdowns[item.id] && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                        >
+                          <div className="py-1.5">
+                            {children.map((child) => (
+                              <a
+                                key={child.id}
+                                href={child.href}
+                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                              >
+                                <ChevronRight size={12} className="text-gray-400 flex-shrink-0" />
+                                <span className="text-sm font-medium text-gray-700">
+                                  {child.label}
+                                </span>
+                              </a>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              }
+
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors ${
+                    scrolled
+                      ? "text-allstate-navy hover:bg-gray-100"
+                      : "text-white/90 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
+            <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="ml-2">
               <Button
                 size="sm"
                 className="bg-allstate-orange hover:bg-orange-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
@@ -259,17 +337,64 @@ function Navigation({
             exit={{ opacity: 0, height: 0 }}
             className="lg:hidden bg-white shadow-xl border-t border-allstate-gray/30"
           >
-            <div className="px-4 py-4 space-y-1">
-              {menuItems.map((link) => (
-                <a
-                  key={link.id}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 text-allstate-navy hover:bg-allstate-light/10 hover:text-allstate-blue rounded-lg transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
+            <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
+              {topLevelItems.map((item) => {
+                const children = childrenByParent[item.id] || [];
+
+                if (item.isDropdown && children.length > 0) {
+                  return (
+                    <div key={item.id}>
+                      <button
+                        onClick={() => toggleMobileExpand(item.id)}
+                        className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50 text-allstate-navy"
+                      >
+                        {item.label}
+                        <ChevronDown
+                          size={16}
+                          className={`transition-transform ${mobileExpanded[item.id] ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      <AnimatePresence>
+                        {mobileExpanded[item.id] && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pl-4 space-y-0.5 border-l-2 ml-4 border-allstate-blue/30">
+                              {children.map((child) => (
+                                <a
+                                  key={child.id}
+                                  href={child.href}
+                                  onClick={() => setMobileOpen(false)}
+                                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                  <ChevronRight size={12} className="text-gray-400" />
+                                  <span className="text-sm font-medium text-allstate-navy">
+                                    {child.label}
+                                  </span>
+                                </a>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                }
+
+                return (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-3 text-allstate-navy hover:bg-allstate-light/10 hover:text-allstate-blue rounded-lg transition-colors font-medium"
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
               <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="block pt-2">
                 <Button className="w-full bg-allstate-orange hover:bg-orange-600 text-white font-semibold">
                   <Phone className="w-4 h-4 mr-2" />

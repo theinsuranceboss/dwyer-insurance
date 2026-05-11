@@ -166,3 +166,36 @@ Stage Summary:
 - All data stored in SQLite via Prisma, editable through admin
 - Navigation with dropdown menu, proper footer
 - Framer Motion animations throughout
+
+---
+Task ID: 8
+Agent: Main Agent
+Task: Reorganize navigation menu into submenus with admin management
+
+Work Log:
+- Created and ran migration script to reorganize 10 flat menu items into 20 items with parent/child structure
+- New structure: 8 top-level items (Home, About, Personal Insurance ▾, Specialty Insurance ▾, Protection & More ▾, Testimonials, FAQ, Contact) + 12 children under 3 dropdown groups
+- Personal Insurance children: Auto, Home, Renters, Condo, Life
+- Specialty Insurance children: Motorcycle, Boat, ATV/Off-Road
+- Protection & More children: Business, Flood, Identity Protection, Roadside Assistance
+- Updated MenuItem interface in page.tsx to include `parent: string | null`
+- Rewrote homepage Navigation component: removed `insurancePages` prop, builds parent/child tree from flat API data, renders dropdowns on hover (desktop) and click (mobile), each dropdown shows children with ChevronRight icons
+- Rewrote insurance sub-page Navigation component with same parent/child dropdown support, added ChevronDown/ChevronRight imports
+- Completely rewrote admin MenuTab with tree-structure UI:
+  - Two add buttons: "Add Link" (top-level) and "Add Dropdown Group"
+  - "Add Child" button on each dropdown parent
+  - Children shown indented with left border
+  - Edit mode includes parent reassignment via Select dropdown for child items
+  - Deleting a parent warns and cascades to delete all children
+  - Reorder works within same level (top-level among top-level, children within parent)
+- Site-data API already handled invisible parent filtering
+- Removed temporary migration script
+- Lint passes cleanly
+- All pages return HTTP 200: /, /insurance/auto, /admin, /admin/dashboard
+
+Stage Summary:
+- Navigation now organized into 3 dropdown submenus instead of flat list
+- Admin can fully manage menu hierarchy: add/remove/reorder top-level links, dropdown groups, and child items
+- Children can be moved between parents via edit mode
+- Cascade delete when removing a dropdown group
+- Both homepage and insurance sub-pages render the same dropdown navigation
