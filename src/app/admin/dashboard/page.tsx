@@ -788,6 +788,8 @@ function AppearanceTab() {
   const [settings, setSettings] = useState<SiteSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const bannerFileRef = useRef<HTMLInputElement>(null);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -888,6 +890,48 @@ function AppearanceTab() {
                           placeholder="https://example.com/image.jpg"
                           className="flex-1"
                         />
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <input
+                          ref={setting.key === 'heroBannerImage' ? bannerFileRef : undefined}
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setUploading(true);
+                            try {
+                              const result = await apiUpload(file);
+                              updateValue(setting.key, result.url);
+                              toast({ title: 'Upload Success', description: `Image uploaded: ${result.filename}` });
+                            } catch (err) {
+                              toast({ title: 'Upload Error', description: err instanceof Error ? err.message : 'Failed to upload image', variant: 'destructive' });
+                            } finally {
+                              setUploading(false);
+                              if (bannerFileRef.current) bannerFileRef.current.value = '';
+                            }
+                          }}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (setting.key === 'heroBannerImage') {
+                              bannerFileRef.current?.click();
+                            }
+                          }}
+                          disabled={uploading && setting.key === 'heroBannerImage'}
+                        >
+                          {uploading && setting.key === 'heroBannerImage' ? (
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          ) : (
+                            <Upload className="w-3 h-3 mr-1" />
+                          )}
+                          Upload Image
+                        </Button>
+                        <span className="text-xs text-gray-400">PNG, JPEG, WebP, SVG</span>
                       </div>
                       {setting.value && (
                         <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden border bg-gray-50">
@@ -1715,6 +1759,8 @@ function InsuranceForm({
 }) {
   const [newFeature, setNewFeature] = useState('');
   const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const bannerFileRef = useRef<HTMLInputElement>(null);
 
   const addFeature = () => {
     if (newFeature.trim()) {
@@ -1842,6 +1888,38 @@ function InsuranceForm({
                   onChange={(e) => onChange({ ...data, bannerImage: e.target.value })}
                   placeholder="https://example.com/banner.jpg"
                 />
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  ref={bannerFileRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploading(true);
+                    try {
+                      const result = await apiUpload(file);
+                      onChange({ ...data, bannerImage: result.url });
+                    } catch (err) {
+                      // silent fail for insurance form
+                    } finally {
+                      setUploading(false);
+                      if (bannerFileRef.current) bannerFileRef.current.value = '';
+                    }
+                  }}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => bannerFileRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Upload className="w-3 h-3 mr-1" />}
+                  Upload Banner Image
+                </Button>
               </div>
               {data.bannerImage && (
                 <div className="relative w-full h-24 rounded-lg overflow-hidden border bg-gray-50">

@@ -108,3 +108,45 @@ Work Log:
 
 Stage Summary:
 - Shared components extracted, all imports fixed, lint clean, build passes
+
+---
+Task ID: 3
+Agent: hero-banner-agent
+Task: Modify hero section to full-width banner image layout
+
+Work Log:
+- Removed entire right-side agent photo section from HeroSection (circular photo, floating badges, tagline, rating badge, decorative ring, outer glow)
+- Replaced 2-column grid layout (`grid lg:grid-cols-2`) with single-column centered layout (`max-w-3xl mx-auto text-center`)
+- Changed animation from `x: -50` (slide from left) to `y: 30` (slide up) for centered layout
+- Centered all content: badge, title, description, rating (`justify-center`), CTA buttons (`justify-center`), quick info grid (`justify-items-center`)
+- Hero now uses `heroBannerImage` setting as full-width background image with overlay (background-image via `bg-cover bg-center`)
+- Overlay uses `heroBannerOverlay` color and `heroBannerOverlayOpacity` from settings
+- Updated LoadingSkeleton to match new single-column centered layout (removed 2-column grid and agent photo skeleton)
+- Updated seed.ts: changed `heroBannerImage` default value from `""` to `"/hero-family.png"`
+- Updated live database: set `heroBannerImage` to `/hero-family.png` via Prisma upsert
+- Verified `/hero-family.png` exists in public folder
+- Lint passes cleanly, dev server running
+
+Stage Summary:
+- Hero section now displays as full-width banner with family photo background, dark overlay, and centered text content
+- Right-side agent photo section completely removed
+- All left-side content preserved: badge, title, subtitle, description, rating, CTA buttons, quick info grid
+- Database seed and live data updated with new default hero banner image
+
+---
+Task ID: 8
+Agent: about-hero-removal-agent
+Task: Remove AboutHero component from About page
+
+Work Log:
+- Removed entire AboutHero component definition (was ~230 lines, lines 216-447) from /src/app/about/page.tsx
+- Removed AboutHero usage from the page render (was between Navigation and AboutContent)
+- Added pt-20 top padding to AboutContent section to account for fixed navigation bar (changed from `py-20 lg:py-28` to `pt-20 pb-20 lg:pt-28 lg:pb-28`)
+- Updated LoadingSkeleton: removed hero skeleton block, fixed extra closing div, kept content skeleton with pt-20
+- Cleaned up unused imports: removed MessageCircle, ChevronDown, CheckCircle2
+- Lint passes cleanly
+
+Stage Summary:
+- AboutHero component completely removed from About page
+- About page now starts directly with AboutContent section (agent info card + content)
+- Proper top padding (pt-20) ensures content isn't hidden behind fixed nav

@@ -214,19 +214,14 @@ function LoadingSkeleton() {
       {/* Hero skeleton */}
       <div className="min-h-screen flex items-center pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <Skeleton className="w-48 h-8 rounded-full" />
-              <Skeleton className="w-64 h-16" />
-              <Skeleton className="w-48 h-12" />
-              <Skeleton className="w-full max-w-lg h-24" />
-              <div className="flex gap-4">
-                <Skeleton className="w-48 h-14 rounded-xl" />
-                <Skeleton className="w-48 h-14 rounded-xl" />
-              </div>
-            </div>
-            <div className="hidden lg:flex justify-center">
-              <Skeleton className="w-80 h-80 rounded-full" />
+          <div className="max-w-3xl mx-auto text-center space-y-6">
+            <Skeleton className="w-48 h-8 rounded-full mx-auto" />
+            <Skeleton className="w-64 h-16 mx-auto" />
+            <Skeleton className="w-48 h-12 mx-auto" />
+            <Skeleton className="w-full max-w-2xl h-24 mx-auto" />
+            <div className="flex gap-4 justify-center">
+              <Skeleton className="w-48 h-14 rounded-xl" />
+              <Skeleton className="w-48 h-14 rounded-xl" />
             </div>
           </div>
         </div>
@@ -337,213 +332,133 @@ function HeroSection({
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-40">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <Badge
-                className="mb-6 px-4 py-2 text-sm font-semibold border-0"
-                style={{
-                  backgroundColor: `${settings.accentColor}25`,
-                  color: settings.accentColor,
-                }}
-              >
-                <Award className="w-4 h-4 mr-2" />
-                {agentInfo.badge}
-              </Badge>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="font-bold text-white leading-tight"
+        <div className="max-w-3xl mx-auto text-center">
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <Badge
+              className="mb-6 px-4 py-2 text-sm font-semibold border-0"
               style={{
-                fontFamily: settings.headingFont,
-                fontSize: `${settings.headingFontSize}px`,
+                backgroundColor: `${settings.accentColor}25`,
+                color: settings.accentColor,
               }}
             >
-              {heroSection?.title || settings.heroTitle}
-              <span
-                className="block mt-2"
-                style={{
-                  background: `linear-gradient(135deg, ${settings.lightColor}, ${settings.accentColor})`,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                {heroSection?.subtitle || settings.heroSubtitle}
-              </span>
-            </motion.h1>
+              <Award className="w-4 h-4 mr-2" />
+              {agentInfo.badge}
+            </Badge>
+          </motion.div>
 
-            <motion.p
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="mt-6 text-lg sm:text-xl text-white/80 max-w-lg"
-            >
-              {heroSection?.description || settings.heroDescription}
-            </motion.p>
-
-            {/* Rating */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="mt-6 flex items-center gap-3"
-            >
-              <StarRating rating={rating} size={20} />
-              <span className="text-white font-bold text-lg">{rating}</span>
-              <span className="text-white/60">|</span>
-              <span className="font-medium" style={{ color: settings.lightColor }}>
-                {reviewCount}+ Reviews
-              </span>
-            </motion.div>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="mt-8 flex flex-col sm:flex-row gap-4"
-            >
-              <a href={agentInfo.phoneLink}>
-                <Button
-                  size="lg"
-                  className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-                  style={{ backgroundColor: settings.accentColor }}
-                >
-                  <Phone className="w-5 h-5 mr-2" />
-                  {settings.heroCta2Text} {agentInfo.phone}
-                </Button>
-              </a>
-              <a href="#contact">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-white/30 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
-                >
-                  <MessageCircle className="w-5 h-5 mr-2" />
-                  {settings.heroCtaText}
-                </Button>
-              </a>
-            </motion.div>
-
-            {/* Quick Info */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4"
-            >
-              {[
-                { icon: Clock, label: "Office Hours", value: "Mon-Fri 8:30-5:00 PM" },
-                { icon: Clock, label: "Saturday", value: "By Appointment" },
-                {
-                  icon: Globe,
-                  label: "Languages",
-                  value: languages.map((l) => l.substring(0, 2).toUpperCase()).join(" / "),
-                },
-                {
-                  icon: MapPin,
-                  label: "Serving",
-                  value: states.map((s) => s.substring(0, 2).toUpperCase()).join(", "),
-                },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2 text-white/70">
-                  <item.icon className="w-4 h-4 flex-shrink-0" style={{ color: settings.lightColor }} />
-                  <div>
-                    <p className="text-xs text-white/50">{item.label}</p>
-                    <p className="text-sm font-medium text-white/90">{item.value}</p>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Right - Agent Photo */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="hidden lg:flex justify-center items-center"
+          {/* Title */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="font-bold text-white leading-tight"
+            style={{
+              fontFamily: settings.headingFont,
+              fontSize: `${settings.headingFontSize}px`,
+            }}
           >
-            <div className="relative">
-              {/* Decorative ring */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 rounded-full"
-                style={{
-                  border: `2px dashed ${settings.lightColor}40`,
-                  margin: "-16px",
-                }}
-              />
-              {/* Outer glow */}
-              <motion.div
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-0 rounded-full blur-xl"
-                style={{
-                  backgroundColor: `${settings.lightColor}20`,
-                  margin: "-20px",
-                }}
-              />
-              {/* Photo container */}
-              <div
-                className="relative w-72 h-72 xl:w-80 xl:h-80 rounded-full overflow-hidden shadow-2xl"
-                style={{
-                  border: `6px solid ${settings.lightColor}`,
-                  boxShadow: `0 0 40px ${settings.lightColor}30`,
-                }}
-              >
-                <img
-                  src={agentInfo.photo}
-                  alt={`${agentInfo.name} - ${agentInfo.title}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* Badge floating */}
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-xl text-white font-bold text-sm whitespace-nowrap"
+            {heroSection?.title || settings.heroTitle}
+            <span
+              className="block mt-2"
+              style={{
+                background: `linear-gradient(135deg, ${settings.lightColor}, ${settings.accentColor})`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              {heroSection?.subtitle || settings.heroSubtitle}
+            </span>
+          </motion.h1>
+
+          {/* Description */}
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mt-6 text-lg sm:text-xl text-white/80 max-w-2xl mx-auto"
+          >
+            {heroSection?.description || settings.heroDescription}
+          </motion.p>
+
+          {/* Rating */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mt-6 flex items-center justify-center gap-3"
+          >
+            <StarRating rating={rating} size={20} />
+            <span className="text-white font-bold text-lg">{rating}</span>
+            <span className="text-white/60">|</span>
+            <span className="font-medium" style={{ color: settings.lightColor }}>
+              {reviewCount}+ Reviews
+            </span>
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mt-8 flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <a href={agentInfo.phoneLink}>
+              <Button
+                size="lg"
+                className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
                 style={{ backgroundColor: settings.accentColor }}
               >
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5" />
-                  {agentInfo.badge}
-                </div>
-              </motion.div>
-              {/* Rating badge */}
-              <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                className="absolute -right-4 top-8 px-4 py-2 rounded-xl shadow-xl bg-white"
+                <Phone className="w-5 h-5 mr-2" />
+                {settings.heroCta2Text} {agentInfo.phone}
+              </Button>
+            </a>
+            <a href="#contact">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
               >
-                <div className="flex items-center gap-1.5">
-                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-bold text-gray-900">{rating}</span>
-                  <span className="text-xs text-gray-500">/5</span>
+                <MessageCircle className="w-5 h-5 mr-2" />
+                {settings.heroCtaText}
+              </Button>
+            </a>
+          </motion.div>
+
+          {/* Quick Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 justify-items-center"
+          >
+            {[
+              { icon: Clock, label: "Office Hours", value: "Mon-Fri 8:30-5:00 PM" },
+              { icon: Clock, label: "Saturday", value: "By Appointment" },
+              {
+                icon: Globe,
+                label: "Languages",
+                value: languages.map((l) => l.substring(0, 2).toUpperCase()).join(" / "),
+              },
+              {
+                icon: MapPin,
+                label: "Serving",
+                value: states.map((s) => s.substring(0, 2).toUpperCase()).join(", "),
+              },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-2 text-white/70">
+                <item.icon className="w-4 h-4 flex-shrink-0" style={{ color: settings.lightColor }} />
+                <div className="text-left">
+                  <p className="text-xs text-white/50">{item.label}</p>
+                  <p className="text-sm font-medium text-white/90">{item.value}</p>
                 </div>
-              </motion.div>
-              {/* Tagline */}
-              <motion.div
-                animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute -left-8 top-16 px-4 py-2 rounded-xl shadow-xl"
-                style={{ backgroundColor: settings.secondaryColor }}
-              >
-                <p className="text-white text-sm font-medium italic">
-                  &ldquo;{agentInfo.tagline}&rdquo;
-                </p>
-              </motion.div>
-            </div>
+              </div>
+            ))}
           </motion.div>
         </div>
 
