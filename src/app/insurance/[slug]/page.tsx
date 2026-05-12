@@ -187,9 +187,8 @@ function Navigation({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const phone = agentInfo.phone || "(610) 725-9900";
-  const agentName = agentInfo.name || "Suzanne Dwyer";
-  const agentTitle = agentInfo.title || "Allstate Insurance Agent";
+  const phone = agentInfo.phone || "(610) 649-0500";
+  const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
 
   // Build parent/child structure from flat menu items
   const topLevelItems = menuItems.filter((item) => !item.parent);
@@ -214,25 +213,21 @@ function Navigation({
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-allstate-gray/30"
-          : "bg-allstate-dark/90 backdrop-blur-sm"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-allstate-dark ${
+        scrolled ? "shadow-xl" : "shadow-md"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <a href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-allstate-blue flex items-center justify-center">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
+            <img src="/logo.png" alt="Dwyer Insurance Group" className="w-10 h-10 rounded-full object-cover" />
             <div className="hidden sm:block">
-              <p className={`font-bold text-lg leading-tight ${scrolled ? "text-allstate-navy" : "text-white"}`}>
-                {agentName}
+              <p className="font-bold text-lg leading-tight text-white">
+                Dwyer Insurance Group
               </p>
-              <p className={`text-xs leading-tight ${scrolled ? "text-allstate-blue" : "text-allstate-light"}`}>
-                {agentTitle}
+              <p className="text-xs leading-tight text-allstate-light">
+                Insurance Agency
               </p>
             </div>
           </a>
@@ -252,11 +247,7 @@ function Navigation({
                   >
                     <button
                       onClick={() => toggleDesktopDropdown(item.id, !openDropdowns[item.id])}
-                      className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 cursor-pointer ${
-                        scrolled
-                          ? "text-allstate-navy hover:bg-gray-100"
-                          : "text-white/90 hover:text-white hover:bg-white/10"
-                      }`}
+                      className="nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 cursor-pointer text-white/90 hover:text-white hover:bg-white/10"
                     >
                       {item.label}
                       <ChevronDown
@@ -298,17 +289,13 @@ function Navigation({
                 <a
                   key={item.id}
                   href={item.href}
-                  className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors ${
-                    scrolled
-                      ? "text-allstate-navy hover:bg-gray-100"
-                      : "text-white/90 hover:text-white hover:bg-white/10"
-                  }`}
+                  className="nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors text-white/90 hover:text-white hover:bg-white/10"
                 >
                   {item.label}
                 </a>
               );
             })}
-            <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="ml-2">
+            <a href={`tel:${phoneLink}`} className="ml-2">
               <Button
                 size="sm"
                 className="bg-allstate-orange hover:bg-orange-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
@@ -326,9 +313,9 @@ function Navigation({
             aria-label="Toggle menu"
           >
             {mobileOpen ? (
-              <X className={scrolled ? "text-allstate-navy" : "text-white"} size={24} />
+              <X className="text-white" size={24} />
             ) : (
-              <Menu className={scrolled ? "text-allstate-navy" : "text-white"} size={24} />
+              <Menu className="text-white" size={24} />
             )}
           </button>
         </div>
@@ -401,7 +388,7 @@ function Navigation({
                   </a>
                 );
               })}
-              <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="block pt-2">
+              <a href={`tel:${phoneLink}`} className="block pt-2">
                 <Button className="w-full bg-allstate-orange hover:bg-orange-600 text-white font-semibold">
                   <Phone className="w-4 h-4 mr-2" />
                   Get a Quote: {phone}
@@ -417,8 +404,10 @@ function Navigation({
 
 // ─── Insurance Hero ────────────────────────────────────────────────
 
-function InsuranceHero({ page }: { page: InsurancePageData }) {
+function InsuranceHero({ page, agentInfo }: { page: InsurancePageData; agentInfo: Record<string, string> }) {
   const color = page.iconColor || "#0033A0";
+  const phone = agentInfo.phone || "(610) 649-0500";
+  const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
 
   // Determine banner gradient: custom fields override iconColor-based default
   const gradientFrom = page.bannerColorFrom || color;
@@ -489,7 +478,7 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
             >
               <Badge className="bg-white/20 text-white border-white/30 mb-6 px-4 py-2 text-sm font-semibold">
                 <Award className="w-4 h-4 mr-2" />
-                Allstate Insurance
+                Dwyer Insurance Group
               </Badge>
             </motion.div>
 
@@ -511,7 +500,7 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="mt-6 text-lg sm:text-xl text-white/80 max-w-lg"
             >
-              Protect what matters most with personalized coverage from Suzanne Dwyer, your local Allstate agent in Wynnewood, PA.
+              Protect what matters most with personalized coverage from Dwyer Insurance Group, serving PA, NY, and DE.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -521,7 +510,7 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="mt-8 flex flex-col sm:flex-row gap-4"
             >
-              <a href={`tel:16107259900`}>
+              <a href={`tel:${phoneLink}`}>
                 <Button
                   size="lg"
                   className="bg-allstate-orange hover:bg-orange-600 text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
@@ -580,10 +569,12 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
 
 // ─── Description Section ───────────────────────────────────────────
 
-function DescriptionSection({ page }: { page: InsurancePageData }) {
+function DescriptionSection({ page, agentInfo }: { page: InsurancePageData; agentInfo: Record<string, string> }) {
   const color = page.iconColor || "#0033A0";
   const accentColor = page.cardAccentColor || color;
   const textOverride = page.textColor || "";
+  const phone = agentInfo.phone || "(610) 649-0500";
+  const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
 
   return (
     <section
@@ -670,10 +661,10 @@ function DescriptionSection({ page }: { page: InsurancePageData }) {
               {page.description}
             </p>
             <p className={`mb-8 ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
-              As an Allstate Elite Agent, Suzanne Dwyer takes the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
+              As an Elite Agent, National Award Winner at Dwyer Insurance Group, our team takes the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
             </p>
 
-            <a href="tel:16107259900">
+            <a href={`tel:${phoneLink}`}>
               <Button
                 className="font-semibold shadow-lg hover:shadow-xl transition-all text-white"
                 style={{ backgroundColor: accentColor }}
@@ -717,7 +708,7 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
             What&apos;s <span style={{ color: accentColor }}>Covered</span>
           </h2>
           <p className={`text-lg max-w-2xl mx-auto ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
-            {page.title} from Allstate provides comprehensive protection. Here&apos;s what your policy includes:
+            {page.title} provides comprehensive protection. Here&apos;s what your policy includes:
           </p>
         </AnimatedSection>
 
@@ -785,7 +776,7 @@ function ProTipCallout({ page }: { page: InsurancePageData }) {
               </div>
               <div>
                 <h3 className="font-bold text-xl mb-2" style={{ color: accentColor }}>
-                  Pro Tip from Suzanne
+                  Pro Tip from Dwyer Insurance Group
                 </h3>
                 <p className={`text-lg leading-relaxed ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
                   {page.tip}
@@ -821,7 +812,7 @@ function OtherInsuranceTypes({
             Other Insurance <span className="text-allstate-blue">Options</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Suzanne Dwyer offers a full range of Allstate insurance products. Explore other coverage types to protect every aspect of your life.
+            Dwyer Insurance Group offers a full range of insurance products. Explore other coverage types to protect every aspect of your life.
           </p>
         </AnimatedSection>
 
@@ -868,7 +859,8 @@ function OtherInsuranceTypes({
 
 function CTASection({ page, agentInfo }: { page: InsurancePageData; agentInfo: Record<string, string> }) {
   const color = page.iconColor || "#0033A0";
-  const phone = agentInfo.phone || "(610) 725-9900";
+  const phone = agentInfo.phone || "(610) 649-0500";
+  const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
 
   return (
     <section className="py-16 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, #001e60 100%)` }}>
@@ -884,10 +876,10 @@ function CTASection({ page, agentInfo }: { page: InsurancePageData; agentInfo: R
             Ready to Get {page.title}?
           </h2>
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-            Get a personalized {page.title.toLowerCase()} quote from Suzanne Dwyer today. Bundle and save up to 25% on your premiums!
+            Get a personalized {page.title.toLowerCase()} quote from Dwyer Insurance Group today. Bundle and save up to 25% on your premiums!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href={`tel:${phone.replace(/[^\d+]/g, "")}`}>
+            <a href={`tel:${phoneLink}`}>
               <Button
                 size="lg"
                 className="bg-allstate-orange hover:bg-orange-600 text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
@@ -922,9 +914,9 @@ function Footer({
   agentInfo: Record<string, string>;
   insurancePages: InsurancePageData[];
 }) {
-  const agentName = agentInfo.name || "Suzanne Dwyer";
-  const phone = agentInfo.phone || "(610) 725-9900";
-  const email = agentInfo.email || "suzannedwyer@allstate.com";
+  const phone = agentInfo.phone || "(610) 649-0500";
+  const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
+  const email = agentInfo.email || "info@dwyerinsurancegroup.com";
   const address = agentInfo.address || "Wynnewood, PA 19096";
 
   return (
@@ -934,20 +926,18 @@ function Footer({
           {/* Agent Info */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-allstate-blue flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
+              <img src="/logo.png" alt="Dwyer Insurance Group" className="w-10 h-10 rounded-full object-cover" />
               <div>
-                <p className="font-bold text-lg">{agentName}</p>
-                <p className="text-allstate-light text-sm">Allstate Insurance Agent</p>
+                <p className="font-bold text-lg">Dwyer Insurance Group</p>
+                <p className="text-allstate-light text-sm">Insurance Agency</p>
               </div>
             </div>
             <p className="text-white/60 text-sm mb-4">
-              Elite Agent serving Wynnewood, PA and the surrounding communities in Pennsylvania, New Jersey, and Delaware.
+              Elite Agency serving PA, NY, and DE.
             </p>
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5 text-allstate-orange" />
-              <span className="text-allstate-orange font-semibold text-sm">Elite Agent</span>
+              <span className="text-allstate-orange font-semibold text-sm">Elite Agency</span>
             </div>
           </div>
 
@@ -991,7 +981,7 @@ function Footer({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-allstate-light" />
-                <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="text-white/60 hover:text-allstate-light text-sm">
+                <a href={`tel:${phoneLink}`} className="text-white/60 hover:text-allstate-light text-sm">
                   {phone}
                 </a>
               </div>
@@ -1005,9 +995,15 @@ function Footer({
                 <MapPin className="w-4 h-4 text-allstate-light" />
                 <span className="text-white/60 text-sm">{address}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-allstate-light" />
-                <span className="text-white/60 text-sm">Mon-Fri: 8:30 AM - 5:00 PM</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-allstate-light" />
+                  <span className="text-white/60 text-sm">Mon-Fri: 8:30 AM - 5:00 PM</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-allstate-light opacity-0" />
+                  <span className="text-white/60 text-sm">Saturday: By Appointment</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1018,20 +1014,14 @@ function Footer({
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-center sm:text-left">
             <p className="text-white/50 text-xs">
-              &copy; {new Date().getFullYear()} {agentName} &ndash; Allstate Insurance Agent. All Rights Reserved.
-            </p>
-            <p className="text-white/30 text-xs mt-1">
-              You&apos;re in good hands&reg; &mdash; Allstate Insurance Company
+              &copy; {new Date().getFullYear()} Dwyer Insurance Group &ndash; Insurance Agency. All Rights Reserved.
             </p>
           </div>
           <div className="flex items-center gap-4 text-xs text-white/40">
-            <a href="https://www.allstate.com/" target="_blank" rel="noopener noreferrer" className="hover:text-allstate-light transition-colors">
-              Allstate.com
-            </a>
-            <a href="https://www.allstate.com/privacy-center" target="_blank" rel="noopener noreferrer" className="hover:text-allstate-light transition-colors">
+            <a href="/privacy" className="hover:text-allstate-light transition-colors">
               Privacy
             </a>
-            <a href="https://www.allstate.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-allstate-light transition-colors">
+            <a href="/terms" className="hover:text-allstate-light transition-colors">
               Terms
             </a>
           </div>
@@ -1141,8 +1131,8 @@ export default function InsuranceSlugPage() {
         currentPageTitle={currentPage.title}
       />
       <main className="flex-1">
-        <InsuranceHero page={currentPage} />
-        <DescriptionSection page={currentPage} />
+        <InsuranceHero page={currentPage} agentInfo={siteData.agentInfo} />
+        <DescriptionSection page={currentPage} agentInfo={siteData.agentInfo} />
         <FeaturesGrid page={currentPage} />
         <ProTipCallout page={currentPage} />
         <OtherInsuranceTypes

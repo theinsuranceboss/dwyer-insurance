@@ -232,13 +232,13 @@ export default function AdminDashboard() {
         } bg-[#001e60] text-white flex flex-col transition-all duration-300 flex-shrink-0`}
       >
         <div className="p-4 flex items-center gap-3 border-b border-white/10">
-          <div className="w-8 h-8 rounded-full bg-[#0033A0] flex items-center justify-center flex-shrink-0">
-            <Shield className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+            <img src="/logo.png" alt="Dwyer Insurance Group" className="w-full h-full object-cover" />
           </div>
           {sidebarOpen && (
             <div className="overflow-hidden">
               <h1 className="font-bold text-sm leading-tight">Admin Panel</h1>
-              <p className="text-[10px] text-blue-200 truncate">Suzanne Dwyer CMS</p>
+              <p className="text-[10px] text-blue-200 truncate">Dwyer Insurance Group CMS</p>
             </div>
           )}
         </div>

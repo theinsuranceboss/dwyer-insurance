@@ -370,3 +370,31 @@ Stage Summary:
 - Insurance page edit form includes collapsible Banner & Appearance section with 6 color/image fields
 - Both homepage and insurance pages respect custom banner/color settings when set
 - Empty settings fall back to original default behavior
+---
+Task ID: 1
+Agent: Main Agent
+Task: Rebrand entire website from Allstate/Suzanne Dwyer to Dwyer Insurance Group with new logo, navigation redesign, and content updates
+
+Work Log:
+- Copied uploaded logo image (pasted_image_1778615172038.png) to /public/logo.png
+- Updated database agent info: name → "Dwyer Insurance Group", title → "Insurance Agency", badge → "Elite Agent, National Award Winner", email → "suzane@dwyerinsurance.com", states → "PA, NY, DE", phone → "(610) 649-0500", address → "15 W Lancaster Ave, Wynnewood, PA 19096"
+- Updated database site settings: siteName, siteDescription, heroTitle/Subtitle/Description, footerText, footerCopyright
+- Updated database page sections: hero, about, services, whyChooseUs, ctaBanner - removed Allstate/Wynnewood references
+- Verified menu items already have "Insurance Types" dropdown with Auto, Home, Life, Business, More Insurance sub-items
+- Redesigned Navigation component (page.tsx): always deep blue background, white text, logo image instead of Shield icon, Insurance Types dropdown with white rounded panel, orange Get a Quote button, responsive mobile menu
+- Replaced all "Allstate" visible text references in page.tsx with "Dwyer Insurance Group" or removed
+- Added "Saturday: By Appointment" to schedule in hero section and contact section
+- Removed "Wynnewood" from non-address sections (only kept in Visit Us / address areas)
+- Updated insurance/[slug]/page.tsx: same navigation redesign, Allstate→Dwyer rebranding, logo image, schedule updates
+- Updated admin/page.tsx: logo image, "Dwyer Insurance Group — CMS"
+- Updated admin/dashboard/page.tsx: logo image, "Dwyer Insurance Group CMS"
+- Updated layout.tsx: title, description, keywords, favicon, OG tags all updated to Dwyer Insurance Group branding
+- Updated globals.css: added --color-dwyer-* aliases alongside existing --color-allstate-* for compatibility
+
+Stage Summary:
+- Full rebrand from Allstate/Suzanne Dwyer to Dwyer Insurance Group completed
+- Navigation redesigned to always be deep blue (#001e60) with white text, matching the user's screenshot
+- Insurance Types dropdown menu with Auto, Home, Life, Business, More Insurance sub-items
+- Logo changed from Shield icon to the uploaded Dwyer Insurance Group circular logo
+- All content updates applied: states (PA, NY, DE), email (suzane@dwyerinsurance.com), badge (Elite Agent, National Award Winner), schedule (Saturday By Appointment), Wynnewood only in address
+- Lint passes, dev server running correctly on port 3000

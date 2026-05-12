@@ -267,7 +267,7 @@ function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav skeleton */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-sm">
+      <div className="fixed top-0 left-0 right-0 z-50 shadow-sm" style={{ backgroundColor: "#001e60" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 lg:h-20">
           <div className="flex items-center gap-3">
             <Skeleton className="w-10 h-10 rounded-full" />
@@ -374,49 +374,32 @@ function Navigation({
     setMobileExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const navLinkClass = (isDropdown = false) =>
-    `nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 ${
-      isDropdown ? "cursor-pointer" : ""
-    } ${
-      scrolled
-        ? "hover:bg-gray-100"
-        : "text-white/90 hover:text-white hover:bg-white/10"
-    }`;
+  // Always deep blue nav with white text
+  const navBg = settings.darkColor || "#001e60";
 
   return (
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg"
-          : "bg-transparent"
-      }`}
-      style={scrolled ? { borderBottom: `1px solid ${settings.lightColor}30` } : undefined}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "shadow-xl" : "shadow-md"}`}
+      style={{ backgroundColor: navBg }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <a href="#hero" className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: settings.primaryColor }}
-            >
-              <Shield className="w-6 h-6 text-white" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="Dwyer Insurance Group"
+              className="w-10 h-10 rounded-full object-cover"
+            />
             <div className="hidden sm:block">
-              <p
-                className={`font-bold text-lg leading-tight ${scrolled ? "" : "text-white"}`}
-                style={scrolled ? { color: settings.secondaryColor } : undefined}
-              >
-                {agentInfo.name}
+              <p className="font-bold text-lg leading-tight text-white">
+                Dwyer Insurance Group
               </p>
-              <p
-                className={`text-xs leading-tight ${scrolled ? "" : "text-white/70"}`}
-                style={scrolled ? { color: settings.primaryColor } : undefined}
-              >
-                {agentInfo.title}
+              <p className="text-xs leading-tight text-white/70">
+                Insurance Agency
               </p>
             </div>
           </a>
@@ -427,7 +410,6 @@ function Navigation({
               const children = childrenByParent[item.id] || [];
 
               if (item.isDropdown && children.length > 0) {
-                // Dropdown parent with children
                 return (
                   <div
                     key={item.id}
@@ -437,8 +419,7 @@ function Navigation({
                   >
                     <button
                       onClick={() => toggleDesktopDropdown(item.id, !openDropdowns[item.id])}
-                      className={navLinkClass(true)}
-                      style={scrolled ? { color: settings.secondaryColor } : undefined}
+                      className="text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 cursor-pointer text-white/90 hover:text-white hover:bg-white/10"
                     >
                       {item.label}
                       <ChevronDown
@@ -476,13 +457,11 @@ function Navigation({
                 );
               }
 
-              // Regular link (no dropdown)
               return (
                 <a
                   key={item.id}
                   href={item.href}
-                  className={navLinkClass()}
-                  style={scrolled ? { color: settings.secondaryColor } : undefined}
+                  className="text-sm font-medium px-3 py-2 rounded-md transition-colors text-white/90 hover:text-white hover:bg-white/10"
                 >
                   {item.label}
                 </a>
@@ -508,9 +487,9 @@ function Navigation({
             aria-label="Toggle menu"
           >
             {mobileOpen ? (
-              <X className={scrolled ? "" : "text-white"} size={24} style={scrolled ? { color: settings.secondaryColor } : undefined} />
+              <X className="text-white" size={24} />
             ) : (
-              <Menu className={scrolled ? "" : "text-white"} size={24} style={scrolled ? { color: settings.secondaryColor } : undefined} />
+              <Menu className="text-white" size={24} />
             )}
           </button>
         </div>
@@ -698,7 +677,7 @@ function HeroSection({
                 }}
               >
                 <Award className="w-4 h-4 mr-2" />
-                {agentInfo.badge} — Allstate
+                {agentInfo.badge}
               </Badge>
             </motion.div>
 
@@ -784,10 +763,11 @@ function HeroSection({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="mt-10 grid grid-cols-2 sm:grid-cols-3 gap-4"
+              className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4"
             >
               {[
-                { icon: Clock, label: "Mon–Fri", value: "8:30–5:00 PM" },
+                { icon: Clock, label: "Office Hours", value: "Mon–Fri 8:30–5:00 PM" },
+                { icon: Clock, label: "Saturday", value: "By Appointment" },
                 {
                   icon: Globe,
                   label: "Languages",
@@ -971,11 +951,11 @@ function AboutSection({
                   </div>
                   <h3 className="text-3xl font-bold mb-2">{agentInfo.name}</h3>
                   <p className="font-medium text-lg mb-4" style={{ color: settings.lightColor }}>
-                    Allstate {agentInfo.badge}
+                    {agentInfo.badge}
                   </p>
                   <p className="text-white/80 mb-6">
-                    Dedicated to providing personalized insurance solutions with the backing of
-                    Allstate&apos;s financial strength and claims expertise.
+                    Dedicated to providing personalized insurance solutions with decades of
+                    industry expertise and claims support.
                   </p>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -1022,7 +1002,6 @@ function AboutSection({
               style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
             >
               {aboutSection?.title || "Your Trusted Insurance Partner"}
-              <span style={{ color: settings.primaryColor }}> in Wynnewood</span>
             </h2>
             {aboutSection?.description && (
               <>
@@ -1120,7 +1099,7 @@ function ServicesSection({
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             {servicesSection?.description ||
-              "From auto and home to life and business, we offer a full range of Allstate insurance products to protect every aspect of your life."}
+              "From auto and home to life and business, we offer a full range of insurance products to protect every aspect of your life."}
           </p>
         </AnimatedSection>
 
@@ -1184,8 +1163,8 @@ function WhyChooseUsSection({
   const reasons = [
     {
       icon: Shield,
-      title: "Allstate Financial Strength",
-      desc: "Backed by one of the largest insurance companies in America with over 90 years of experience.",
+      title: "Proven Financial Strength",
+      desc: "Backed by decades of industry experience and partnerships with leading insurance carriers.",
     },
     {
       icon: Award,
@@ -1205,7 +1184,7 @@ function WhyChooseUsSection({
     {
       icon: CheckCircle2,
       title: "Claims Satisfaction Guarantee",
-      desc: "Allstate's Claim Satisfaction Guarantee means you're happy with the outcome, or we make it right.",
+      desc: "Our claims satisfaction guarantee means you're happy with the outcome, or we make it right.",
     },
     {
       icon: Phone,
@@ -1697,7 +1676,11 @@ function ContactSection({
                         <span className="text-sm text-muted-foreground">8:30 AM – 5:00 PM</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="font-medium" style={{ color: settings.secondaryColor }}>Saturday – Sunday</span>
+                        <span className="font-medium" style={{ color: settings.secondaryColor }}>Saturday</span>
+                        <span className="text-sm text-muted-foreground">By Appointment</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium" style={{ color: settings.secondaryColor }}>Sunday</span>
                         <span className="text-sm text-muted-foreground">Closed</span>
                       </div>
                     </div>
@@ -1836,15 +1819,14 @@ function Footer({
           {/* Agent Info */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: settings.primaryColor }}
-              >
-                <Shield className="w-6 h-6 text-white" />
-              </div>
+              <img
+                src="/logo.png"
+                alt="Dwyer Insurance Group"
+                className="w-10 h-10 rounded-full object-cover"
+              />
               <div>
-                <p className="font-bold text-lg">{agentInfo.name}</p>
-                <p className="text-xs text-white/60">{agentInfo.title}</p>
+                <p className="font-bold text-lg">Dwyer Insurance Group</p>
+                <p className="text-xs text-white/60">Insurance Agency</p>
               </div>
             </div>
             <p className="text-white/70 text-sm mb-4">{settings.siteDescription}</p>
@@ -1948,6 +1930,10 @@ function Footer({
               <div className="flex items-start gap-3 text-white/70 text-sm">
                 <Clock size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
                 Mon–Fri: 8:30 AM – 5:00 PM
+              </div>
+              <div className="flex items-start gap-3 text-white/70 text-sm">
+                <Clock size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
+                Saturday: By Appointment
               </div>
             </div>
           </div>

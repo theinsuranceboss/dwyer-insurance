@@ -48,6 +48,13 @@
   --color-allstate-orange: #ff9e16;
   --color-allstate-gray: #ced7e0;
   --color-allstate-lightgray: #e4e9ed;
+  --color-dwyer-blue: #0033A0;
+  --color-dwyer-navy: #001e60;
+  --color-dwyer-dark: #0e1941;
+  --color-dwyer-light: #57b6ff;
+  --color-dwyer-orange: #ff9e16;
+  --color-dwyer-gray: #ced7e0;
+  --color-dwyer-lightgray: #e4e9ed;
 }
 
 :root {
@@ -114,16 +121,19 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Allstate gradient backgrounds */
-.bg-allstate-gradient {
+/* Brand gradient backgrounds */
+.bg-allstate-gradient,
+.bg-dwyer-gradient {
   background: linear-gradient(135deg, #001e60 0%, #0033A0 50%, #0e1941 100%);
 }
 
-.bg-allstate-hero {
+.bg-allstate-hero,
+.bg-dwyer-hero {
   background: linear-gradient(135deg, #0e1941 0%, #0033A0 40%, #0033A0 60%, #001e60 100%);
 }
 
-.bg-allstate-light-gradient {
+.bg-allstate-light-gradient,
+.bg-dwyer-light-gradient {
   background: linear-gradient(180deg, #f8fafc 0%, #e8edf5 100%);
 }
 
