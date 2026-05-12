@@ -26,6 +26,7 @@ model MenuItem {
   visible   Boolean  @default(true)
   isDropdown Boolean @default(false)
   parent   String?  // if this is a sub-item, reference parent id
+  iconName String   @default("") // Lucide icon name for display in nav
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

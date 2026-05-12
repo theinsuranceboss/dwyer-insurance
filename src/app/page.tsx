@@ -1,26 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Shield,
-  Car,
-  Home,
-  Heart,
-  Building2,
-  Bike,
-  Ship,
-  TreePine,
-  Umbrella,
   Phone,
   Mail,
   MapPin,
   Clock,
   Star,
   ChevronDown,
-  ChevronRight,
-  Menu,
-  X,
   Award,
   Users,
   Handshake,
@@ -28,13 +17,7 @@ import {
   ArrowRight,
   MessageCircle,
   Globe,
-  ShieldCheck,
-  Fingerprint,
-  Wrench,
-  Landmark,
-  Briefcase,
   Send,
-  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,50 +40,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-
-// ─── Icon Mapping ────────────────────────────────────────────────
-
-const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>> = {
-  Car,
-  Home,
-  Heart,
-  Building2,
-  Landmark,
-  Bike,
-  Briefcase,
-  Ship,
-  TreePine,
-  Umbrella,
-  Fingerprint,
-  Wrench,
-  Shield,
-};
-
-function BriefcaseIcon(props: { size?: number; className?: string }) {
-  const { size = 24, className } = props;
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-    </svg>
-  );
-}
-
-function getIcon(iconName: string) {
-  if (iconName === "Briefcase") return BriefcaseIcon;
-  return iconMap[iconName] || Shield;
-}
+import DynamicIcon from "@/components/DynamicIcon";
+import AnimatedSection from "@/components/AnimatedSection";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -130,6 +73,12 @@ interface Settings {
   footerBgColor: string;
   footerText: string;
   footerCopyright: string;
+  logoUrl: string;
+  logoText: string;
+  logoSubtext: string;
+  footerColumn1Title: string;
+  footerColumn2Title: string;
+  footerColumn3Title: string;
   [key: string]: string;
 }
 
@@ -141,6 +90,7 @@ interface MenuItem {
   visible: boolean;
   isDropdown: boolean;
   parent: string | null;
+  iconName: string;
 }
 
 interface AgentInfo {
@@ -216,31 +166,6 @@ interface SiteData {
 
 // ─── Helper Components ───────────────────────────────────────────
 
-function AnimatedSection({
-  children,
-  className = "",
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-      transition={{ duration: 0.7, delay, ease: "easeOut" }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
   return (
     <div className="flex items-center gap-0.5">
@@ -270,7 +195,7 @@ function LoadingSkeleton() {
       <div className="fixed top-0 left-0 right-0 z-50 shadow-sm" style={{ backgroundColor: "#001e60" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 lg:h-20">
           <div className="flex items-center gap-3">
-            <Skeleton className="w-10 h-10 rounded-full" />
+            <Skeleton className="w-10 h-10 rounded" />
             <div className="hidden sm:block space-y-1">
               <Skeleton className="w-36 h-5" />
               <Skeleton className="w-28 h-3" />
@@ -331,255 +256,6 @@ function LoadingSkeleton() {
         </div>
       </div>
     </div>
-  );
-}
-
-// ─── Navigation ──────────────────────────────────────────────────
-
-function Navigation({
-  menuItems,
-  agentInfo,
-  settings,
-}: {
-  menuItems: MenuItem[];
-  agentInfo: AgentInfo;
-  settings: Settings;
-}) {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
-  const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Build parent/child structure from flat menu items
-  const topLevelItems = menuItems.filter((item) => !item.parent);
-  const childrenByParent = menuItems.reduce<Record<string, MenuItem[]>>((acc, item) => {
-    if (item.parent) {
-      if (!acc[item.parent]) acc[item.parent] = [];
-      acc[item.parent].push(item);
-    }
-    return acc;
-  }, {});
-
-  const toggleDesktopDropdown = (id: string, open: boolean) => {
-    setOpenDropdowns((prev) => ({ ...prev, [id]: open }));
-  };
-
-  const toggleMobileExpand = (id: string) => {
-    setMobileExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  // Always deep blue nav with white text
-  const navBg = settings.darkColor || "#001e60";
-
-  return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "shadow-xl" : "shadow-md"}`}
-      style={{ backgroundColor: navBg }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <a href="#hero" className="flex items-center gap-3">
-            <img
-              src="/logo.png"
-              alt="Dwyer Insurance Group"
-              className="w-10 h-10 rounded-full object-cover"
-            />
-            <div className="hidden sm:block">
-              <p className="font-bold text-lg leading-tight text-white">
-                Dwyer Insurance Group
-              </p>
-              <p className="text-xs leading-tight text-white/70">
-                Insurance Agency
-              </p>
-            </div>
-          </a>
-
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {topLevelItems.map((item) => {
-              const children = childrenByParent[item.id] || [];
-
-              if (item.isDropdown && children.length > 0) {
-                return (
-                  <div
-                    key={item.id}
-                    className="relative"
-                    onMouseEnter={() => toggleDesktopDropdown(item.id, true)}
-                    onMouseLeave={() => toggleDesktopDropdown(item.id, false)}
-                  >
-                    <button
-                      onClick={() => toggleDesktopDropdown(item.id, !openDropdowns[item.id])}
-                      className="text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 cursor-pointer text-white/90 hover:text-white hover:bg-white/10"
-                    >
-                      {item.label}
-                      <ChevronDown
-                        size={14}
-                        className={`transition-transform ${openDropdowns[item.id] ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    <AnimatePresence>
-                      {openDropdowns[item.id] && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-                        >
-                          <div className="py-1.5">
-                            {children.map((child) => (
-                              <a
-                                key={child.id}
-                                href={child.href}
-                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-                              >
-                                <ChevronRight size={12} className="text-gray-400 flex-shrink-0" />
-                                <span className="text-sm font-medium text-gray-700">
-                                  {child.label}
-                                </span>
-                              </a>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              }
-
-              return (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  className="text-sm font-medium px-3 py-2 rounded-md transition-colors text-white/90 hover:text-white hover:bg-white/10"
-                >
-                  {item.label}
-                </a>
-              );
-            })}
-
-            <a href={agentInfo.phoneLink} className="ml-3">
-              <Button
-                size="sm"
-                className="text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-                style={{ backgroundColor: settings.accentColor }}
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Get a Quote
-              </Button>
-            </a>
-          </div>
-
-          {/* Mobile toggle */}
-          <button
-            className="lg:hidden p-2"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <X className="text-white" size={24} />
-            ) : (
-              <Menu className="text-white" size={24} />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white shadow-xl border-t border-gray-100"
-          >
-            <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
-              {topLevelItems.map((item) => {
-                const children = childrenByParent[item.id] || [];
-
-                if (item.isDropdown && children.length > 0) {
-                  return (
-                    <div key={item.id}>
-                      <button
-                        onClick={() => toggleMobileExpand(item.id)}
-                        className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
-                        style={{ color: settings.secondaryColor }}
-                      >
-                        {item.label}
-                        <ChevronDown
-                          size={16}
-                          className={`transition-transform ${mobileExpanded[item.id] ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                      <AnimatePresence>
-                        {mobileExpanded[item.id] && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="pl-4 space-y-0.5 border-l-2 ml-4" style={{ borderColor: `${settings.primaryColor}30` }}>
-                              {children.map((child) => (
-                                <a
-                                  key={child.id}
-                                  href={child.href}
-                                  onClick={() => setMobileOpen(false)}
-                                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                  <ChevronRight size={12} className="text-gray-400" />
-                                  <span className="text-sm font-medium" style={{ color: settings.secondaryColor }}>
-                                    {child.label}
-                                  </span>
-                                </a>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                }
-
-                return (
-                  <a
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
-                    style={{ color: settings.secondaryColor }}
-                  >
-                    {item.label}
-                  </a>
-                );
-              })}
-
-              <Separator className="my-2" />
-              <a href={agentInfo.phoneLink} className="block pt-2">
-                <Button
-                  className="w-full text-white font-semibold"
-                  style={{ backgroundColor: settings.accentColor }}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Get a Quote: {agentInfo.phone}
-                </Button>
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
   );
 }
 
@@ -766,7 +442,7 @@ function HeroSection({
               className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4"
             >
               {[
-                { icon: Clock, label: "Office Hours", value: "Mon–Fri 8:30–5:00 PM" },
+                { icon: Clock, label: "Office Hours", value: "Mon-Fri 8:30-5:00 PM" },
                 { icon: Clock, label: "Saturday", value: "By Appointment" },
                 {
                   icon: Globe,
@@ -790,7 +466,7 @@ function HeroSection({
             </motion.div>
           </div>
 
-          {/* Right - Suzanne's Photo */}
+          {/* Right - Agent Photo */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -884,191 +560,6 @@ function HeroSection({
   );
 }
 
-// ─── About Section ───────────────────────────────────────────────
-
-function AboutSection({
-  settings,
-  agentInfo,
-  aboutSection,
-}: {
-  settings: Settings;
-  agentInfo: AgentInfo;
-  aboutSection: PageSection | undefined;
-}) {
-  const rating = parseFloat(agentInfo.rating) || 0;
-  const reviewCount = parseInt(agentInfo.reviewCount) || 0;
-  const states = agentInfo.states.split(",").map((s) => s.trim());
-
-  // Parse stats from section content if available
-  let stats: { number: string; label: string }[] = [
-    { number: `${reviewCount}+`, label: "Happy Clients" },
-    { number: agentInfo.rating, label: "Star Rating" },
-    { number: `${states.length}`, label: "States Licensed" },
-    { number: "12+", label: "Insurance Types" },
-  ];
-
-  if (aboutSection?.content) {
-    try {
-      const parsed = JSON.parse(aboutSection.content);
-      if (parsed.stats) stats = parsed.stats;
-    } catch {
-      // use defaults
-    }
-  }
-
-  return (
-    <section id="about" className={`py-20 lg:py-28 ${settings.aboutBgColor ? "" : "bg-white"}`} style={settings.aboutBgColor ? { backgroundColor: settings.aboutBgColor } : undefined}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Visual Side */}
-          <AnimatedSection>
-            <div className="relative">
-              <div
-                className="rounded-3xl p-8 lg:p-12 text-white relative overflow-hidden"
-                style={{
-                  background: `linear-gradient(135deg, ${settings.secondaryColor} 0%, ${settings.primaryColor} 50%, ${settings.darkColor} 100%)`,
-                }}
-              >
-                <div
-                  className="absolute top-0 right-0 w-40 h-40 rounded-full -translate-y-1/2 translate-x-1/2"
-                  style={{ backgroundColor: `${settings.lightColor}15` }}
-                />
-                <div
-                  className="absolute bottom-0 left-0 w-32 h-32 rounded-full translate-y-1/2 -translate-x-1/2"
-                  style={{ backgroundColor: `${settings.accentColor}15` }}
-                />
-
-                <div className="relative z-10">
-                  <div
-                    className="w-28 h-28 rounded-full border-4 overflow-hidden mb-6 mx-auto lg:mx-0"
-                    style={{ borderColor: settings.lightColor, backgroundColor: settings.darkColor }}
-                  >
-                    <img
-                      src={agentInfo.photo}
-                      alt={`${agentInfo.name} - ${agentInfo.title}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <h3 className="text-3xl font-bold mb-2">{agentInfo.name}</h3>
-                  <p className="font-medium text-lg mb-4" style={{ color: settings.lightColor }}>
-                    {agentInfo.badge}
-                  </p>
-                  <p className="text-white/80 mb-6">
-                    Dedicated to providing personalized insurance solutions with decades of
-                    industry expertise and claims support.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {stats.map((stat) => (
-                      <div
-                        key={stat.label}
-                        className="bg-white/10 rounded-xl p-4 text-center backdrop-blur-sm"
-                      >
-                        <p className="text-2xl font-bold" style={{ color: settings.lightColor }}>
-                          {stat.number}
-                        </p>
-                        <p className="text-sm text-white/70">{stat.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating badge */}
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-4 -right-4 text-white rounded-2xl px-4 py-3 shadow-xl"
-                style={{ backgroundColor: settings.accentColor }}
-              >
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5" />
-                  <span className="font-bold text-sm">{agentInfo.badge}</span>
-                </div>
-              </motion.div>
-            </div>
-          </AnimatedSection>
-
-          {/* Content Side */}
-          <AnimatedSection delay={0.2}>
-            <Badge
-              className="mb-4 border-0"
-              style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
-            >
-              {aboutSection?.subtitle || "About Suzanne"}
-            </Badge>
-            <h2
-              className="text-3xl sm:text-4xl font-bold mb-6"
-              style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
-            >
-              {aboutSection?.title || "Your Trusted Insurance Partner"}
-            </h2>
-            {aboutSection?.description && (
-              <>
-                {aboutSection.description.split("\n\n").map((paragraph, i) => (
-                  <p key={i} className="text-muted-foreground text-lg mb-4">
-                    {paragraph}
-                  </p>
-                ))}
-              </>
-            )}
-
-            <div className="space-y-4 mb-8">
-              {[
-                {
-                  icon: ShieldCheck,
-                  title: "Personalized Coverage",
-                  desc: "Tailored insurance solutions, not one-size-fits-all policies",
-                },
-                {
-                  icon: Clock,
-                  title: "24/7 Support",
-                  desc: "Round-the-clock claims support and after-hours appointments",
-                },
-                {
-                  icon: Handshake,
-                  title: "Trusted Partnership",
-                  desc: "Building lasting relationships based on trust and transparency",
-                },
-                {
-                  icon: Globe,
-                  title: "Bilingual Service",
-                  desc: `Serving clients in ${agentInfo.languages}`,
-                },
-              ].map((item) => (
-                <div key={item.title} className="flex items-start gap-4 group">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-80 transition-opacity"
-                    style={{ backgroundColor: `${settings.primaryColor}12` }}
-                  >
-                    <item.icon className="w-6 h-6" style={{ color: settings.primaryColor }} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold" style={{ color: settings.secondaryColor }}>
-                      {item.title}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <a href="#contact">
-              <Button
-                className="text-white font-semibold px-8 shadow-lg hover:shadow-xl transition-all"
-                style={{ backgroundColor: settings.primaryColor }}
-              >
-                Schedule a Consultation
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </a>
-          </AnimatedSection>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ─── Services Section ────────────────────────────────────────────
 
 function ServicesSection({
@@ -1104,45 +595,46 @@ function ServicesSection({
         </AnimatedSection>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {insurancePages.map((page, i) => {
-            const IconComp = getIcon(page.iconName);
-            return (
-              <AnimatedSection key={page.id} delay={i * 0.04}>
-                <a href={`/insurance/${page.slug}`}>
-                  <Card
-                    className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full"
-                    style={{ borderRadius: `${settings.borderRadius}px` }}
-                  >
-                    <CardHeader className="pb-3">
-                      <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
-                        style={{ backgroundColor: page.iconBgColor }}
-                      >
-                        <IconComp size={28} style={{ color: page.iconColor }} />
-                      </div>
-                      <CardTitle
-                        className="text-lg group-hover:transition-colors"
-                        style={{ color: settings.secondaryColor }}
-                      >
-                        {page.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="text-muted-foreground text-sm">
-                        {page.tagline}
-                      </CardDescription>
-                      <div
-                        className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all"
-                        style={{ color: settings.primaryColor }}
-                      >
-                        Learn More <ArrowRight className="w-4 h-4 ml-1" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </a>
-              </AnimatedSection>
-            );
-          })}
+          {insurancePages.map((page, i) => (
+            <AnimatedSection key={page.id} delay={i * 0.04}>
+              <a href={`/insurance/${page.slug}`}>
+                <Card
+                  className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full"
+                  style={{ borderRadius: `${settings.borderRadius}px` }}
+                >
+                  <CardHeader className="pb-3">
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+                      style={{ backgroundColor: page.iconBgColor }}
+                    >
+                      <DynamicIcon
+                        name={page.iconName}
+                        size={28}
+                        style={{ color: page.iconColor }}
+                      />
+                    </div>
+                    <CardTitle
+                      className="text-lg group-hover:transition-colors"
+                      style={{ color: settings.secondaryColor }}
+                    >
+                      {page.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-muted-foreground text-sm">
+                      {page.tagline}
+                    </CardDescription>
+                    <div
+                      className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all"
+                      style={{ color: settings.primaryColor }}
+                    >
+                      Learn More <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </a>
+            </AnimatedSection>
+          ))}
         </div>
       </div>
     </section>
@@ -1169,7 +661,7 @@ function WhyChooseUsSection({
     {
       icon: Award,
       title: `${agentInfo.badge} Recognition`,
-      desc: "Suzanne's elite status reflects her commitment to exceptional service and client satisfaction.",
+      desc: "Our elite status reflects our commitment to exceptional service and client satisfaction.",
     },
     {
       icon: Users,
@@ -1179,17 +671,17 @@ function WhyChooseUsSection({
     {
       icon: Handshake,
       title: "Local Community Expert",
-      desc: `Based in ${agentInfo.address}, Suzanne understands the unique needs of the community.`,
+      desc: "Based in Wynnewood, PA, we understand the unique needs of the community.",
     },
     {
       icon: CheckCircle2,
       title: "Claims Satisfaction Guarantee",
-      desc: "Our claims satisfaction guarantee means you're happy with the outcome, or we make it right.",
+      desc: "Our claims satisfaction guarantee means you are happy with the outcome, or we make it right.",
     },
     {
       icon: Phone,
       title: "Easy to Reach",
-      desc: `Call ${agentInfo.phone}, text ${agentInfo.textNumber}, or email — Suzanne is always accessible.`,
+      desc: `Call ${agentInfo.phone}, text ${agentInfo.textNumber}, or email — we are always accessible.`,
     },
   ];
 
@@ -1207,11 +699,11 @@ function WhyChooseUsSection({
             className="text-3xl sm:text-4xl font-bold mb-4"
             style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
           >
-            {whySection?.title || "Why Families Trust Suzanne Dwyer"}
+            {whySection?.title || "Why Families Trust Us"}
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             {whySection?.description ||
-              "Choosing the right insurance agent makes all the difference. Here's why hundreds of families trust Suzanne with their protection."}
+              "Choosing the right insurance agent makes all the difference. Here is why hundreds of families trust us with their protection."}
           </p>
         </AnimatedSection>
 
@@ -1249,7 +741,6 @@ function TestimonialsSection({
   testimonials: Testimonial[];
   testimonialsSection: PageSection | undefined;
 }) {
-  const [activeIndex, setActiveIndex] = useState(0);
   const displayedTestimonials = testimonials.slice(0, 6);
 
   return (
@@ -1274,7 +765,7 @@ function TestimonialsSection({
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             {testimonialsSection?.description ||
-              "Don't just take our word for it — hear from the families and individuals who trust Suzanne Dwyer with their insurance needs."}
+              "Do not just take our word for it — hear from the families and individuals who trust us with their insurance needs."}
           </p>
         </AnimatedSection>
 
@@ -1347,13 +838,13 @@ function FaqSection({
           </h2>
           <p className="text-muted-foreground text-lg">
             {faqSection?.description ||
-              "Have questions? We have answers. If you don't see what you're looking for, feel free to contact us directly."}
+              "Have questions? We have answers. If you do not see what you are looking for, feel free to contact us directly."}
           </p>
         </AnimatedSection>
 
         <AnimatedSection>
           <Accordion type="single" collapsible className="space-y-3">
-            {faqs.map((faq, i) => (
+            {faqs.map((faq) => (
               <AccordionItem
                 key={faq.id}
                 value={faq.id}
@@ -1417,7 +908,7 @@ function ContactSection({
             title: "Message Sent!",
             description:
               data.message ||
-              "Thank you for your inquiry. Suzanne will get back to you within 24 hours.",
+              "Thank you for your inquiry. We will get back to you within 24 hours.",
           });
           setFormData({ name: "", email: "", phone: "", insuranceType: "", message: "" });
         } else {
@@ -1462,7 +953,7 @@ function ContactSection({
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             {contactSection?.description ||
-              "Ready to protect what matters most? Contact Suzanne today for a free, no-obligation insurance consultation and quote."}
+              "Ready to protect what matters most? Contact us today for a free, no-obligation insurance consultation and quote."}
           </p>
         </AnimatedSection>
 
@@ -1601,26 +1092,8 @@ function ContactSection({
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Call Us</p>
-                      <p className="font-semibold group-hover:underline" style={{ color: settings.secondaryColor }}>
+                      <p className="font-semibold" style={{ color: settings.secondaryColor }}>
                         {agentInfo.phone}
-                      </p>
-                    </div>
-                  </a>
-
-                  <a
-                    href={`sms:${agentInfo.textNumber}`}
-                    className="flex items-center gap-4 group hover:bg-gray-50 -mx-3 px-3 py-2 rounded-lg transition-colors"
-                  >
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: `${settings.accentColor}15` }}
-                    >
-                      <MessageCircle className="w-5 h-5" style={{ color: settings.accentColor }} />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Text Us</p>
-                      <p className="font-semibold group-hover:underline" style={{ color: settings.secondaryColor }}>
-                        {agentInfo.textNumber}
                       </p>
                     </div>
                   </a>
@@ -1637,13 +1110,13 @@ function ContactSection({
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Email Us</p>
-                      <p className="font-semibold group-hover:underline text-sm" style={{ color: settings.secondaryColor }}>
+                      <p className="font-semibold" style={{ color: settings.secondaryColor }}>
                         {agentInfo.email}
                       </p>
                     </div>
                   </a>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 -mx-3 px-3 py-2">
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: `${settings.primaryColor}12` }}
@@ -1653,65 +1126,45 @@ function ContactSection({
                     <div>
                       <p className="text-sm text-muted-foreground">Visit Us</p>
                       <p className="font-semibold" style={{ color: settings.secondaryColor }}>
-                        {agentInfo.address}
+                        Wynnewood, PA
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 -mx-3 px-3 py-2">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: `${settings.primaryColor}12` }}
+                    >
+                      <Clock className="w-5 h-5" style={{ color: settings.primaryColor }} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Office Hours</p>
+                      <div className="font-semibold" style={{ color: settings.secondaryColor }}>
+                        <p>Mon-Fri: 8:30 AM - 5:00 PM</p>
+                        <p>Saturday: By Appointment</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </Card>
 
+              {/* Map Placeholder */}
               <Card
                 className="p-6"
                 style={{ borderRadius: `${settings.borderRadius}px` }}
               >
-                <h3 className="text-xl font-bold mb-4" style={{ color: settings.secondaryColor }}>
-                  Office Hours
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 flex-shrink-0" style={{ color: settings.primaryColor }} />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium" style={{ color: settings.secondaryColor }}>Monday – Friday</span>
-                        <span className="text-sm text-muted-foreground">8:30 AM – 5:00 PM</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium" style={{ color: settings.secondaryColor }}>Saturday</span>
-                        <span className="text-sm text-muted-foreground">By Appointment</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium" style={{ color: settings.secondaryColor }}>Sunday</span>
-                        <span className="text-sm text-muted-foreground">Closed</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Separator />
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Phone className="w-4 h-4" style={{ color: settings.accentColor }} />
-                    After-hours appointments available by request
-                  </p>
-                </div>
-              </Card>
-
-              <Card
-                className="p-6 text-white"
-                style={{
-                  background: `linear-gradient(135deg, ${settings.secondaryColor}, ${settings.primaryColor})`,
-                  borderRadius: `${settings.borderRadius}px`,
-                }}
-              >
-                <div className="flex items-start gap-4">
-                  <img
-                    src={agentInfo.photo}
-                    alt={agentInfo.name}
-                    className="w-16 h-16 rounded-full border-2 object-cover flex-shrink-0"
-                    style={{ borderColor: settings.lightColor }}
-                  />
-                  <div>
-                    <p className="font-bold text-lg">{agentInfo.name}</p>
-                    <p className="text-sm opacity-80">{agentInfo.title}</p>
-                    <p className="text-sm mt-2 italic" style={{ color: settings.lightColor }}>
-                      &ldquo;{agentInfo.tagline}&rdquo;
+                <div
+                  className="w-full h-48 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${settings.primaryColor}08` }}
+                >
+                  <div className="text-center">
+                    <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: settings.primaryColor }} />
+                    <p className="font-semibold" style={{ color: settings.secondaryColor }}>
+                      {agentInfo.address}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Serving PA, NY, and DE
                     </p>
                   </div>
                 </div>
@@ -1726,7 +1179,7 @@ function ContactSection({
 
 // ─── CTA Banner ──────────────────────────────────────────────────
 
-function CtaBanner({
+function CTABanner({
   settings,
   agentInfo,
   ctaSection,
@@ -1736,41 +1189,51 @@ function CtaBanner({
   ctaSection: PageSection | undefined;
 }) {
   return (
-    <section
-      className="py-16 lg:py-20 relative overflow-hidden"
-      style={{
-        background: `linear-gradient(135deg, ${settings.darkColor} 0%, ${settings.primaryColor} 50%, ${settings.secondaryColor} 100%)`,
-      }}
-    >
-      {/* Decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-3xl"
-          style={{ backgroundColor: `${settings.lightColor}10` }}
-        />
-        <div
-          className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full blur-3xl"
-          style={{ backgroundColor: `${settings.accentColor}10` }}
-        />
-      </div>
-
+    <section className="py-16 lg:py-20 relative overflow-hidden">
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(135deg, ${settings.darkColor} 0%, ${settings.primaryColor} 50%, ${settings.secondaryColor} 100%)`,
+        }}
+      />
+      <div
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 20% 50%, rgba(255,255,255,.15) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(255,255,255,.1) 0%, transparent 50%)",
+        }}
+      />
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <AnimatedSection>
+          <motion.div
+            initial={{ scale: 0.9 }}
+            whileInView={{ scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="inline-block mb-6"
+          >
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center mx-auto"
+              style={{ backgroundColor: `${settings.accentColor}25` }}
+            >
+              <Shield className="w-10 h-10" style={{ color: settings.accentColor }} />
+            </div>
+          </motion.div>
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6"
             style={{ fontFamily: settings.headingFont }}
           >
             {ctaSection?.title || "Ready to Protect What Matters Most?"}
           </h2>
-          <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-white/80 text-lg sm:text-xl mb-10 max-w-2xl mx-auto">
             {ctaSection?.description ||
-              "Get a personalized insurance quote from Suzanne Dwyer today. Bundle and save up to 25% on your premiums!"}
+              "Get a personalized insurance review and competitive quotes. Our expert team is here to help you find the perfect coverage."}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href={agentInfo.phoneLink}>
               <Button
                 size="lg"
-                className="text-white font-bold text-lg px-10 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                className="text-white font-bold text-lg px-10 py-7 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
                 style={{ backgroundColor: settings.accentColor }}
               >
                 <Phone className="w-5 h-5 mr-2" />
@@ -1781,7 +1244,7 @@ function CtaBanner({
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 font-bold text-lg px-10 py-6 bg-transparent"
+                className="border-white/30 text-white hover:bg-white/10 font-bold text-lg px-10 py-7 bg-transparent"
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 Get a Free Quote
@@ -1796,159 +1259,7 @@ function CtaBanner({
 
 // ─── Footer ──────────────────────────────────────────────────────
 
-function Footer({
-  settings,
-  agentInfo,
-  insurancePages,
-}: {
-  settings: Settings;
-  agentInfo: AgentInfo;
-  insurancePages: InsurancePage[];
-}) {
-  const states = agentInfo.states.split(",").map((s) => s.trim());
-  const topInsurance = insurancePages.slice(0, 6);
-  const moreInsurance = insurancePages.slice(6);
-
-  return (
-    <footer
-      className="text-white"
-      style={{ backgroundColor: settings.footerBgColor || settings.darkColor }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Agent Info */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3 mb-5">
-              <img
-                src="/logo.png"
-                alt="Dwyer Insurance Group"
-                className="w-10 h-10 rounded-full object-cover"
-              />
-              <div>
-                <p className="font-bold text-lg">Dwyer Insurance Group</p>
-                <p className="text-xs text-white/60">Insurance Agency</p>
-              </div>
-            </div>
-            <p className="text-white/70 text-sm mb-4">{settings.siteDescription}</p>
-            <p className="text-sm italic" style={{ color: settings.lightColor }}>
-              &ldquo;{agentInfo.tagline}&rdquo;
-            </p>
-          </div>
-
-          {/* Insurance Products */}
-          <div>
-            <h4 className="font-bold text-lg mb-5">Insurance Products</h4>
-            <ul className="space-y-2.5">
-              {topInsurance.map((page) => (
-                <li key={page.id}>
-                  <a
-                    href={`/insurance/${page.slug}`}
-                    className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1.5"
-                  >
-                    <ChevronRight size={12} />
-                    {page.title}
-                  </a>
-                </li>
-              ))}
-              {moreInsurance.length > 0 && (
-                <li className="pt-2">
-                  <p className="text-xs text-white/40 mb-2 uppercase tracking-wider">More Products</p>
-                  {moreInsurance.map((page) => (
-                    <a
-                      key={page.id}
-                      href={`/insurance/${page.slug}`}
-                      className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1.5 py-1"
-                    >
-                      <ChevronRight size={12} />
-                      {page.title}
-                    </a>
-                  ))}
-                </li>
-              )}
-            </ul>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-bold text-lg mb-5">Quick Links</h4>
-            <ul className="space-y-2.5">
-              {[
-                { label: "Home", href: "/" },
-                { label: "About Suzanne", href: "/#about" },
-                { label: "Our Services", href: "/#services" },
-                { label: "Why Choose Us", href: "/#why-choose-us" },
-                { label: "Testimonials", href: "/#testimonials" },
-                { label: "FAQ", href: "/#faq" },
-                { label: "Contact Us", href: "/#contact" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1.5"
-                  >
-                    <ChevronRight size={12} />
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h4 className="font-bold text-lg mb-5">Contact Us</h4>
-            <div className="space-y-4">
-              <a
-                href={agentInfo.phoneLink}
-                className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-sm"
-              >
-                <Phone size={16} style={{ color: settings.lightColor }} />
-                {agentInfo.phone}
-              </a>
-              <a
-                href={`sms:${agentInfo.textNumber}`}
-                className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-sm"
-              >
-                <MessageCircle size={16} style={{ color: settings.accentColor }} />
-                Text: {agentInfo.textNumber}
-              </a>
-              <a
-                href={`mailto:${agentInfo.email}`}
-                className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-sm"
-              >
-                <Mail size={16} style={{ color: settings.lightColor }} />
-                {agentInfo.email}
-              </a>
-              <div className="flex items-start gap-3 text-white/70 text-sm">
-                <MapPin size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
-                {agentInfo.address}
-              </div>
-              <div className="flex items-start gap-3 text-white/70 text-sm">
-                <Globe size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
-                Licensed in {agentInfo.states}
-              </div>
-              <div className="flex items-start gap-3 text-white/70 text-sm">
-                <Clock size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
-                Mon–Fri: 8:30 AM – 5:00 PM
-              </div>
-              <div className="flex items-start gap-3 text-white/70 text-sm">
-                <Clock size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
-                Saturday: By Appointment
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Separator className="my-10 bg-white/10" />
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/50">
-          <p>&copy; {new Date().getFullYear()} {settings.footerCopyright}</p>
-          <p>{settings.footerText}</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
+// Footer is now imported from @/components/Footer
 
 // ─── Main Page ───────────────────────────────────────────────────
 
@@ -1960,8 +1271,8 @@ export default function HomePage() {
     async function fetchData() {
       try {
         const res = await fetch("/api/site-data");
-        if (!res.ok) throw new Error("Failed to fetch");
-        const json: SiteData = await res.json();
+        if (!res.ok) throw new Error("Failed to fetch site data");
+        const json = await res.json();
         setData(json);
       } catch (err) {
         console.error("Error fetching site data:", err);
@@ -1978,77 +1289,29 @@ export default function HomePage() {
 
   const { settings, menuItems, agentInfo, insurancePages, pageSections, testimonials, faqs } = data;
 
-  // Helper to get section by name
-  const getSection = (name: string) => pageSections.find((s) => s.section === name);
+  // Helper to find a section by key
+  const findSection = (key: string) => pageSections.find((s) => s.section === key);
+
+  // Apply dynamic CSS custom properties
+  const cssVars: Record<string, string> = {
+    "--color-primary": settings.primaryColor || "#0033A0",
+    "--color-secondary": settings.secondaryColor || "#001e60",
+    "--color-accent": settings.accentColor || "#ff9e16",
+    "--color-light": settings.lightColor || "#57b6ff",
+    "--color-dark": settings.darkColor || "#001e60",
+  };
 
   return (
-    <div
-      style={
-        {
-          "--dynamic-primary": settings.primaryColor,
-          "--dynamic-secondary": settings.secondaryColor,
-          "--dynamic-accent": settings.accentColor,
-          "--dynamic-light": settings.lightColor,
-          "--dynamic-dark": settings.darkColor,
-          fontFamily: settings.bodyFont,
-          fontSize: `${settings.baseFontSize}px`,
-        } as React.CSSProperties
-      }
-      className="min-h-screen flex flex-col"
-    >
-      <Navigation
-        menuItems={menuItems}
-        agentInfo={agentInfo}
-        settings={settings}
-      />
-      <main className="flex-1">
-        <HeroSection
-          settings={settings}
-          agentInfo={agentInfo}
-          heroSection={getSection("hero")}
-        />
-        <AboutSection
-          settings={settings}
-          agentInfo={agentInfo}
-          aboutSection={getSection("about")}
-        />
-        <ServicesSection
-          settings={settings}
-          insurancePages={insurancePages}
-          servicesSection={getSection("services")}
-        />
-        <WhyChooseUsSection
-          settings={settings}
-          agentInfo={agentInfo}
-          whySection={getSection("whyChooseUs")}
-        />
-        <TestimonialsSection
-          settings={settings}
-          testimonials={testimonials}
-          testimonialsSection={getSection("testimonials")}
-        />
-        <FaqSection
-          settings={settings}
-          faqs={faqs}
-          faqSection={getSection("faq")}
-        />
-        <ContactSection
-          settings={settings}
-          agentInfo={agentInfo}
-          insurancePages={insurancePages}
-          contactSection={getSection("contact")}
-        />
-        <CtaBanner
-          settings={settings}
-          agentInfo={agentInfo}
-          ctaSection={getSection("ctaBanner")}
-        />
-      </main>
-      <Footer
-        settings={settings}
-        agentInfo={agentInfo}
-        insurancePages={insurancePages}
-      />
+    <div style={cssVars as React.CSSProperties}>
+      <Navigation menuItems={menuItems} agentInfo={agentInfo} settings={settings} />
+      <HeroSection settings={settings} agentInfo={agentInfo} heroSection={findSection("hero")} />
+      <ServicesSection settings={settings} insurancePages={insurancePages} servicesSection={findSection("services")} />
+      <WhyChooseUsSection settings={settings} agentInfo={agentInfo} whySection={findSection("whyChooseUs")} />
+      <TestimonialsSection settings={settings} testimonials={testimonials} testimonialsSection={findSection("testimonials")} />
+      <FaqSection settings={settings} faqs={faqs} faqSection={findSection("faq")} />
+      <ContactSection settings={settings} agentInfo={agentInfo} insurancePages={insurancePages} contactSection={findSection("contact")} />
+      <CTABanner settings={settings} agentInfo={agentInfo} ctaSection={findSection("ctaBanner")} />
+      <Footer settings={settings} agentInfo={agentInfo} insurancePages={insurancePages} />
     </div>
   );
 }

@@ -2,34 +2,23 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
-  Car,
-  Home,
-  Heart,
-  Building2,
-  Bike,
-  Ship,
-  TreePine,
-  Umbrella,
   Phone,
   Mail,
   MapPin,
   Clock,
   Star,
+  ChevronDown,
+  ChevronRight,
   Menu,
   X,
   Award,
   CheckCircle2,
   ArrowRight,
   Sparkles,
-  Fingerprint,
-  Wrench,
-  Landmark,
   FileText,
-  ChevronDown,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,42 +30,10 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-
-// ─── Icon Mapping ──────────────────────────────────────────────────
-
-// ─── Dynamic Icon Component ───────────────────────────────────────
-// Static component that renders the correct Lucide icon by name.
-// This avoids the ESLint react-hooks/static-components error that
-// occurs when a component reference is created dynamically during render.
-
-function DynamicIcon({
-  name,
-  size,
-  className,
-  style,
-}: {
-  name: string;
-  size?: number;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const props = { size, className, style };
-  switch (name) {
-    case "Car": return <Car {...props} />;
-    case "Home": return <Home {...props} />;
-    case "Heart": return <Heart {...props} />;
-    case "Building2": return <Building2 {...props} />;
-    case "Landmark": return <Landmark {...props} />;
-    case "Bike": return <Bike {...props} />;
-    case "Ship": return <Ship {...props} />;
-    case "TreePine": return <TreePine {...props} />;
-    case "Umbrella": return <Umbrella {...props} />;
-    case "Fingerprint": return <Fingerprint {...props} />;
-    case "Wrench": return <Wrench {...props} />;
-    case "Briefcase": return <Building2 {...props} />; // Building2 as fallback for "Briefcase"
-    default: return <Shield {...props} />;
-  }
-}
+import DynamicIcon from "@/components/DynamicIcon";
+import AnimatedSection from "@/components/AnimatedSection";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 // ─── Types ─────────────────────────────────────────────────────────
 
@@ -109,6 +66,7 @@ interface MenuItemData {
   visible: boolean;
   isDropdown: boolean;
   parent: string | null;
+  iconName: string;
 }
 
 interface SiteData {
@@ -120,298 +78,29 @@ interface SiteData {
 
 // ─── Helper Components ─────────────────────────────────────────────
 
-function AnimatedSection({
-  children,
-  className = "",
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+// ─── AnimatedSection is now imported from @/components/AnimatedSection
 
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-      transition={{ duration: 0.7, delay, ease: "easeOut" }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          size={size}
-          className={
-            i <= Math.floor(rating)
-              ? "fill-yellow-400 text-yellow-400"
-              : i - 0.5 <= rating
-                ? "fill-yellow-400/50 text-yellow-400"
-                : "text-gray-300"
-          }
-        />
-      ))}
-    </div>
-  );
-}
-
-// ─── Navigation ────────────────────────────────────────────────────
-
-function Navigation({
-  menuItems,
-  agentInfo,
-  currentPageTitle,
-}: {
-  menuItems: MenuItemData[];
-  agentInfo: Record<string, string>;
-  currentPageTitle: string;
-}) {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
-  const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const phone = agentInfo.phone || "(610) 649-0500";
-  const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
-
-  // Build parent/child structure from flat menu items
-  const topLevelItems = menuItems.filter((item) => !item.parent);
-  const childrenByParent = menuItems.reduce<Record<string, MenuItemData[]>>((acc, item) => {
-    if (item.parent) {
-      if (!acc[item.parent]) acc[item.parent] = [];
-      acc[item.parent].push(item);
-    }
-    return acc;
-  }, {});
-
-  const toggleDesktopDropdown = (id: string, open: boolean) => {
-    setOpenDropdowns((prev) => ({ ...prev, [id]: open }));
-  };
-
-  const toggleMobileExpand = (id: string) => {
-    setMobileExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-allstate-dark ${
-        scrolled ? "shadow-xl" : "shadow-md"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <a href="/" className="flex items-center gap-3">
-            <img src="/logo.png" alt="Dwyer Insurance Group" className="w-10 h-10 rounded-full object-cover" />
-            <div className="hidden sm:block">
-              <p className="font-bold text-lg leading-tight text-white">
-                Dwyer Insurance Group
-              </p>
-              <p className="text-xs leading-tight text-allstate-light">
-                Insurance Agency
-              </p>
-            </div>
-          </a>
-
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {topLevelItems.map((item) => {
-              const children = childrenByParent[item.id] || [];
-
-              if (item.isDropdown && children.length > 0) {
-                return (
-                  <div
-                    key={item.id}
-                    className="relative"
-                    onMouseEnter={() => toggleDesktopDropdown(item.id, true)}
-                    onMouseLeave={() => toggleDesktopDropdown(item.id, false)}
-                  >
-                    <button
-                      onClick={() => toggleDesktopDropdown(item.id, !openDropdowns[item.id])}
-                      className="nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 cursor-pointer text-white/90 hover:text-white hover:bg-white/10"
-                    >
-                      {item.label}
-                      <ChevronDown
-                        size={14}
-                        className={`transition-transform ${openDropdowns[item.id] ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    <AnimatePresence>
-                      {openDropdowns[item.id] && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-                        >
-                          <div className="py-1.5">
-                            {children.map((child) => (
-                              <a
-                                key={child.id}
-                                href={child.href}
-                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-                              >
-                                <ChevronRight size={12} className="text-gray-400 flex-shrink-0" />
-                                <span className="text-sm font-medium text-gray-700">
-                                  {child.label}
-                                </span>
-                              </a>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              }
-
-              return (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  className="nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors text-white/90 hover:text-white hover:bg-white/10"
-                >
-                  {item.label}
-                </a>
-              );
-            })}
-            <a href={`tel:${phoneLink}`} className="ml-2">
-              <Button
-                size="sm"
-                className="bg-allstate-orange hover:bg-orange-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Get a Quote
-              </Button>
-            </a>
-          </div>
-
-          {/* Mobile toggle */}
-          <button
-            className="lg:hidden p-2"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <X className="text-white" size={24} />
-            ) : (
-              <Menu className="text-white" size={24} />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white shadow-xl border-t border-allstate-gray/30"
-          >
-            <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
-              {topLevelItems.map((item) => {
-                const children = childrenByParent[item.id] || [];
-
-                if (item.isDropdown && children.length > 0) {
-                  return (
-                    <div key={item.id}>
-                      <button
-                        onClick={() => toggleMobileExpand(item.id)}
-                        className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50 text-allstate-navy"
-                      >
-                        {item.label}
-                        <ChevronDown
-                          size={16}
-                          className={`transition-transform ${mobileExpanded[item.id] ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                      <AnimatePresence>
-                        {mobileExpanded[item.id] && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="pl-4 space-y-0.5 border-l-2 ml-4 border-allstate-blue/30">
-                              {children.map((child) => (
-                                <a
-                                  key={child.id}
-                                  href={child.href}
-                                  onClick={() => setMobileOpen(false)}
-                                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                  <ChevronRight size={12} className="text-gray-400" />
-                                  <span className="text-sm font-medium text-allstate-navy">
-                                    {child.label}
-                                  </span>
-                                </a>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                }
-
-                return (
-                  <a
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-3 text-allstate-navy hover:bg-allstate-light/10 hover:text-allstate-blue rounded-lg transition-colors font-medium"
-                  >
-                    {item.label}
-                  </a>
-                );
-              })}
-              <a href={`tel:${phoneLink}`} className="block pt-2">
-                <Button className="w-full bg-allstate-orange hover:bg-orange-600 text-white font-semibold">
-                  <Phone className="w-4 h-4 mr-2" />
-                  Get a Quote: {phone}
-                </Button>
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
-  );
-}
+// ─── Navigation is now imported from @/components/Navigation ─────
 
 // ─── Insurance Hero ────────────────────────────────────────────────
 
-function InsuranceHero({ page, agentInfo }: { page: InsurancePageData; agentInfo: Record<string, string> }) {
-  const color = page.iconColor || "#0033A0";
+function InsuranceHero({
+  page,
+  agentInfo,
+  settings,
+}: {
+  page: InsurancePageData;
+  agentInfo: Record<string, string>;
+  settings: Record<string, string>;
+}) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
+  const accentColor = settings.accentColor || "#ff9e16";
   const phone = agentInfo.phone || "(610) 649-0500";
   const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
 
   // Determine banner gradient: custom fields override iconColor-based default
   const gradientFrom = page.bannerColorFrom || color;
-  const gradientTo = page.bannerColorTo || "#001e60";
+  const gradientTo = page.bannerColorTo || settings.secondaryColor || "#001e60";
   const hasCustomGradient = !!(page.bannerColorFrom || page.bannerColorTo);
   const hasBannerImage = !!page.bannerImage;
 
@@ -425,7 +114,7 @@ function InsuranceHero({ page, agentInfo }: { page: InsurancePageData; agentInfo
         />
       )}
 
-      {/* Gradient overlay — covers full section; doubles as overlay when image is present */}
+      {/* Gradient overlay */}
       <div
         className="absolute inset-0"
         style={{
@@ -433,7 +122,7 @@ function InsuranceHero({ page, agentInfo }: { page: InsurancePageData; agentInfo
             ? `linear-gradient(135deg, ${gradientFrom}cc 0%, ${gradientTo}cc 100%)`
             : hasCustomGradient
               ? `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientFrom}cc 40%, ${gradientTo}cc 70%, ${gradientTo} 100%)`
-              : `linear-gradient(135deg, ${color} 0%, ${color}cc 40%, ${color}99 70%, #001e60 100%)`,
+              : `linear-gradient(135deg, ${color} 0%, ${color}cc 40%, ${color}99 70%, ${gradientTo} 100%)`,
         }}
       />
 
@@ -448,7 +137,8 @@ function InsuranceHero({ page, agentInfo }: { page: InsurancePageData; agentInfo
         <motion.div
           animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
           transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-20 right-10 w-96 h-96 bg-allstate-orange/10 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 rounded-full blur-3xl"
+          style={{ backgroundColor: `${accentColor}15` }}
         />
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
@@ -489,7 +179,7 @@ function InsuranceHero({ page, agentInfo }: { page: InsurancePageData; agentInfo
               className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
             >
               {page.title}
-              <span className="block mt-2" style={{ color: `${gradientFrom}50` }}>
+              <span className="block mt-2" style={{ color: `${gradientFrom}80` }}>
                 {page.tagline}
               </span>
             </motion.h1>
@@ -513,7 +203,8 @@ function InsuranceHero({ page, agentInfo }: { page: InsurancePageData; agentInfo
               <a href={`tel:${phoneLink}`}>
                 <Button
                   size="lg"
-                  className="bg-allstate-orange hover:bg-orange-600 text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                  className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                  style={{ backgroundColor: accentColor }}
                 >
                   <Phone className="w-5 h-5 mr-2" />
                   Call for a Quote
@@ -569,17 +260,26 @@ function InsuranceHero({ page, agentInfo }: { page: InsurancePageData; agentInfo
 
 // ─── Description Section ───────────────────────────────────────────
 
-function DescriptionSection({ page, agentInfo }: { page: InsurancePageData; agentInfo: Record<string, string> }) {
-  const color = page.iconColor || "#0033A0";
+function DescriptionSection({
+  page,
+  agentInfo,
+  settings,
+}: {
+  page: InsurancePageData;
+  agentInfo: Record<string, string>;
+  settings: Record<string, string>;
+}) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
   const accentColor = page.cardAccentColor || color;
   const textOverride = page.textColor || "";
   const phone = agentInfo.phone || "(610) 649-0500";
   const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
+  const darkColor = settings.darkColor || "#001e60";
 
   return (
     <section
-      className={`py-20 lg:py-28 ${!page.backgroundColor ? "bg-white" : ""}`}
-      style={page.backgroundColor ? { backgroundColor: page.backgroundColor } : undefined}
+      className="py-20 lg:py-28"
+      style={page.backgroundColor ? { backgroundColor: page.backgroundColor } : { backgroundColor: "#ffffff" }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -654,13 +354,22 @@ function DescriptionSection({ page, agentInfo }: { page: InsurancePageData; agen
             >
               {page.title}
             </Badge>
-            <h2 className={`text-3xl sm:text-4xl font-bold mb-6 ${!textOverride ? "text-allstate-navy" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+            <h2
+              className="text-3xl sm:text-4xl font-bold mb-6"
+              style={textOverride ? { color: textOverride } : { color: darkColor }}
+            >
               {page.tagline}
             </h2>
-            <p className={`text-lg mb-6 leading-relaxed ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+            <p
+              className="text-lg mb-6 leading-relaxed text-muted-foreground"
+              style={textOverride ? { color: textOverride } : undefined}
+            >
               {page.description}
             </p>
-            <p className={`mb-8 ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+            <p
+              className="mb-8 text-muted-foreground"
+              style={textOverride ? { color: textOverride } : undefined}
+            >
               As an Elite Agent, National Award Winner at Dwyer Insurance Group, our team takes the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
             </p>
 
@@ -682,15 +391,31 @@ function DescriptionSection({ page, agentInfo }: { page: InsurancePageData; agen
 
 // ─── Features Grid ─────────────────────────────────────────────────
 
-function FeaturesGrid({ page }: { page: InsurancePageData }) {
-  const color = page.iconColor || "#0033A0";
+function FeaturesGrid({
+  page,
+  settings,
+}: {
+  page: InsurancePageData;
+  settings: Record<string, string>;
+}) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
   const accentColor = page.cardAccentColor || color;
   const textOverride = page.textColor || "";
+  const darkColor = settings.darkColor || "#001e60";
+  const primaryColor = settings.primaryColor || "#0033A0";
+
+  // Determine section background
+  const sectionBg = page.backgroundColor
+    ? page.backgroundColor
+    : "linear-gradient(180deg, #f8fafc 0%, #e8edf5 100%)";
 
   return (
     <section
-      className={`py-20 lg:py-28 ${!page.backgroundColor ? "bg-allstate-light-gradient" : ""}`}
-      style={page.backgroundColor ? { backgroundColor: page.backgroundColor } : undefined}
+      className="py-20 lg:py-28"
+      style={page.backgroundColor
+        ? { backgroundColor: sectionBg }
+        : { background: sectionBg }
+      }
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
@@ -704,10 +429,16 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
           >
             Coverage Details
           </Badge>
-          <h2 className={`text-3xl sm:text-4xl font-bold mb-4 ${!textOverride ? "text-allstate-navy" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+          <h2
+            className="text-3xl sm:text-4xl font-bold mb-4"
+            style={textOverride ? { color: textOverride } : { color: darkColor }}
+          >
             What&apos;s <span style={{ color: accentColor }}>Covered</span>
           </h2>
-          <p className={`text-lg max-w-2xl mx-auto ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+          <p
+            className="text-lg max-w-2xl mx-auto text-muted-foreground"
+            style={textOverride ? { color: textOverride } : undefined}
+          >
             {page.title} provides comprehensive protection. Here&apos;s what your policy includes:
           </p>
         </AnimatedSection>
@@ -715,7 +446,7 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {page.features.map((feature, i) => (
             <AnimatedSection key={i} delay={i * 0.05}>
-              <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-default border-allstate-gray/30 h-full">
+              <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-default border-gray-200 h-full">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     <div
@@ -728,7 +459,10 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
                         style={{ color: accentColor }}
                       />
                     </div>
-                    <p className={`font-medium text-sm leading-relaxed ${!textOverride ? "text-allstate-navy" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+                    <p
+                      className="font-medium text-sm leading-relaxed"
+                      style={textOverride ? { color: textOverride } : { color: darkColor }}
+                    >
                       {feature}
                     </p>
                   </div>
@@ -744,8 +478,14 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
 
 // ─── Pro Tip Callout ───────────────────────────────────────────────
 
-function ProTipCallout({ page }: { page: InsurancePageData }) {
-  const color = page.iconColor || "#0033A0";
+function ProTipCallout({
+  page,
+  settings,
+}: {
+  page: InsurancePageData;
+  settings: Record<string, string>;
+}) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
   const accentColor = page.cardAccentColor || color;
   const textOverride = page.textColor || "";
 
@@ -753,8 +493,8 @@ function ProTipCallout({ page }: { page: InsurancePageData }) {
 
   return (
     <section
-      className={`py-16 ${!page.backgroundColor ? "bg-white" : ""}`}
-      style={page.backgroundColor ? { backgroundColor: page.backgroundColor } : undefined}
+      className="py-16"
+      style={page.backgroundColor ? { backgroundColor: page.backgroundColor } : { backgroundColor: "#ffffff" }}
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection>
@@ -778,7 +518,10 @@ function ProTipCallout({ page }: { page: InsurancePageData }) {
                 <h3 className="font-bold text-xl mb-2" style={{ color: accentColor }}>
                   Pro Tip from Dwyer Insurance Group
                 </h3>
-                <p className={`text-lg leading-relaxed ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+                <p
+                  className="text-lg leading-relaxed text-muted-foreground"
+                  style={textOverride ? { color: textOverride } : undefined}
+                >
                   {page.tip}
                 </p>
               </div>
@@ -795,21 +538,35 @@ function ProTipCallout({ page }: { page: InsurancePageData }) {
 function OtherInsuranceTypes({
   allPages,
   currentSlug,
+  settings,
 }: {
   allPages: InsurancePageData[];
   currentSlug: string;
+  settings: Record<string, string>;
 }) {
   const otherPages = allPages.filter((p) => p.slug !== currentSlug);
+  const primaryColor = settings.primaryColor || "#0033A0";
+  const darkColor = settings.darkColor || "#001e60";
 
   return (
-    <section className="py-20 lg:py-28 bg-allstate-light-gradient">
+    <section
+      className="py-20 lg:py-28"
+      style={{ background: "linear-gradient(180deg, #f8fafc 0%, #e8edf5 100%)" }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
-          <Badge className="bg-allstate-blue/10 text-allstate-blue border-allstate-blue/20 mb-4">
+          <Badge
+            className="mb-4"
+            style={{
+              backgroundColor: `${primaryColor}15`,
+              color: primaryColor,
+              borderColor: `${primaryColor}30`,
+            }}
+          >
             Explore More
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-allstate-navy mb-4">
-            Other Insurance <span className="text-allstate-blue">Options</span>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: darkColor }}>
+            Other Insurance <span style={{ color: primaryColor }}>Options</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Dwyer Insurance Group offers a full range of insurance products. Explore other coverage types to protect every aspect of your life.
@@ -818,13 +575,13 @@ function OtherInsuranceTypes({
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {otherPages.map((page, i) => {
-            const color = page.iconColor || "#0033A0";
+            const color = page.iconColor || primaryColor;
             const bgColor = page.iconBgColor || `${color}15`;
 
             return (
               <AnimatedSection key={page.id} delay={i * 0.05}>
                 <a href={`/insurance/${page.slug}`}>
-                  <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-allstate-gray/30 h-full">
+                  <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-gray-200 h-full">
                     <CardHeader className="pb-3">
                       <div
                         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
@@ -832,7 +589,10 @@ function OtherInsuranceTypes({
                       >
                         <DynamicIcon name={page.iconName} size={28} style={{ color }} />
                       </div>
-                      <CardTitle className="text-lg text-allstate-navy group-hover:text-allstate-blue transition-colors">
+                      <CardTitle
+                        className="text-lg transition-colors"
+                        style={{ color: darkColor }}
+                      >
                         {page.title}
                       </CardTitle>
                     </CardHeader>
@@ -840,7 +600,10 @@ function OtherInsuranceTypes({
                       <CardDescription className="text-muted-foreground text-sm">
                         {page.tagline}
                       </CardDescription>
-                      <div className="mt-4 flex items-center text-allstate-blue font-medium text-sm group-hover:gap-2 transition-all">
+                      <div
+                        className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all"
+                        style={{ color: primaryColor }}
+                      >
                         Learn More <ArrowRight className="w-4 h-4 ml-1" />
                       </div>
                     </CardContent>
@@ -857,13 +620,26 @@ function OtherInsuranceTypes({
 
 // ─── CTA Section ───────────────────────────────────────────────────
 
-function CTASection({ page, agentInfo }: { page: InsurancePageData; agentInfo: Record<string, string> }) {
-  const color = page.iconColor || "#0033A0";
+function CTASection({
+  page,
+  agentInfo,
+  settings,
+}: {
+  page: InsurancePageData;
+  agentInfo: Record<string, string>;
+  settings: Record<string, string>;
+}) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
+  const accentColor = settings.accentColor || "#ff9e16";
   const phone = agentInfo.phone || "(610) 649-0500";
   const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
+  const secondaryColor = settings.secondaryColor || "#001e60";
 
   return (
-    <section className="py-16 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, #001e60 100%)` }}>
+    <section
+      className="py-16 relative overflow-hidden"
+      style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, ${secondaryColor} 100%)` }}
+    >
       <motion.div
         animate={{ x: [0, 30, 0], y: [0, -15, 0] }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -882,7 +658,8 @@ function CTASection({ page, agentInfo }: { page: InsurancePageData; agentInfo: R
             <a href={`tel:${phoneLink}`}>
               <Button
                 size="lg"
-                className="bg-allstate-orange hover:bg-orange-600 text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                style={{ backgroundColor: accentColor }}
               >
                 <Phone className="w-5 h-5 mr-2" />
                 Call {phone}
@@ -905,246 +682,89 @@ function CTASection({ page, agentInfo }: { page: InsurancePageData; agentInfo: R
   );
 }
 
-// ─── Footer ────────────────────────────────────────────────────────
+// ─── Footer is now imported from @/components/Footer
 
-function Footer({
-  agentInfo,
-  insurancePages,
-}: {
-  agentInfo: Record<string, string>;
-  insurancePages: InsurancePageData[];
-}) {
-  const phone = agentInfo.phone || "(610) 649-0500";
-  const phoneLink = agentInfo.phoneLink || phone.replace(/[^\d+]/g, "");
-  const email = agentInfo.email || "info@dwyerinsurancegroup.com";
-  const address = agentInfo.address || "Wynnewood, PA 19096";
-
-  return (
-    <footer className="bg-allstate-dark text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          {/* Agent Info */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3 mb-4">
-              <img src="/logo.png" alt="Dwyer Insurance Group" className="w-10 h-10 rounded-full object-cover" />
-              <div>
-                <p className="font-bold text-lg">Dwyer Insurance Group</p>
-                <p className="text-allstate-light text-sm">Insurance Agency</p>
-              </div>
-            </div>
-            <p className="text-white/60 text-sm mb-4">
-              Elite Agency serving PA, NY, and DE.
-            </p>
-            <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-allstate-orange" />
-              <span className="text-allstate-orange font-semibold text-sm">Elite Agency</span>
-            </div>
-          </div>
-
-          {/* Insurance Links */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Insurance</h4>
-            <ul className="space-y-2">
-              {insurancePages.slice(0, 6).map((type) => (
-                <li key={type.id}>
-                  <a
-                    href={`/insurance/${type.slug}`}
-                    className="text-white/60 hover:text-allstate-light text-sm transition-colors"
-                  >
-                    {type.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* More Insurance */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">More Services</h4>
-            <ul className="space-y-2">
-              {insurancePages.slice(6).map((type) => (
-                <li key={type.id}>
-                  <a
-                    href={`/insurance/${type.slug}`}
-                    className="text-white/60 hover:text-allstate-light text-sm transition-colors"
-                  >
-                    {type.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Contact</h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-allstate-light" />
-                <a href={`tel:${phoneLink}`} className="text-white/60 hover:text-allstate-light text-sm">
-                  {phone}
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-allstate-light" />
-                <a href={`mailto:${email}`} className="text-white/60 hover:text-allstate-light text-sm break-all">
-                  {email}
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-allstate-light" />
-                <span className="text-white/60 text-sm">{address}</span>
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-allstate-light" />
-                  <span className="text-white/60 text-sm">Mon-Fri: 8:30 AM - 5:00 PM</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-allstate-light opacity-0" />
-                  <span className="text-white/60 text-sm">Saturday: By Appointment</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Separator className="bg-white/10 mb-8" />
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-center sm:text-left">
-            <p className="text-white/50 text-xs">
-              &copy; {new Date().getFullYear()} Dwyer Insurance Group &ndash; Insurance Agency. All Rights Reserved.
-            </p>
-          </div>
-          <div className="flex items-center gap-4 text-xs text-white/40">
-            <a href="/privacy" className="hover:text-allstate-light transition-colors">
-              Privacy
-            </a>
-            <a href="/terms" className="hover:text-allstate-light transition-colors">
-              Terms
-            </a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-// ─── 404 Not Found ─────────────────────────────────────────────────
-
-function NotFoundPage() {
-  return (
-    <div className="min-h-screen flex flex-col bg-allstate-light-gradient">
-      <div className="flex-1 flex items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="text-center max-w-md"
-        >
-          <div className="w-24 h-24 rounded-full bg-allstate-blue/10 flex items-center justify-center mx-auto mb-6">
-            <Shield className="w-12 h-12 text-allstate-blue" />
-          </div>
-          <h1 className="text-4xl font-bold text-allstate-navy mb-4">
-            Insurance Type Not Found
-          </h1>
-          <p className="text-muted-foreground text-lg mb-8">
-            Sorry, we couldn&apos;t find the insurance type you&apos;re looking for. Please check the URL or browse our available insurance options.
-          </p>
-          <a href="/">
-            <Button
-              size="lg"
-              className="bg-allstate-blue hover:bg-allstate-navy text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-            >
-              <ArrowRight className="w-5 h-5 mr-2 rotate-180" />
-              Back to Homepage
-            </Button>
-          </a>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Page ─────────────────────────────────────────────────────
+// ─── Main Page Component ──────────────────────────────────────────
 
 export default function InsuranceSlugPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const [siteData, setSiteData] = useState<SiteData | null>(null);
+  const [data, setData] = useState<SiteData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch("/api/site-data");
-        if (!res.ok) throw new Error("Failed to fetch site data");
-        const data: SiteData = await res.json();
-        setSiteData(data);
-      } catch (error) {
-        console.error("Error loading site data:", error);
-      } finally {
+    fetch("/api/site-data")
+      .then((res) => res.json())
+      .then((json) => {
+        setData(json);
         setLoading(false);
-      }
-    }
-    fetchData();
+      })
+      .catch(() => setLoading(false));
   }, []);
 
-  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-allstate-light-gradient">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 rounded-full bg-allstate-blue flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <Shield className="w-8 h-8 text-white" />
-          </div>
-          <p className="text-allstate-navy font-semibold text-lg">Loading...</p>
-        </motion.div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-4 border-gray-200 border-t-[#0033A0] rounded-full mx-auto mb-4"
+          />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  // No data
-  if (!siteData) {
-    return <NotFoundPage />;
+  if (!data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <Shield className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <h2 className="text-2xl font-bold mb-2">Error Loading Page</h2>
+          <p className="text-muted-foreground mb-4">Unable to load page data.</p>
+          <a href="/">
+            <Button>Return Home</Button>
+          </a>
+        </div>
+      </div>
+    );
   }
 
-  const currentPage = siteData.insurancePages.find(
-    (p) => p.slug === slug
-  );
+  const page = data.insurancePages.find((p) => p.slug === slug);
 
-  // 404 if slug not found
-  if (!currentPage) {
-    return <NotFoundPage />;
+  if (!page) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <Shield className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <h2 className="text-2xl font-bold mb-2">Insurance Type Not Found</h2>
+          <p className="text-muted-foreground mb-4">
+            The insurance page you&apos;re looking for doesn&apos;t exist.
+          </p>
+          <a href="/">
+            <Button>Return Home</Button>
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <main className="min-h-screen">
       <Navigation
-        menuItems={siteData.menuItems}
-        agentInfo={siteData.agentInfo}
-        currentPageTitle={currentPage.title}
+        menuItems={data.menuItems}
+        agentInfo={data.agentInfo}
+        settings={data.settings}
       />
-      <main className="flex-1">
-        <InsuranceHero page={currentPage} agentInfo={siteData.agentInfo} />
-        <DescriptionSection page={currentPage} agentInfo={siteData.agentInfo} />
-        <FeaturesGrid page={currentPage} />
-        <ProTipCallout page={currentPage} />
-        <OtherInsuranceTypes
-          allPages={siteData.insurancePages}
-          currentSlug={slug}
-        />
-        <CTASection page={currentPage} agentInfo={siteData.agentInfo} />
-      </main>
-      <Footer
-        agentInfo={siteData.agentInfo}
-        insurancePages={siteData.insurancePages}
-      />
-    </div>
+      <InsuranceHero page={page} agentInfo={data.agentInfo} settings={data.settings} />
+      <DescriptionSection page={page} agentInfo={data.agentInfo} settings={data.settings} />
+      <FeaturesGrid page={page} settings={data.settings} />
+      <ProTipCallout page={page} settings={data.settings} />
+      <OtherInsuranceTypes allPages={data.insurancePages} currentSlug={slug} settings={data.settings} />
+      <CTASection page={page} agentInfo={data.agentInfo} settings={data.settings} />
+      <Footer agentInfo={data.agentInfo} insurancePages={data.insurancePages} settings={data.settings} />
+    </main>
   );
 }

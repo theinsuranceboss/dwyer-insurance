@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +55,24 @@ import {
   Palette,
   ChevronsUpDown,
   Eye,
+  Upload,
+  Car,
+  Home,
+  Heart,
+  Building2,
+  Landmark,
+  Bike,
+  Ship,
+  TreePine,
+  Umbrella,
+  Fingerprint,
+  Wrench,
+  Briefcase,
+  Award,
+  Clock,
+  Users,
+  Handshake,
+  MapPin as LocationIcon,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -76,6 +94,7 @@ interface MenuItem {
   visible: boolean;
   isDropdown: boolean;
   parent: string | null;
+  iconName: string;
 }
 
 interface InsurancePage {
@@ -135,7 +154,7 @@ interface FaqItem {
   visible: boolean;
 }
 
-type TabId = 'settings' | 'menu' | 'insurance' | 'sections' | 'agent' | 'testimonials' | 'faqs' | 'appearance';
+type TabId = 'settings' | 'branding' | 'appearance' | 'menu' | 'insurance' | 'sections' | 'agent' | 'testimonials' | 'faqs';
 
 // ─── API helper ───────────────────────────────────────────────────────────────
 
@@ -162,13 +181,76 @@ async function apiFetch(path: string, options: RequestInit = {}) {
   return res;
 }
 
-// ─── Icon name options for insurance pages ────────────────────────────────────
+// Upload helper — uses FormData so we cannot set Content-Type manually
+async function apiUpload(file: File): Promise<{ url: string; filename: string; size: number; type: string }> {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append('file', file);
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const res = await fetch('/api/admin/upload', {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+  if (res.status === 401) {
+    localStorage.removeItem('admin_token');
+    window.location.href = '/admin';
+    throw new Error('Unauthorized');
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error((data as { error?: string }).error || 'Upload failed');
+  }
+  return res.json();
+}
+
+// ─── Icon name options ────────────────────────────────────────────────────────
 
 const ICON_OPTIONS = [
   'Shield', 'Car', 'Home', 'Heart', 'Umbrella', 'Building2', 'Ship',
   'Bike', 'Waves', 'Lock', 'Phone', 'Zap', 'Users', 'Banknote',
   'Briefcase', 'Anchor', 'Mountain', 'TreePine', 'Tent', 'Snowflake',
 ];
+
+const MENU_ICON_OPTIONS = [
+  'Car', 'Home', 'Heart', 'Building2', 'Landmark', 'Bike', 'Ship',
+  'TreePine', 'Umbrella', 'Fingerprint', 'Wrench', 'Briefcase',
+  'Shield', 'Award', 'Phone', 'Mail', 'MapPin', 'Clock', 'Star',
+  'Globe', 'Users', 'Handshake',
+];
+
+// Dynamic icon renderer for menu items
+function DynamicMenuIcon({ name, className }: { name: string; className?: string }) {
+  const cn = className || 'w-4 h-4';
+  switch (name) {
+    case 'Car': return <Car className={cn} />;
+    case 'Home': return <Home className={cn} />;
+    case 'Heart': return <Heart className={cn} />;
+    case 'Building2': return <Building2 className={cn} />;
+    case 'Landmark': return <Landmark className={cn} />;
+    case 'Bike': return <Bike className={cn} />;
+    case 'Ship': return <Ship className={cn} />;
+    case 'TreePine': return <TreePine className={cn} />;
+    case 'Umbrella': return <Umbrella className={cn} />;
+    case 'Fingerprint': return <Fingerprint className={cn} />;
+    case 'Wrench': return <Wrench className={cn} />;
+    case 'Briefcase': return <Briefcase className={cn} />;
+    case 'Shield': return <Shield className={cn} />;
+    case 'Award': return <Award className={cn} />;
+    case 'Phone': return <Phone className={cn} />;
+    case 'Mail': return <Mail className={cn} />;
+    case 'MapPin': return <LocationIcon className={cn} />;
+    case 'Clock': return <Clock className={cn} />;
+    case 'Star': return <Star className={cn} />;
+    case 'Globe': return <Globe className={cn} />;
+    case 'Users': return <Users className={cn} />;
+    case 'Handshake': return <Handshake className={cn} />;
+    default: return null;
+  }
+}
 
 // ─── Section labels ───────────────────────────────────────────────────────────
 
@@ -187,6 +269,7 @@ const SECTION_LABELS: Record<string, string> = {
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'settings', label: 'Site Settings', icon: <Settings className="w-4 h-4" /> },
+  { id: 'branding', label: 'Logo & Branding', icon: <ImageIcon className="w-4 h-4" /> },
   { id: 'appearance', label: 'Page Appearance', icon: <Palette className="w-4 h-4" /> },
   { id: 'menu', label: 'Menu Items', icon: <Menu className="w-4 h-4" /> },
   { id: 'insurance', label: 'Insurance Pages', icon: <Shield className="w-4 h-4" /> },
@@ -243,7 +326,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <nav className="flex-1 py-2">
+        <nav className="flex-1 py-2 overflow-y-auto max-h-[calc(100vh-140px)]">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -298,6 +381,7 @@ export default function AdminDashboard() {
 
         <div className="p-6">
           {activeTab === 'settings' && <SettingsTab />}
+          {activeTab === 'branding' && <BrandingTab />}
           {activeTab === 'appearance' && <AppearanceTab />}
           {activeTab === 'menu' && <MenuTab />}
           {activeTab === 'insurance' && <InsuranceTab />}
@@ -308,6 +392,37 @@ export default function AdminDashboard() {
         </div>
       </main>
     </div>
+  );
+}
+
+// ─── Shared Components ────────────────────────────────────────────────────────
+
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="w-8 h-8 animate-spin text-[#0033A0]" />
+    </div>
+  );
+}
+
+function DeleteButton({ onConfirm }: { onConfirm: () => void }) {
+  const [confirm, setConfirm] = useState(false);
+  if (confirm) {
+    return (
+      <div className="flex gap-1">
+        <Button size="sm" variant="destructive" onClick={() => { onConfirm(); setConfirm(false); }} className="h-7 text-xs">
+          Confirm
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => setConfirm(false)} className="h-7 text-xs">
+          Cancel
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <Button size="sm" variant="ghost" onClick={() => setConfirm(true)} className="h-7 text-xs text-red-500">
+      <Trash2 className="w-3 h-3" />
+    </Button>
   );
 }
 
@@ -355,7 +470,12 @@ function SettingsTab() {
 
   if (loading) return <LoadingSpinner />;
 
-  const categories = Array.from(new Set(settings.map((s) => s.category)));
+  // Filter out branding and appearance settings (they have their own tabs)
+  const filteredSettings = settings.filter(
+    (s) => s.category !== 'branding' && s.category !== 'footer' &&
+      !['heroBannerImage', 'heroBannerOverlay', 'heroBannerOverlayOpacity', 'aboutBgColor', 'servicesBgColor'].includes(s.key)
+  );
+  const categories = Array.from(new Set(filteredSettings.map((s) => s.category)));
   const categoryLabels: Record<string, string> = {
     colors: 'Colors',
     fonts: 'Fonts',
@@ -363,14 +483,14 @@ function SettingsTab() {
     global: 'General',
     hero: 'Hero Section',
     about: 'About Section',
-    footer: 'Footer',
     contact: 'Contact Section',
+    services: 'Services',
   };
 
   return (
     <div className="space-y-6 max-w-4xl">
       {categories.map((cat) => {
-        const catSettings = settings.filter((s) => s.category === cat);
+        const catSettings = filteredSettings.filter((s) => s.category === cat);
         return (
           <Card key={cat}>
             <CardHeader className="pb-3">
@@ -428,6 +548,220 @@ function SettingsTab() {
   );
 }
 
+// ─── Logo & Branding Tab ──────────────────────────────────────────────────────
+
+function BrandingTab() {
+  const { toast } = useToast();
+  const [settings, setSettings] = useState<SiteSetting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const BRANDING_KEYS = ['logoUrl', 'logoText', 'logoSubtext'];
+
+  const fetchSettings = useCallback(async () => {
+    try {
+      const res = await apiFetch('/api/admin/settings');
+      const data = await res.json();
+      setSettings(data.settings || []);
+    } catch {
+      toast({ title: 'Error', description: 'Failed to load branding settings', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => { fetchSettings(); }, [fetchSettings]);
+
+  const getSetting = (key: string) => settings.find((s) => s.key === key);
+
+  const getValue = (key: string) => getSetting(key)?.value || '';
+
+  const updateValue = (key: string, value: string) => {
+    setSettings((prev) => {
+      const exists = prev.find((s) => s.key === key);
+      if (exists) {
+        return prev.map((s) => (s.key === key ? { ...s, value } : s));
+      }
+      // Create a new setting entry if it doesn't exist yet
+      return [...prev, { id: `new-${key}`, key, value, type: key === 'logoUrl' ? 'image' : 'text', category: 'branding', label: key }];
+    });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const result = await apiUpload(file);
+      updateValue('logoUrl', result.url);
+      toast({ title: 'Upload Success', description: `Logo uploaded: ${result.filename}` });
+    } catch (err) {
+      toast({ title: 'Upload Error', description: err instanceof Error ? err.message : 'Failed to upload logo', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+      // Reset the file input so the same file can be re-uploaded
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const brandingSettings = settings.filter((s) => BRANDING_KEYS.includes(s.key));
+      const res = await apiFetch('/api/admin/settings', {
+        method: 'PUT',
+        body: JSON.stringify({ settings: brandingSettings.map(({ key, value }) => ({ key, value })) }),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: 'Success', description: 'Branding settings saved successfully' });
+    } catch {
+      toast({ title: 'Error', description: 'Failed to save branding settings', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <LoadingSpinner />;
+
+  const logoUrl = getValue('logoUrl');
+  const logoText = getValue('logoText');
+  const logoSubtext = getValue('logoSubtext');
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      {/* Logo Preview Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-[#0033A0]" />
+            Current Logo Preview
+          </CardTitle>
+          <p className="text-sm text-gray-500">This is how your logo appears in the navigation bar</p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 p-4 bg-[#001e60] rounded-lg">
+            {logoUrl ? (
+              <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/20">
+                <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                <ImageIcon className="w-6 h-6 text-white/50" />
+              </div>
+            )}
+            <div>
+              <p className="text-white font-bold text-lg">{logoText || 'Your Brand'}</p>
+              <p className="text-blue-200 text-xs">{logoSubtext || 'Tagline here'}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Logo Image */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Logo Image</CardTitle>
+          <p className="text-sm text-gray-500">Set the logo image used in the navigation and branding</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Logo Image URL</Label>
+            <div className="flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <Input
+                value={logoUrl}
+                onChange={(e) => updateValue('logoUrl', e.target.value)}
+                placeholder="https://example.com/logo.png or /logo.png"
+                className="flex-1"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Upload New Logo (PNG)</Label>
+            <div className="flex items-center gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 mr-2" />
+                )}
+                {uploading ? 'Uploading...' : 'Choose File & Upload'}
+              </Button>
+              <span className="text-xs text-gray-400">Max 5MB • PNG, JPEG, WebP, SVG</span>
+            </div>
+          </div>
+
+          {/* Large logo preview */}
+          {logoUrl && (
+            <div className="mt-4 p-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 flex flex-col items-center gap-3">
+              <img
+                src={logoUrl}
+                alt="Logo preview"
+                className="max-w-[200px] max-h-[100px] object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <Badge variant="secondary" className="text-[10px]">
+                <Eye className="w-3 h-3 mr-1" /> Full Size Preview
+              </Badge>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Logo Text */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Logo Text</CardTitle>
+          <p className="text-sm text-gray-500">The text displayed next to the logo in the navigation</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Logo Main Text</Label>
+            <Input
+              value={logoText}
+              onChange={(e) => updateValue('logoText', e.target.value)}
+              placeholder="e.g. Dwyer Insurance Group"
+            />
+            <p className="text-xs text-gray-400">This appears as the primary brand name next to the logo</p>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Logo Sub Text</Label>
+            <Input
+              value={logoSubtext}
+              onChange={(e) => updateValue('logoSubtext', e.target.value)}
+              placeholder="e.g. Insurance Agency"
+            />
+            <p className="text-xs text-gray-400">This appears as a smaller tagline beneath the main text</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button onClick={handleSave} disabled={saving} className="bg-[#0033A0] hover:bg-[#001e60]">
+        {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+        Save Branding Settings
+      </Button>
+    </div>
+  );
+}
+
 // ─── Page Appearance Tab ──────────────────────────────────────────────────────
 
 const APPEARANCE_SECTIONS: {
@@ -446,6 +780,8 @@ const APPEARANCE_SECTIONS: {
     keys: ['aboutBgColor', 'servicesBgColor', 'footerBgColor'],
   },
 ];
+
+const FOOTER_KEYS = ['footerText', 'footerCopyright', 'footerColumn1Title', 'footerColumn2Title', 'footerColumn3Title', 'footerBgColor'];
 
 function AppearanceTab() {
   const { toast } = useToast();
@@ -468,18 +804,23 @@ function AppearanceTab() {
   useEffect(() => { fetchSettings(); }, [fetchSettings]);
 
   const updateValue = (key: string, value: string) => {
-    setSettings((prev) => prev.map((s) => (s.key === key ? { ...s, value } : s)));
+    setSettings((prev) => {
+      const exists = prev.find((s) => s.key === key);
+      if (exists) {
+        return prev.map((s) => (s.key === key ? { ...s, value } : s));
+      }
+      return [...prev, { id: `new-${key}`, key, value, type: 'text', category: 'footer', label: key }];
+    });
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Only save appearance-related settings
-      const appearanceKeys = APPEARANCE_SECTIONS.flatMap((s) => s.keys);
-      const appearanceSettings = settings.filter((s) => appearanceKeys.includes(s.key));
+      const allKeys = [...APPEARANCE_SECTIONS.flatMap((s) => s.keys), ...FOOTER_KEYS];
+      const relevantSettings = settings.filter((s) => allKeys.includes(s.key));
       const res = await apiFetch('/api/admin/settings', {
         method: 'PUT',
-        body: JSON.stringify({ settings: appearanceSettings.map(({ key, value }) => ({ key, value })) }),
+        body: JSON.stringify({ settings: relevantSettings.map(({ key, value }) => ({ key, value })) }),
       });
       if (!res.ok) throw new Error();
       toast({ title: 'Success', description: 'Appearance settings saved successfully' });
@@ -493,6 +834,8 @@ function AppearanceTab() {
   if (loading) return <LoadingSpinner />;
 
   const getSetting = (key: string) => settings.find((s) => s.key === key);
+
+  const getValue = (key: string) => getSetting(key)?.value || '';
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -534,11 +877,6 @@ function AppearanceTab() {
                         className="w-10 h-10 rounded-lg border shadow-sm"
                         style={{ backgroundColor: setting.value || '#ffffff' }}
                       />
-                      {setting.value && (
-                        <span className="text-xs text-gray-400">
-                          {setting.value}
-                        </span>
-                      )}
                     </div>
                   ) : setting.type === 'image' ? (
                     <div className="space-y-2">
@@ -597,7 +935,6 @@ function AppearanceTab() {
                           </Button>
                         ))}
                       </div>
-                      {/* Live opacity preview */}
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-gray-400">Preview:</span>
                         <div className="relative w-32 h-8 rounded overflow-hidden border">
@@ -626,6 +963,106 @@ function AppearanceTab() {
         );
       })}
 
+      {/* Footer Editor Section */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-[#0033A0]" />
+            Footer Editor
+          </CardTitle>
+          <p className="text-sm text-gray-500">Customize the footer text, copyright, and column titles</p>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">Footer Text</Label>
+            <Textarea
+              value={getValue('footerText')}
+              onChange={(e) => updateValue('footerText', e.target.value)}
+              rows={2}
+              placeholder="Brief description shown in the footer"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">Footer Copyright</Label>
+            <Input
+              value={getValue('footerCopyright')}
+              onChange={(e) => updateValue('footerCopyright', e.target.value)}
+              placeholder="&copy; 2024 Dwyer Insurance Group. All Rights Reserved."
+            />
+          </div>
+
+          <Separator className="my-2" />
+          <p className="text-sm font-medium text-gray-600">Footer Column Titles</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm text-gray-600">Column 1 Title</Label>
+              <Input
+                value={getValue('footerColumn1Title')}
+                onChange={(e) => updateValue('footerColumn1Title', e.target.value)}
+                placeholder="Insurance"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm text-gray-600">Column 2 Title</Label>
+              <Input
+                value={getValue('footerColumn2Title')}
+                onChange={(e) => updateValue('footerColumn2Title', e.target.value)}
+                placeholder="More Services"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm text-gray-600">Column 3 Title</Label>
+              <Input
+                value={getValue('footerColumn3Title')}
+                onChange={(e) => updateValue('footerColumn3Title', e.target.value)}
+                placeholder="Contact"
+              />
+            </div>
+          </div>
+
+          <Separator className="my-2" />
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">Footer Background Color</Label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={getValue('footerBgColor') || '#001e60'}
+                onChange={(e) => updateValue('footerBgColor', e.target.value)}
+                className="w-10 h-10 rounded cursor-pointer border border-gray-200"
+              />
+              <Input
+                value={getValue('footerBgColor')}
+                onChange={(e) => updateValue('footerBgColor', e.target.value)}
+                className="w-36 font-mono text-sm"
+                placeholder="#001e60"
+              />
+              <div
+                className="w-10 h-10 rounded-lg border shadow-sm"
+                style={{ backgroundColor: getValue('footerBgColor') || '#001e60' }}
+              />
+            </div>
+          </div>
+
+          {/* Footer Preview */}
+          <div className="mt-2 rounded-xl overflow-hidden border">
+            <div
+              className="p-4 text-white"
+              style={{ backgroundColor: getValue('footerBgColor') || '#001e60' }}
+            >
+              <p className="text-sm font-bold">{getValue('footerText') || 'Footer text preview'}</p>
+              <div className="flex gap-6 mt-2">
+                <span className="text-xs text-blue-200">{getValue('footerColumn1Title') || 'Column 1'}</span>
+                <span className="text-xs text-blue-200">{getValue('footerColumn2Title') || 'Column 2'}</span>
+                <span className="text-xs text-blue-200">{getValue('footerColumn3Title') || 'Column 3'}</span>
+              </div>
+              <p className="text-[10px] text-blue-300 mt-2">{getValue('footerCopyright') || 'Copyright preview'}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Color Palette Preview */}
       <Card>
         <CardHeader className="pb-3">
@@ -636,15 +1073,14 @@ function AppearanceTab() {
           <p className="text-sm text-gray-500">Quick overview of all appearance colors</p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {[
               { key: 'heroBannerOverlay', label: 'Hero Overlay' },
               { key: 'aboutBgColor', label: 'About BG' },
               { key: 'servicesBgColor', label: 'Services BG' },
               { key: 'footerBgColor', label: 'Footer BG' },
             ].map(({ key, label }) => {
-              const setting = getSetting(key);
-              const color = setting?.value || '#ffffff';
+              const color = getValue(key) || '#ffffff';
               return (
                 <div key={key} className="text-center">
                   <div
@@ -677,7 +1113,7 @@ function MenuTab() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState<'top' | 'dropdown' | 'child' | null>(null);
   const [addChildTo, setAddChildTo] = useState<string | null>(null);
-  const [newItem, setNewItem] = useState({ label: '', href: '/', order: 0, visible: true, isDropdown: false, parent: null as string | null });
+  const [newItem, setNewItem] = useState({ label: '', href: '/', order: 0, visible: true, isDropdown: false, parent: null as string | null, iconName: '' });
 
   const fetchItems = useCallback(async () => {
     try {
@@ -712,7 +1148,7 @@ function MenuTab() {
       toast({ title: 'Success', description: 'Menu item created' });
       setShowAdd(null);
       setAddChildTo(null);
-      setNewItem({ label: '', href: '/', order: 0, visible: true, isDropdown: false, parent: null });
+      setNewItem({ label: '', href: '/', order: 0, visible: true, isDropdown: false, parent: null, iconName: '' });
       fetchItems();
     } catch {
       toast({ title: 'Error', description: 'Failed to create menu item', variant: 'destructive' });
@@ -735,7 +1171,6 @@ function MenuTab() {
 
   const handleDelete = async (id: string, isParent: boolean) => {
     try {
-      // If deleting a parent, also delete all children
       if (isParent) {
         const children = items.filter((i) => i.parent === id);
         for (const child of children) {
@@ -764,7 +1199,6 @@ function MenuTab() {
     const newSiblings = [...siblings];
     [newSiblings[currentIndex], newSiblings[targetIndex]] = [newSiblings[targetIndex], newSiblings[currentIndex]];
     const updated = newSiblings.map((item, i) => ({ ...item, order: i }));
-    // Optimistic update
     setItems((prev) => {
       const others = prev.filter((p) => p.parent !== (siblings[0]?.parent || null) || !siblings.find((s) => s.id === p.id));
       return [...others, ...updated].sort((a, b) => a.order - b.order);
@@ -779,7 +1213,6 @@ function MenuTab() {
 
   if (loading) return <LoadingSpinner />;
 
-  // Build tree structure
   const topLevelItems = items.filter((item) => !item.parent).sort((a, b) => a.order - b.order);
   const childrenByParent = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
     if (item.parent) {
@@ -788,7 +1221,6 @@ function MenuTab() {
     }
     return acc;
   }, {});
-  // Sort children
   Object.keys(childrenByParent).forEach((key) => {
     childrenByParent[key].sort((a, b) => a.order - b.order);
   });
@@ -800,10 +1232,10 @@ function MenuTab() {
       <div className="flex justify-between items-center">
         <p className="text-sm text-gray-500">{items.length} menu items ({topLevelItems.length} top-level, {items.length - topLevelItems.length} children)</p>
         <div className="flex gap-2">
-          <Button onClick={() => { setShowAdd('top'); setNewItem({ label: '', href: '/', order: topLevelItems.length, visible: true, isDropdown: false, parent: null }); }} className="bg-[#0033A0] hover:bg-[#001e60]">
+          <Button onClick={() => { setShowAdd('top'); setNewItem({ label: '', href: '/', order: topLevelItems.length, visible: true, isDropdown: false, parent: null, iconName: '' }); }} className="bg-[#0033A0] hover:bg-[#001e60]">
             <Plus className="w-4 h-4 mr-2" /> Add Link
           </Button>
-          <Button onClick={() => { setShowAdd('dropdown'); setNewItem({ label: '', href: '#', order: topLevelItems.length, visible: true, isDropdown: true, parent: null }); }} variant="outline" className="border-[#0033A0] text-[#0033A0]">
+          <Button onClick={() => { setShowAdd('dropdown'); setNewItem({ label: '', href: '#', order: topLevelItems.length, visible: true, isDropdown: true, parent: null, iconName: '' }); }} variant="outline" className="border-[#0033A0] text-[#0033A0]">
             <Plus className="w-4 h-4 mr-2" /> Add Dropdown Group
           </Button>
         </div>
@@ -830,14 +1262,37 @@ function MenuTab() {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Switch checked={newItem.visible} onCheckedChange={(v) => setNewItem({ ...newItem, visible: v })} />
-                <Label className="text-sm">Visible</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Icon</Label>
+                <div className="flex items-center gap-2">
+                  <Select value={newItem.iconName || '__none__'} onValueChange={(v) => setNewItem({ ...newItem, iconName: v === '__none__' ? '' : v })}>
+                    <SelectTrigger className="h-9 flex-1 text-xs">
+                      <SelectValue placeholder="No icon" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No icon</SelectItem>
+                      {MENU_ICON_OPTIONS.map((name) => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {newItem.iconName && (
+                    <div className="w-8 h-8 rounded bg-[#0033A0]/10 flex items-center justify-center flex-shrink-0">
+                      <DynamicMenuIcon name={newItem.iconName} className="w-4 h-4 text-[#0033A0]" />
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="space-y-1">
-                <Label className="text-sm">Order</Label>
-                <Input type="number" value={newItem.order} onChange={(e) => setNewItem({ ...newItem, order: parseInt(e.target.value) || 0 })} className="w-20" />
+              <div className="flex items-end gap-6">
+                <div className="flex items-center gap-2">
+                  <Switch checked={newItem.visible} onCheckedChange={(v) => setNewItem({ ...newItem, visible: v })} />
+                  <Label className="text-sm">Visible</Label>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Order</Label>
+                  <Input type="number" value={newItem.order} onChange={(e) => setNewItem({ ...newItem, order: parseInt(e.target.value) || 0 })} className="w-20" />
+                </div>
               </div>
             </div>
             <div className="flex gap-2">
@@ -864,11 +1319,10 @@ function MenuTab() {
                 onAddChild={item.isDropdown ? (parentId: string) => {
                   setAddChildTo(parentId);
                   setShowAdd('child');
-                  setNewItem({ label: '', href: '/', order: children.length, visible: true, isDropdown: false, parent: parentId });
+                  setNewItem({ label: '', href: '/', order: children.length, visible: true, isDropdown: false, parent: parentId, iconName: '' });
                 } : undefined}
                 dropdownParents={dropdownParents}
               />
-              {/* Children */}
               {children.length > 0 && (
                 <div className="ml-8 mt-1 space-y-1 border-l-2 border-[#0033A0]/20 pl-3">
                   {children.map((child) => (
@@ -916,7 +1370,7 @@ function MenuRow({
   dropdownParents: MenuItem[];
 }) {
   const [editing, setEditing] = useState(false);
-  const [editData, setEditData] = useState(item);
+  const [editData, setEditData] = useState<MenuItem>(item);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleSave = () => {
@@ -959,6 +1413,32 @@ function MenuRow({
               </div>
             </div>
             <div className="flex items-center gap-4 flex-wrap">
+              {/* Icon Picker */}
+              <div className="flex items-center gap-2">
+                <Label className="text-xs">Icon:</Label>
+                <div className="flex items-center gap-1.5">
+                  <Select value={editData.iconName || '__none__'} onValueChange={(v) => setEditData({ ...editData, iconName: v === '__none__' ? '' : v })}>
+                    <SelectTrigger className="h-8 w-36 text-xs">
+                      <SelectValue placeholder="No icon" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No icon</SelectItem>
+                      {MENU_ICON_OPTIONS.map((name) => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {editData.iconName ? (
+                    <div className="w-7 h-7 rounded bg-[#0033A0]/10 flex items-center justify-center flex-shrink-0">
+                      <DynamicMenuIcon name={editData.iconName} className="w-3.5 h-3.5 text-[#0033A0]" />
+                    </div>
+                  ) : (
+                    <div className="w-7 h-7 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      <ImageIcon className="w-3.5 h-3.5 text-gray-300" />
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <Switch checked={editData.visible} onCheckedChange={(v) => setEditData({ ...editData, visible: v })} />
                 <Label className="text-xs">Visible</Label>
@@ -993,6 +1473,12 @@ function MenuRow({
         ) : (
           <div className="flex-1 flex items-center gap-2 min-w-0">
             {isChild && <ChevronRight className="w-3 h-3 text-gray-400 flex-shrink-0" />}
+            {/* Show icon in display mode */}
+            {item.iconName ? (
+              <div className="w-6 h-6 rounded bg-[#0033A0]/10 flex items-center justify-center flex-shrink-0">
+                <DynamicMenuIcon name={item.iconName} className="w-3 h-3 text-[#0033A0]" />
+              </div>
+            ) : null}
             <span className={`text-sm truncate ${isChild ? 'font-medium' : 'font-semibold'}`}>{item.label}</span>
             <span className="text-xs text-gray-400 truncate max-w-[120px]">{item.href}</span>
             <div className="flex gap-1 flex-shrink-0">
@@ -1005,6 +1491,7 @@ function MenuRow({
               {item.isDropdown && childCount > 0 && (
                 <Badge variant="outline" className="text-[10px]">{childCount} items</Badge>
               )}
+              {item.iconName && <Badge variant="outline" className="text-[10px]">{item.iconName}</Badge>}
             </div>
           </div>
         )}
@@ -1147,7 +1634,6 @@ function InsuranceTab() {
         </Button>
       </div>
 
-      {/* Add new form */}
       {showAdd && (
         <InsuranceForm
           data={newPage}
@@ -1158,7 +1644,6 @@ function InsuranceTab() {
         />
       )}
 
-      {/* List of pages */}
       <div className="grid gap-4">
         {pages.map((page) =>
           editingId === page.id ? (
@@ -1244,7 +1729,6 @@ function InsuranceForm({
     onChange({ ...data, features });
   };
 
-  // Check if any appearance field has a value to show indicator
   const hasAppearanceValues = !!(data.bannerImage || data.bannerColorFrom || data.bannerColorTo || data.backgroundColor || data.cardAccentColor || data.textColor);
 
   return (
@@ -1349,7 +1833,6 @@ function InsuranceForm({
 
         {appearanceOpen && (
           <div className="space-y-4 border-l-2 border-[#0033A0]/20 pl-4">
-            {/* Banner Image */}
             <div className="space-y-2">
               <Label className="text-sm">Banner Image URL</Label>
               <div className="flex items-center gap-2">
@@ -1374,45 +1857,23 @@ function InsuranceForm({
               )}
             </div>
 
-            {/* Banner Gradient Colors */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm">Banner Gradient Start</Label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={data.bannerColorFrom || '#0033A0'}
-                    onChange={(e) => onChange({ ...data, bannerColorFrom: e.target.value })}
-                    className="w-8 h-8 rounded cursor-pointer"
-                  />
-                  <Input
-                    value={data.bannerColorFrom || ''}
-                    onChange={(e) => onChange({ ...data, bannerColorFrom: e.target.value })}
-                    className="font-mono text-xs"
-                    placeholder="#0033A0"
-                  />
+                  <input type="color" value={data.bannerColorFrom || '#0033A0'} onChange={(e) => onChange({ ...data, bannerColorFrom: e.target.value })} className="w-8 h-8 rounded cursor-pointer" />
+                  <Input value={data.bannerColorFrom || ''} onChange={(e) => onChange({ ...data, bannerColorFrom: e.target.value })} className="font-mono text-xs" placeholder="#0033A0" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Banner Gradient End</Label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={data.bannerColorTo || '#001e60'}
-                    onChange={(e) => onChange({ ...data, bannerColorTo: e.target.value })}
-                    className="w-8 h-8 rounded cursor-pointer"
-                  />
-                  <Input
-                    value={data.bannerColorTo || ''}
-                    onChange={(e) => onChange({ ...data, bannerColorTo: e.target.value })}
-                    className="font-mono text-xs"
-                    placeholder="#001e60"
-                  />
+                  <input type="color" value={data.bannerColorTo || '#001e60'} onChange={(e) => onChange({ ...data, bannerColorTo: e.target.value })} className="w-8 h-8 rounded cursor-pointer" />
+                  <Input value={data.bannerColorTo || ''} onChange={(e) => onChange({ ...data, bannerColorTo: e.target.value })} className="font-mono text-xs" placeholder="#001e60" />
                 </div>
               </div>
             </div>
 
-            {/* Banner gradient preview */}
             {(data.bannerColorFrom || data.bannerColorTo) && (
               <div
                 className="h-10 rounded-lg border"
@@ -1422,62 +1883,30 @@ function InsuranceForm({
               />
             )}
 
-            {/* Background, Accent, Text Colors */}
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm">Background Color</Label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={data.backgroundColor || '#ffffff'}
-                    onChange={(e) => onChange({ ...data, backgroundColor: e.target.value })}
-                    className="w-8 h-8 rounded cursor-pointer"
-                  />
-                  <Input
-                    value={data.backgroundColor || ''}
-                    onChange={(e) => onChange({ ...data, backgroundColor: e.target.value })}
-                    className="font-mono text-xs"
-                    placeholder="#ffffff"
-                  />
+                  <input type="color" value={data.backgroundColor || '#ffffff'} onChange={(e) => onChange({ ...data, backgroundColor: e.target.value })} className="w-8 h-8 rounded cursor-pointer" />
+                  <Input value={data.backgroundColor || ''} onChange={(e) => onChange({ ...data, backgroundColor: e.target.value })} className="font-mono text-xs" placeholder="#ffffff" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Card Accent Color</Label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={data.cardAccentColor || '#0033A0'}
-                    onChange={(e) => onChange({ ...data, cardAccentColor: e.target.value })}
-                    className="w-8 h-8 rounded cursor-pointer"
-                  />
-                  <Input
-                    value={data.cardAccentColor || ''}
-                    onChange={(e) => onChange({ ...data, cardAccentColor: e.target.value })}
-                    className="font-mono text-xs"
-                    placeholder="#0033A0"
-                  />
+                  <input type="color" value={data.cardAccentColor || '#0033A0'} onChange={(e) => onChange({ ...data, cardAccentColor: e.target.value })} className="w-8 h-8 rounded cursor-pointer" />
+                  <Input value={data.cardAccentColor || ''} onChange={(e) => onChange({ ...data, cardAccentColor: e.target.value })} className="font-mono text-xs" placeholder="#0033A0" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Text Color Override</Label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={data.textColor || '#1f2937'}
-                    onChange={(e) => onChange({ ...data, textColor: e.target.value })}
-                    className="w-8 h-8 rounded cursor-pointer"
-                  />
-                  <Input
-                    value={data.textColor || ''}
-                    onChange={(e) => onChange({ ...data, textColor: e.target.value })}
-                    className="font-mono text-xs"
-                    placeholder="#1f2937"
-                  />
+                  <input type="color" value={data.textColor || '#1f2937'} onChange={(e) => onChange({ ...data, textColor: e.target.value })} className="w-8 h-8 rounded cursor-pointer" />
+                  <Input value={data.textColor || ''} onChange={(e) => onChange({ ...data, textColor: e.target.value })} className="font-mono text-xs" placeholder="#1f2937" />
                 </div>
               </div>
             </div>
 
-            {/* Color preview row */}
             <div className="flex items-center gap-2 pt-1">
               <span className="text-xs text-gray-400">Preview:</span>
               <div className="flex gap-1">
@@ -1487,10 +1916,7 @@ function InsuranceForm({
                   { color: data.textColor || '#1f2937', label: 'Text' },
                 ].map(({ color, label }) => (
                   <div key={label} className="text-center">
-                    <div
-                      className="w-10 h-10 rounded border shadow-sm"
-                      style={{ backgroundColor: color }}
-                    />
+                    <div className="w-10 h-10 rounded border shadow-sm" style={{ backgroundColor: color }} />
                     <span className="text-[9px] text-gray-400">{label}</span>
                   </div>
                 ))}
@@ -1708,7 +2134,6 @@ function AgentTab() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      {/* Photo Preview */}
       {photoUrl && (
         <Card>
           <CardContent className="pt-6 flex items-center gap-4">
@@ -2057,7 +2482,7 @@ function FaqsTab() {
   return (
     <div className="space-y-4 max-w-4xl">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-gray-500">{items.length} FAQ items</p>
+        <p className="text-sm text-gray-500">{items.length} FAQs</p>
         <Button onClick={() => setShowAdd(true)} className="bg-[#0033A0] hover:bg-[#001e60]">
           <Plus className="w-4 h-4 mr-2" /> Add FAQ
         </Button>
@@ -2075,7 +2500,7 @@ function FaqsTab() {
               <Label>Answer</Label>
               <Textarea value={newItem.answer} onChange={(e) => setNewItem({ ...newItem, answer: e.target.value })} rows={3} />
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Switch checked={newItem.visible} onCheckedChange={(v) => setNewItem({ ...newItem, visible: v })} />
                 <Label className="text-sm">Visible</Label>
@@ -2093,7 +2518,7 @@ function FaqsTab() {
         </Card>
       )}
 
-      <div className="grid gap-3">
+      <div className="grid gap-4">
         {items.map((item) =>
           editingId === item.id ? (
             <Card key={item.id} className="border-[#0033A0]/20">
@@ -2107,7 +2532,7 @@ function FaqsTab() {
                   <Label>Answer</Label>
                   <Textarea value={editData.answer || ''} onChange={(e) => setEditData({ ...editData, answer: e.target.value })} rows={3} />
                 </div>
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Switch checked={editData.visible !== false} onCheckedChange={(v) => setEditData({ ...editData, visible: v })} />
                     <Label className="text-sm">Visible</Label>
@@ -2127,16 +2552,14 @@ function FaqsTab() {
             </Card>
           ) : (
             <Card key={item.id}>
-              <CardContent className="py-4 px-5">
+              <CardContent className="pt-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <HelpCircle className="w-4 h-4 text-[#0033A0] flex-shrink-0" />
-                      <span className="font-medium text-sm">{item.question}</span>
+                      <span className="font-semibold text-sm">{item.question}</span>
                       {!item.visible && <Badge variant="secondary" className="text-[10px]">Hidden</Badge>}
-                      <Badge variant="outline" className="text-[10px]">#{item.order}</Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1 ml-6 line-clamp-2">{item.answer}</p>
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.answer}</p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
                     <Button size="sm" variant="outline" onClick={() => { setEditingId(item.id); setEditData({ ...item }); }}>
@@ -2151,38 +2574,5 @@ function FaqsTab() {
         )}
       </div>
     </div>
-  );
-}
-
-// ─── Shared Components ────────────────────────────────────────────────────────
-
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center py-12">
-      <Loader2 className="w-6 h-6 animate-spin text-[#0033A0]" />
-    </div>
-  );
-}
-
-function DeleteButton({ onConfirm }: { onConfirm: () => void }) {
-  const [confirm, setConfirm] = useState(false);
-
-  if (confirm) {
-    return (
-      <div className="flex gap-1">
-        <Button size="sm" variant="destructive" onClick={() => { onConfirm(); setConfirm(false); }} className="h-7 text-xs">
-          Confirm
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => setConfirm(false)} className="h-7 text-xs">
-          Cancel
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <Button size="sm" variant="ghost" onClick={() => setConfirm(true)} className="h-7 text-xs text-red-500 hover:text-red-700">
-      <Trash2 className="w-3 h-3" />
-    </Button>
   );
 }

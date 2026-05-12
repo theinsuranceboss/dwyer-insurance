@@ -6,19 +6,19 @@ async function seed() {
   // ─── Agent Info ────────────────────────────────────────────
   const agentInfo = [
     { key: "name", value: "Suzanne Dwyer", label: "Agent Name", type: "text" },
-    { key: "title", value: "Allstate Insurance Agent", label: "Title", type: "text" },
-    { key: "badge", value: "Elite Agent", label: "Badge", type: "text" },
+    { key: "title", value: "Insurance Agent", label: "Title", type: "text" },
+    { key: "badge", value: "Elite Agent, National Award Winner", label: "Badge", type: "text" },
     { key: "phone", value: "(610) 725-9900", label: "Phone", type: "phone" },
     { key: "phoneLink", value: "tel:+16107259900", label: "Phone Link", type: "url" },
     { key: "textNumber", value: "6107258137", label: "Text Number", type: "phone" },
-    { key: "email", value: "suzannedwyer@allstate.com", label: "Email", type: "email" },
+    { key: "email", value: "suzane@dwyerinsurance.com", label: "Email", type: "email" },
     { key: "address", value: "Wynnewood, PA 19096", label: "Address", type: "text" },
-    { key: "states", value: "Pennsylvania, New Jersey, Delaware", label: "Licensed States", type: "text" },
+    { key: "states", value: "Pennsylvania, New York, Delaware", label: "Licensed States", type: "text" },
     { key: "languages", value: "English, Spanish", label: "Languages", type: "text" },
     { key: "rating", value: "4.3", label: "Rating", type: "text" },
     { key: "reviewCount", value: "273", label: "Review Count", type: "text" },
     { key: "photo", value: "https://dynl.mktgcdn.com/p/eGJ6ZxW0vXZm01JyMezqui2G48EjpS9dbRdrfygmKvw/450x450.jpg", label: "Agent Photo URL", type: "image" },
-    { key: "tagline", value: "You're in good hands®", label: "Tagline", type: "text" },
+    { key: "tagline", value: "Protecting what matters most", label: "Tagline", type: "text" },
   ];
 
   for (const info of agentInfo) {
@@ -42,12 +42,16 @@ async function seed() {
     { key: "baseFontSize", value: "16", type: "size", category: "global", label: "Base Font Size (px)" },
     { key: "headingFontSize", value: "48", type: "size", category: "global", label: "Hero Heading Size (px)" },
     { key: "borderRadius", value: "12", type: "size", category: "global", label: "Border Radius (px)" },
-    { key: "siteName", value: "Suzanne Dwyer | Allstate Insurance", type: "text", category: "global", label: "Site Name" },
-    { key: "siteDescription", value: "Home, Life and Car Insurance from Suzanne Dwyer, Allstate Insurance Agent in Wynnewood, PA", type: "text", category: "global", label: "Site Description" },
+    { key: "siteName", value: "Dwyer Insurance Group", type: "text", category: "global", label: "Site Name" },
+    { key: "siteDescription", value: "Home, Life and Car Insurance from Suzanne Dwyer at Dwyer Insurance Group, serving PA, NY, and DE", type: "text", category: "global", label: "Site Description" },
+    // Logo & Branding
+    { key: "logoUrl", value: "/logo.png", type: "image", category: "branding", label: "Logo Image URL" },
+    { key: "logoText", value: "Dwyer Insurance Group", type: "text", category: "branding", label: "Logo Main Text" },
+    { key: "logoSubtext", value: "Insurance Agency", type: "text", category: "branding", label: "Logo Sub Text" },
     // Hero
     { key: "heroTitle", value: "Suzanne Dwyer", type: "text", category: "hero", label: "Hero Title" },
-    { key: "heroSubtitle", value: "Allstate Insurance", type: "text", category: "hero", label: "Hero Subtitle" },
-    { key: "heroDescription", value: "Protecting what matters most to you in Wynnewood, PA and across Pennsylvania, New Jersey, and Delaware.", type: "text", category: "hero", label: "Hero Description" },
+    { key: "heroSubtitle", value: "Dwyer Insurance Group", type: "text", category: "hero", label: "Hero Subtitle" },
+    { key: "heroDescription", value: "Protecting what matters most to you across Pennsylvania, New York, and Delaware.", type: "text", category: "hero", label: "Hero Description" },
     { key: "heroCtaText", value: "Get a Free Quote", type: "text", category: "hero", label: "Hero CTA Text" },
     { key: "heroCta2Text", value: "Call Now", type: "text", category: "hero", label: "Hero CTA 2 Text" },
     // Hero Appearance
@@ -59,8 +63,12 @@ async function seed() {
     { key: "servicesBgColor", value: "#f8fafc", type: "color", category: "services", label: "Services Section Background" },
     { key: "footerBgColor", value: "#001e60", type: "color", category: "footer", label: "Footer Background Color" },
     // Footer
-    { key: "footerText", value: "You're in good hands® — Allstate Insurance Company", type: "text", category: "footer", label: "Footer Tagline" },
-    { key: "footerCopyright", value: "Suzanne Dwyer – Allstate Insurance Agent. All Rights Reserved.", type: "text", category: "footer", label: "Footer Copyright" },
+    { key: "footerText", value: "Protecting what matters most — Dwyer Insurance Group", type: "text", category: "footer", label: "Footer Tagline" },
+    { key: "footerCopyright", value: "Dwyer Insurance Group. All Rights Reserved.", type: "text", category: "footer", label: "Footer Copyright" },
+    // Footer Items (JSON array of {label, href, iconName})
+    { key: "footerColumn1Title", value: "Insurance", type: "text", category: "footer", label: "Footer Column 1 Title" },
+    { key: "footerColumn2Title", value: "More Services", type: "text", category: "footer", label: "Footer Column 2 Title" },
+    { key: "footerColumn3Title", value: "Contact", type: "text", category: "footer", label: "Footer Column 3 Title" },
   ];
 
   for (const setting of settings) {
@@ -71,37 +79,56 @@ async function seed() {
     });
   }
 
-  // ─── Menu Items ────────────────────────────────────────────
+  // ─── Menu Items (with icons) ───────────────────────────────
+  // First clear existing menu items
+  await db.menuItem.deleteMany({});
+
   const menuItems = [
-    { label: "Home", href: "/", order: 0 },
-    { label: "About", href: "/#about", order: 1 },
-    { label: "Services", href: "/#services", order: 2 },
-    { label: "Auto Insurance", href: "/insurance/auto", order: 3 },
-    { label: "Home Insurance", href: "/insurance/home", order: 4 },
-    { label: "Life Insurance", href: "/insurance/life", order: 5 },
-    { label: "Business Insurance", href: "/insurance/business", order: 6 },
-    { label: "More Insurance", href: "/#services", order: 7, isDropdown: true },
-    { label: "Testimonials", href: "/#testimonials", order: 8 },
-    { label: "Contact", href: "/#contact", order: 9 },
+    { label: "Home", href: "/", order: 0, iconName: "" },
+    { label: "About", href: "/about", order: 1, iconName: "" },
+    { label: "Insurance Types", href: "#", order: 2, isDropdown: true, iconName: "Shield" },
+    { label: "Auto Insurance", href: "/insurance/auto", order: 0, parent: " Insurance Types placeholder", iconName: "Car" },
+    { label: "Home Insurance", href: "/insurance/home", order: 1, parent: " Insurance Types placeholder", iconName: "Home" },
+    { label: "Life Insurance", href: "/insurance/life", order: 2, parent: " Insurance Types placeholder", iconName: "Heart" },
+    { label: "Business Insurance", href: "/insurance/business", order: 3, parent: " Insurance Types placeholder", iconName: "Briefcase" },
+    { label: "Testimonials", href: "/#testimonials", order: 4, iconName: "" },
+    { label: "FAQ", href: "/#faq", order: 5, iconName: "" },
+    { label: "Contact", href: "/#contact", order: 6, iconName: "" },
   ];
 
-  for (const item of menuItems) {
-    await db.menuItem.create({ data: item });
+  // Create parent items first, then children with proper parent IDs
+  const parentItems = menuItems.filter(item => !item.parent);
+  const childItems = menuItems.filter(item => item.parent);
+
+  const createdParents: Record<string, string> = {};
+  for (const item of parentItems) {
+    const { parent: _p, ...data } = item;
+    const created = await db.menuItem.create({ data });
+    createdParents[item.label] = created.id;
+  }
+
+  // Create children with proper parent reference
+  for (const item of childItems) {
+    const parentId = createdParents["Insurance Types"];
+    if (parentId) {
+      const { parent: _p, ...data } = item;
+      await db.menuItem.create({ data: { ...data, parent: parentId } });
+    }
   }
 
   // ─── Insurance Pages ───────────────────────────────────────
   const insurancePages = [
     {
       slug: "auto", title: "Auto Insurance", tagline: "Protection for the road ahead",
-      description: "Get comprehensive auto insurance coverage that protects you, your passengers, and your vehicle. From fender benders to major collisions, Allstate auto insurance has you covered with customizable policies tailored to your needs.",
+      description: "Get comprehensive auto insurance coverage that protects you, your passengers, and your vehicle. From fender benders to major collisions, Dwyer Insurance Group auto insurance has you covered with customizable policies tailored to your needs.",
       features: JSON.stringify(["Liability coverage for bodily injury & property damage", "Collision coverage for vehicle damage", "Comprehensive coverage for non-collision events", "Uninsured/underinsured motorist protection", "Medical payments coverage", "Roadside assistance add-on", "Rental reimbursement coverage"]),
       tip: "Bundle auto with home insurance and save up to 25% on your premium!", iconColor: "#0033A0", iconBgColor: "#e8edf5", iconName: "Car", order: 0,
     },
     {
       slug: "home", title: "Home Insurance", tagline: "Your home, your haven — we protect both",
-      description: "Your home is likely your biggest investment. Allstate homeowners insurance helps protect your home and belongings against covered losses like fire, theft, and severe weather. Suzanne will help you find the right coverage at the right price.",
-      features: JSON.stringify(["Dwelling coverage for your home's structure", "Personal property protection", "Liability protection if someone is injured on your property", "Additional living expenses if your home is unlivable", "Other structures coverage (garages, sheds, fences)", "Medical payments to others", "Claim RateGuard® — your rate won't increase due to a claim"]),
-      tip: "Ask about the Claim RateGuard® add-on to keep your rates from increasing after a claim.", iconColor: "#001e60", iconBgColor: "#e0e7f5", iconName: "Home", order: 1,
+      description: "Your home is likely your biggest investment. Dwyer Insurance Group homeowners insurance helps protect your home and belongings against covered losses like fire, theft, and severe weather. Suzanne will help you find the right coverage at the right price.",
+      features: JSON.stringify(["Dwelling coverage for your home's structure", "Personal property protection", "Liability protection if someone is injured on your property", "Additional living expenses if your home is unlivable", "Other structures coverage (garages, sheds, fences)", "Medical payments to others", "Claims support and guidance"]),
+      tip: "Ask about bundling home and auto for maximum savings on your premiums.", iconColor: "#001e60", iconBgColor: "#e0e7f5", iconName: "Home", order: 1,
     },
     {
       slug: "life", title: "Life Insurance", tagline: "Secure your family's future today",
@@ -123,7 +150,7 @@ async function seed() {
     },
     {
       slug: "motorcycle", title: "Motorcycle Insurance", tagline: "Ride with confidence and protection",
-      description: "Whether you ride a cruiser, sport bike, touring motorcycle, or scooter, Allstate motorcycle insurance provides the coverage you need. From liability to comprehensive protection, ride knowing you're covered.",
+      description: "Whether you ride a cruiser, sport bike, touring motorcycle, or scooter, Dwyer Insurance Group motorcycle insurance provides the coverage you need. From liability to comprehensive protection, ride knowing you're covered.",
       features: JSON.stringify(["Liability coverage for bodily injury & property damage", "Collision and comprehensive coverage", "Uninsured motorist protection", "Custom parts and equipment coverage", "Roadside assistance for motorcycles", "Guest passenger liability", "Multiple motorcycle discounts"]),
       tip: "Store your bike in the off-season? Ask about lay-up periods to reduce your premium.", iconColor: "#dc2626", iconBgColor: "#fef2f2", iconName: "Bike", order: 5,
     },
@@ -135,7 +162,7 @@ async function seed() {
     },
     {
       slug: "boat", title: "Boat Insurance", tagline: "Smooth sailing, insured",
-      description: "Enjoy the water with peace of mind. Allstate boat insurance covers your vessel, motor, trailer, and equipment against a wide range of risks, both on and off the water.",
+      description: "Enjoy the water with peace of mind. Dwyer Insurance Group boat insurance covers your vessel, motor, trailer, and equipment against a wide range of risks, both on and off the water.",
       features: JSON.stringify(["Physical damage coverage for your boat", "Liability protection on the water", "Medical payments coverage", "Uninsured watercraft coverage", "Personal effects coverage", "Emergency assistance & towing", "Wreck removal coverage"]),
       tip: "Many boat policies include discounts for completing boating safety courses.", iconColor: "#0284c7", iconBgColor: "#e8f4fd", iconName: "Ship", order: 7,
     },
@@ -153,15 +180,15 @@ async function seed() {
     },
     {
       slug: "identity", title: "Identity Protection", tagline: "Your identity, your fortress",
-      description: "Identity theft can happen to anyone. Allstate Identity Protection monitors your personal information and helps you recover if your identity is compromised. Get proactive monitoring and expert restoration support.",
+      description: "Identity theft can happen to anyone. Identity Protection monitors your personal information and helps you recover if your identity is compromised. Get proactive monitoring and expert restoration support.",
       features: JSON.stringify(["Dark web monitoring for your personal information", "Social media account monitoring", "Credit monitoring and alerts", "Identity theft insurance up to $1 million", "Dedicated restoration specialists", "Lost wallet protection", "Financial account takeover monitoring"]),
       tip: "Over 14 million Americans were victims of identity theft last year — protect yourself proactively.", iconColor: "#9333ea", iconBgColor: "#faf0ff", iconName: "Fingerprint", order: 10,
     },
     {
       slug: "roadside", title: "Roadside Assistance", tagline: "Help when you need it, 24/7",
-      description: "Never get stranded again. Allstate Roadside Assistance provides 24/7 help for common roadside emergencies, from flat tires and dead batteries to lockouts and towing. Available as an add-on to your auto policy or as a standalone plan.",
+      description: "Never get stranded again. Roadside Assistance provides 24/7 help for common roadside emergencies, from flat tires and dead batteries to lockouts and towing. Available as an add-on to your auto policy or as a standalone plan.",
       features: JSON.stringify(["Towing service up to your coverage limit", "Jump-starts for dead batteries", "Flat tire changes", "Lockout service", "Fuel delivery", "24/7 nationwide coverage", "No deductible or copay"]),
-      tip: "Good Hands Rescue® lets you request help with just a tap in the Allstate mobile app.", iconColor: "#ea580c", iconBgColor: "#fff5eb", iconName: "Wrench", order: 11,
+      tip: "Adding roadside assistance to your auto policy is often more affordable than a standalone plan.", iconColor: "#ea580c", iconBgColor: "#fff5eb", iconName: "Wrench", order: 11,
     },
   ];
 
@@ -176,18 +203,18 @@ async function seed() {
   // ─── Page Sections ─────────────────────────────────────────
   const sections = [
     {
-      section: "hero", title: "Suzanne Dwyer", subtitle: "Allstate Insurance",
-      description: "Protecting what matters most to you in Wynnewood, PA and across Pennsylvania, New Jersey, and Delaware.",
+      section: "hero", title: "Suzanne Dwyer", subtitle: "Dwyer Insurance Group",
+      description: "Protecting what matters most to you across Pennsylvania, New York, and Delaware.",
       content: JSON.stringify({ ctaText: "Get a Free Quote", cta2Text: "Call Now", showRating: true }),
     },
     {
-      section: "about", title: "Your Trusted Insurance Partner in Wynnewood", subtitle: "About Suzanne",
-      description: "As an Allstate Elite Agent serving the Wynnewood community, Suzanne Dwyer brings dedication, expertise, and a personal touch to every client relationship. She understands that insurance isn't just about policies — it's about protecting the people and things that matter most to you.\n\nWhether you're purchasing your first home, starting a business, or looking to protect your family's future, Suzanne takes the time to understand your unique situation and find the right coverage at the right price.",
+      section: "about", title: "Your Trusted Insurance Partner", subtitle: "About Suzanne",
+      description: "As an Elite Agent, National Award Winner serving the community, Suzanne Dwyer brings dedication, expertise, and a personal touch to every client relationship. She understands that insurance isn't just about policies — it's about protecting the people and things that matter most to you.\n\nWhether you're purchasing your first home, starting a business, or looking to protect your family's future, Suzanne takes the time to understand your unique situation and find the right coverage at the right price.",
       content: JSON.stringify({ stats: [{ number: "273+", label: "Happy Clients" }, { number: "4.3", label: "Star Rating" }, { number: "3", label: "States Licensed" }, { number: "12+", label: "Insurance Types" }] }),
     },
     {
       section: "services", title: "Comprehensive Insurance Solutions", subtitle: "Our Services",
-      description: "From auto and home to life and business, Suzanne Dwyer offers a full range of Allstate insurance products to protect every aspect of your life.",
+      description: "From auto and home to life and business, Dwyer Insurance Group offers a full range of insurance products to protect every aspect of your life.",
     },
     {
       section: "whyChooseUs", title: "Why Families Trust Suzanne Dwyer", subtitle: "Why Choose Us",
@@ -207,7 +234,7 @@ async function seed() {
     },
     {
       section: "ctaBanner", title: "Ready to Protect What Matters Most?", subtitle: "",
-      description: "Get a personalized insurance quote from Suzanne Dwyer today. Bundle and save up to 25% on your premiums!",
+      description: "Get a personalized insurance quote from Dwyer Insurance Group today. Bundle and save up to 25% on your premiums!",
     },
   ];
 
@@ -220,11 +247,14 @@ async function seed() {
   }
 
   // ─── Testimonials ──────────────────────────────────────────
+  // Clear existing and recreate
+  await db.testimonial.deleteMany({});
+
   const testimonials = [
     { name: "Jennifer T.", rating: 5.0, text: "Suzanne is absolutely wonderful! She took the time to explain all my options and helped me save money by bundling my policies. I couldn't be happier with the service!", date: "May 2025", order: 0 },
     { name: "Keith M.", rating: 4.5, text: "Very professional and knowledgeable agent. Suzanne helped me find the right coverage for my home and auto. The claims process was smooth and hassle-free.", date: "May 2025", order: 1 },
     { name: "Michael T.", rating: 5.0, text: "Outstanding service! Suzanne goes above and beyond for her clients. She's always available to answer questions and genuinely cares about getting you the best coverage.", date: "May 2025", order: 2 },
-    { name: "Moses B.", rating: 5.0, text: "I switched to Allstate because of Suzanne and I'm so glad I did. She found me better coverage at a lower price than my previous insurer. Highly recommend!", date: "April 2025", order: 3 },
+    { name: "Moses B.", rating: 5.0, text: "I switched to Dwyer Insurance Group because of Suzanne and I'm so glad I did. She found me better coverage at a lower price than my previous insurer. Highly recommend!", date: "April 2025", order: 3 },
     { name: "Sarah K.", rating: 5.0, text: "Suzanne made the insurance process so easy to understand. She patiently answered all my questions and helped me choose the perfect policy for my family's needs.", date: "April 2025", order: 4 },
     { name: "Robert L.", rating: 4.5, text: "Great experience working with Suzanne. She's responsive, thorough, and genuinely cares about her clients' well-being. My family has been with her for years.", date: "March 2025", order: 5 },
   ];
@@ -234,15 +264,17 @@ async function seed() {
   }
 
   // ─── FAQ Items ─────────────────────────────────────────────
+  await db.faqItem.deleteMany({});
+
   const faqs = [
     { question: "Can I text your agency with questions?", answer: "Yes! We have text messaging services available. You can reach us at (610) 725-8137 for quick questions, policy updates, or to schedule an appointment.", order: 0 },
     { question: "What languages do you speak?", answer: "We have staff members available who speak English and Spanish. We're committed to serving our diverse community in their preferred language.", order: 1 },
-    { question: "What states are you licensed in?", answer: "Suzanne Dwyer is insurance licensed in Delaware, New Jersey, and Pennsylvania. If you reside outside these states, we can help connect you with another Allstate agent.", order: 2 },
+    { question: "What states are you licensed in?", answer: "Suzanne Dwyer is insurance licensed in Pennsylvania, New York, and Delaware.", order: 2 },
     { question: "How can I save money on my insurance?", answer: "We offer multiple discounts including multi-policy bundling (save up to 25%), safe driver discounts, claim-free discounts, good student discounts, and more. Contact us for a personalized quote and savings review.", order: 3 },
     { question: "Do you offer virtual appointments?", answer: "Yes! We offer both in-person and virtual appointments for your convenience. Schedule an appointment that works for you — evenings and weekends available by request.", order: 4 },
-    { question: "What happens after I file a claim?", answer: "Once you file a claim, you'll be assigned a dedicated claims adjuster who will guide you through the process. Allstate's Claim Satisfaction Guarantee ensures you're happy with the outcome, or we'll make it right.", order: 5 },
+    { question: "What happens after I file a claim?", answer: "Once you file a claim, you'll be assigned a dedicated claims adjuster who will guide you through the process. We ensure you're satisfied with the outcome.", order: 5 },
     { question: "How do I know if I need flood insurance?", answer: "Flood damage is not covered by standard homeowners insurance. If you live in a flood zone or near water, flood insurance is essential. Even in low-risk areas, about 25% of flood claims come from outside high-risk zones. We can assess your risk and help you decide.", order: 6 },
-    { question: "Can I bundle different types of insurance?", answer: "Absolutely! Bundling your policies (like auto + home) with Allstate can save you up to 25% on your premiums. We also offer multi-car discounts, safe driving bonuses, and loyalty rewards.", order: 7 },
+    { question: "Can I bundle different types of insurance?", answer: "Absolutely! Bundling your policies (like auto + home) can save you up to 25% on your premiums. We also offer multi-car discounts, safe driving bonuses, and loyalty rewards.", order: 7 },
   ];
 
   for (const f of faqs) {
