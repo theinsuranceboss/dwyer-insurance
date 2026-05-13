@@ -82,7 +82,7 @@ export default function AdminDashboard() {
           {sidebarOpen && (
             <div className="overflow-hidden">
               <h1 className="font-bold text-sm leading-tight">Admin Panel</h1>
-              <p className="text-[10px] text-blue-200 truncate">Suzanne Dwyer CMS</p>
+              <p className="text-[10px] text-blue-200 truncate">Dwyer Insurance CMS</p>
             </div>
           )}
         </div>

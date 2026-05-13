@@ -373,13 +373,18 @@ export default function AppearanceTab() {
           <p className="text-sm text-gray-500">Quick overview of all appearance colors</p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
             {[
               { key: 'heroBannerOverlay', label: 'Hero Overlay' },
               { key: 'heroCtaColor', label: 'CTA 1 Color' },
               { key: 'heroCta2Color', label: 'CTA 2 Color' },
               { key: 'aboutBgColor', label: 'About BG' },
               { key: 'servicesBgColor', label: 'Services BG' },
+              { key: 'whyChooseUsBgColor', label: 'Why Choose Us BG' },
+              { key: 'testimonialsBgColor', label: 'Testimonials BG' },
+              { key: 'faqBgColor', label: 'FAQ BG' },
+              { key: 'contactBgColor', label: 'Contact BG' },
+              { key: 'ctaBannerBgColor', label: 'CTA Banner BG' },
               { key: 'footerBgColor', label: 'Footer BG' },
             ].map(({ key, label }) => {
               const color = getValue(key) || '#ffffff';

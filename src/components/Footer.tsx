@@ -17,10 +17,12 @@ export default function Footer({
   settings,
   agentInfo,
   insurancePages,
+  className,
 }: {
   settings: Record<string, string>;
   agentInfo: Record<string, string>;
   insurancePages: InsurancePageData[];
+  className?: string;
 }) {
   const phone = agentInfo.phone || "(610) 725-9900";
   const phoneLink = agentInfo.phoneLink || `tel:${phone.replace(/[^\d+]/g, "")}`;
@@ -41,7 +43,7 @@ export default function Footer({
   const col2Pages = insurancePages.slice(halfIdx);
 
   return (
-    <footer style={{ backgroundColor: footerBg }} className="text-white">
+    <footer style={{ backgroundColor: footerBg }} className={`text-white${className ? ` ${className}` : ""}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand */}

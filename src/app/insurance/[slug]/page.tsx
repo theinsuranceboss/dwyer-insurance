@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Shield,
-  Phone,
   ArrowRight,
   CheckCircle2,
   Sparkles,
@@ -22,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import AnimatedSection from "@/components/AnimatedSection";
-import DynamicIcon from "@/components/DynamicIcon";
 
 // ─── Types ─────────────────────────────────────────────────────────
 
@@ -80,8 +78,8 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
   const darkColor = settings.darkColor || "#001e60";
 
   // Determine banner gradient: custom fields override iconColor-based default
-  const gradientFrom = page.bannerColorFrom || color;
-  const gradientTo = page.bannerColorTo || darkColor;
+  const gradient_from = page.bannerColorFrom || color;
+  const gradient_to = page.bannerColorTo || darkColor;
   const hasCustomGradient = !!(page.bannerColorFrom || page.bannerColorTo);
   const hasBannerImage = !!page.bannerImage;
 
@@ -117,9 +115,9 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
         className="absolute inset-0"
         style={{
           background: hasBannerImage
-            ? `linear-gradient(135deg, ${gradientFrom}cc 0%, ${gradientTo}cc 100%)`
+            ? `linear-gradient(135deg, ${gradient_from}cc 0%, ${gradient_to}cc 100%)`
             : hasCustomGradient
-              ? `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientFrom}cc 40%, ${gradientTo}cc 70%, ${gradientTo} 100%)`
+              ? `linear-gradient(135deg, ${gradient_from} 0%, ${gradient_from}cc 40%, ${gradient_to}cc 70%, ${gradient_to} 100%)`
               : `linear-gradient(135deg, ${color} 0%, ${color}cc 40%, ${color}99 70%, ${darkColor} 100%)`,
         }}
       />
@@ -130,19 +128,19 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
           animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           className="absolute top-20 left-10 w-72 h-72 rounded-full blur-3xl"
-          style={{ backgroundColor: `${gradientFrom}40` }}
+          style={{ backgroundColor: `${gradient_from}40` }}
         />
         <motion.div
           animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
           transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
           className="absolute bottom-20 right-10 w-96 h-96 rounded-full blur-3xl"
-          style={{ backgroundColor: `${gradientFrom}10` }}
+          style={{ backgroundColor: `${gradient_from}10` }}
         />
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl"
-          style={{ backgroundColor: `${gradientFrom}20` }}
+          style={{ backgroundColor: `${gradient_from}20` }}
         />
         {/* Grid pattern overlay */}
         <div
@@ -169,13 +167,24 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
             </motion.div>
           )}
 
+          {/* Large prominent emoji before title */}
+          {page.emoji && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.05 }}
+              className="text-6xl sm:text-7xl lg:text-8xl mb-4"
+            >
+              {page.emoji}
+            </motion.div>
+          )}
+
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
           >
-            {page.emoji && <span className="mr-3">{page.emoji}</span>}
             {page.title}
           </motion.h1>
 
@@ -263,20 +272,19 @@ function DescriptionSection({ page, settings }: { page: InsurancePageData; setti
                 />
 
                 <div className="relative z-10">
+                  {/* Large prominent emoji instead of icon circle */}
                   <motion.div
                     animate={{ y: [0, -6, 0] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
-                    style={{ backgroundColor: accentColor }}
+                    className="text-6xl lg:text-7xl mb-6"
                   >
-                    <DynamicIcon name={page.iconName} size={40} className="text-white" />
+                    {page.emoji || "🛡️"}
                   </motion.div>
 
                   <h3
                     className="text-2xl lg:text-3xl font-bold mb-3"
                     style={{ color: accentColor }}
                   >
-                    {page.emoji && <span className="mr-2">{page.emoji}</span>}
                     {page.title}
                   </h3>
                   <p className="text-lg font-medium" style={{ color: `${accentColor}cc` }}>
@@ -326,7 +334,7 @@ function DescriptionSection({ page, settings }: { page: InsurancePageData; setti
               {page.description}
             </p>
             <p className={`mb-8 ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
-              As an Elite Agent, we take the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
+              At Dwyer Insurance Group, we take the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
             </p>
 
             <a href={page.bannerCta1Link || "tel:+16107259900"}>
@@ -492,39 +500,31 @@ function OtherInsuranceTypes({
         </AnimatedSection>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {otherPages.map((page, i) => {
-            const color = page.iconColor || primaryColor;
-            const bgColor = page.iconBgColor || `${color}15`;
-
-            return (
-              <AnimatedSection key={page.id} delay={i * 0.05}>
-                <a href={`/insurance/${page.slug}`}>
-                  <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-gray-200/60 h-full">
-                    <CardHeader className="pb-3">
-                      <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
-                        style={{ backgroundColor: bgColor }}
-                      >
-                        <DynamicIcon name={page.iconName} size={28} style={{ color }} />
-                      </div>
-                      <CardTitle className="text-lg group-hover:transition-colors" style={{ color: secondaryColor }}>
-                        {page.emoji && <span className="mr-1.5">{page.emoji}</span>}
-                        {page.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="text-muted-foreground text-sm">
-                        {page.tagline}
-                      </CardDescription>
-                      <div className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all" style={{ color: primaryColor }}>
-                        Learn More <ArrowRight className="w-4 h-4 ml-1" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </a>
-              </AnimatedSection>
-            );
-          })}
+          {otherPages.map((page, i) => (
+            <AnimatedSection key={page.id} delay={i * 0.05}>
+              <a href={`/insurance/${page.slug}`}>
+                <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-gray-200/60 h-full">
+                  <CardHeader className="pb-3">
+                    {/* Emoji only — no icon circle */}
+                    <span className="text-3xl mb-3 block group-hover:scale-110 transition-transform">
+                      {page.emoji || "🛡️"}
+                    </span>
+                    <CardTitle className="text-lg group-hover:transition-colors" style={{ color: secondaryColor }}>
+                      {page.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-muted-foreground text-sm">
+                      {page.tagline}
+                    </CardDescription>
+                    <div className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all" style={{ color: primaryColor }}>
+                      Learn More <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </a>
+            </AnimatedSection>
+          ))}
         </div>
       </div>
     </section>
@@ -606,35 +606,31 @@ function NotFoundPage({ settings }: { settings: Record<string, string> }) {
   const secondaryColor = settings.secondaryColor || "#001e60";
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <div className="flex-1 flex items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="text-center max-w-md"
-        >
-          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: `${primaryColor}10` }}>
-            <Shield className="w-12 h-12" style={{ color: primaryColor }} />
-          </div>
-          <h1 className="text-4xl font-bold mb-4" style={{ color: secondaryColor }}>
-            Insurance Type Not Found
-          </h1>
-          <p className="text-muted-foreground text-lg mb-8">
-            Sorry, we couldn&apos;t find the insurance type you&apos;re looking for. Please check the URL or browse our available insurance options.
-          </p>
-          <a href="/">
-            <Button
-              size="lg"
-              className="text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-              style={{ backgroundColor: primaryColor }}
-            >
-              <ArrowRight className="w-5 h-5 mr-2 rotate-180" />
-              Back to Homepage
-            </Button>
-          </a>
-        </motion.div>
-      </div>
+    <div className="flex-1 flex items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="text-center max-w-md"
+      >
+        <div className="text-6xl mb-6">🛡️</div>
+        <h1 className="text-4xl font-bold mb-4" style={{ color: secondaryColor }}>
+          Insurance Type Not Found
+        </h1>
+        <p className="text-muted-foreground text-lg mb-8">
+          Sorry, we couldn&apos;t find the insurance type you&apos;re looking for. Please check the URL or browse our available insurance options.
+        </p>
+        <a href="/">
+          <Button
+            size="lg"
+            className="text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+            style={{ backgroundColor: primaryColor }}
+          >
+            <ArrowRight className="w-5 h-5 mr-2 rotate-180" />
+            Back to Homepage
+          </Button>
+        </a>
+      </motion.div>
     </div>
   );
 }
@@ -672,9 +668,7 @@ export default function InsuranceSlugPage() {
           animate={{ opacity: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse" style={{ backgroundColor: "#0033A0" }}>
-            <Shield className="w-8 h-8 text-white" />
-          </div>
+          <div className="text-5xl mb-4 animate-pulse">🛡️</div>
           <p className="text-gray-900 font-semibold text-lg">Loading...</p>
         </motion.div>
       </div>
@@ -683,7 +677,21 @@ export default function InsuranceSlugPage() {
 
   // No data
   if (!siteData) {
-    return <NotFoundPage settings={{}} />;
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navigation
+          menuItems={[]}
+          settings={{}}
+          agentInfo={{}}
+        />
+        <NotFoundPage settings={{}} />
+        <Footer
+          settings={{}}
+          agentInfo={{}}
+          insurancePages={[]}
+        />
+      </div>
+    );
   }
 
   const currentPage = siteData.insurancePages.find(
@@ -693,19 +701,21 @@ export default function InsuranceSlugPage() {
   // 404 if slug not found
   if (!currentPage) {
     return (
-      <>
+      <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation
           menuItems={siteData.menuItems}
           settings={siteData.settings}
           agentInfo={siteData.agentInfo}
+          insurancePages={siteData.insurancePages}
         />
         <NotFoundPage settings={siteData.settings} />
         <Footer
           settings={siteData.settings}
           agentInfo={siteData.agentInfo}
           insurancePages={siteData.insurancePages}
+          className="mt-auto"
         />
-      </>
+      </div>
     );
   }
 
@@ -715,6 +725,7 @@ export default function InsuranceSlugPage() {
         menuItems={siteData.menuItems}
         settings={siteData.settings}
         agentInfo={siteData.agentInfo}
+        insurancePages={siteData.insurancePages}
       />
       <main className="flex-1">
         <InsuranceHero page={currentPage} settings={siteData.settings} />
@@ -732,6 +743,7 @@ export default function InsuranceSlugPage() {
         settings={siteData.settings}
         agentInfo={siteData.agentInfo}
         insurancePages={siteData.insurancePages}
+        className="mt-auto"
       />
     </div>
   );
