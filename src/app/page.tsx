@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import {
   Shield,
   Car,
@@ -18,9 +18,6 @@ import {
   Clock,
   Star,
   ChevronDown,
-  ChevronRight,
-  Menu,
-  X,
   Award,
   Users,
   Handshake,
@@ -34,8 +31,8 @@ import {
   Landmark,
   Briefcase,
   Send,
-  ExternalLink,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -57,6 +54,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 // ─── Icon Mapping ────────────────────────────────────────────────
 
@@ -122,6 +121,11 @@ interface Settings {
   heroDescription: string;
   heroCtaText: string;
   heroCta2Text: string;
+  heroTextPosition: string;
+  heroCtaColor: string;
+  heroCtaLink: string;
+  heroCta2Color: string;
+  heroCta2Link: string;
   heroBannerImage: string;
   heroBannerOverlay: string;
   heroBannerOverlayOpacity: string;
@@ -141,6 +145,7 @@ interface MenuItem {
   visible: boolean;
   isDropdown: boolean;
   parent: string | null;
+  iconName: string;
 }
 
 interface AgentInfo {
@@ -174,6 +179,14 @@ interface InsurancePage {
   iconName: string;
   order: number;
   visible: boolean;
+  emoji: string;
+  bannerTextPosition: string;
+  bannerCta1Text: string;
+  bannerCta1Color: string;
+  bannerCta1Link: string;
+  bannerCta2Text: string;
+  bannerCta2Color: string;
+  bannerCta2Link: string;
 }
 
 interface PageSection {
@@ -327,275 +340,7 @@ function LoadingSkeleton() {
   );
 }
 
-// ─── Navigation ──────────────────────────────────────────────────
-
-function Navigation({
-  menuItems,
-  agentInfo,
-  settings,
-}: {
-  menuItems: MenuItem[];
-  agentInfo: AgentInfo;
-  settings: Settings;
-}) {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
-  const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Build parent/child structure from flat menu items
-  const topLevelItems = menuItems.filter((item) => !item.parent);
-  const childrenByParent = menuItems.reduce<Record<string, MenuItem[]>>((acc, item) => {
-    if (item.parent) {
-      if (!acc[item.parent]) acc[item.parent] = [];
-      acc[item.parent].push(item);
-    }
-    return acc;
-  }, {});
-
-  const toggleDesktopDropdown = (id: string, open: boolean) => {
-    setOpenDropdowns((prev) => ({ ...prev, [id]: open }));
-  };
-
-  const toggleMobileExpand = (id: string) => {
-    setMobileExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const navLinkClass = (isDropdown = false) =>
-    `nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 ${
-      isDropdown ? "cursor-pointer" : ""
-    } ${
-      scrolled
-        ? "hover:bg-gray-100"
-        : "text-white/90 hover:text-white hover:bg-white/10"
-    }`;
-
-  return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg"
-          : "bg-transparent"
-      }`}
-      style={scrolled ? { borderBottom: `1px solid ${settings.lightColor}30` } : undefined}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <a href="#hero" className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: settings.primaryColor }}
-            >
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <p
-                className={`font-bold text-lg leading-tight ${scrolled ? "" : "text-white"}`}
-                style={scrolled ? { color: settings.secondaryColor } : undefined}
-              >
-                {agentInfo.name}
-              </p>
-              <p
-                className={`text-xs leading-tight ${scrolled ? "" : "text-white/70"}`}
-                style={scrolled ? { color: settings.primaryColor } : undefined}
-              >
-                {agentInfo.title}
-              </p>
-            </div>
-          </a>
-
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {topLevelItems.map((item) => {
-              const children = childrenByParent[item.id] || [];
-
-              if (item.isDropdown && children.length > 0) {
-                // Dropdown parent with children
-                return (
-                  <div
-                    key={item.id}
-                    className="relative"
-                    onMouseEnter={() => toggleDesktopDropdown(item.id, true)}
-                    onMouseLeave={() => toggleDesktopDropdown(item.id, false)}
-                  >
-                    <button
-                      onClick={() => toggleDesktopDropdown(item.id, !openDropdowns[item.id])}
-                      className={navLinkClass(true)}
-                      style={scrolled ? { color: settings.secondaryColor } : undefined}
-                    >
-                      {item.label}
-                      <ChevronDown
-                        size={14}
-                        className={`transition-transform ${openDropdowns[item.id] ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    <AnimatePresence>
-                      {openDropdowns[item.id] && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-                        >
-                          <div className="py-1.5">
-                            {children.map((child) => (
-                              <a
-                                key={child.id}
-                                href={child.href}
-                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-                              >
-                                <ChevronRight size={12} className="text-gray-400 flex-shrink-0" />
-                                <span className="text-sm font-medium text-gray-700">
-                                  {child.label}
-                                </span>
-                              </a>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              }
-
-              // Regular link (no dropdown)
-              return (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  className={navLinkClass()}
-                  style={scrolled ? { color: settings.secondaryColor } : undefined}
-                >
-                  {item.label}
-                </a>
-              );
-            })}
-
-            <a href={agentInfo.phoneLink} className="ml-3">
-              <Button
-                size="sm"
-                className="text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-                style={{ backgroundColor: settings.accentColor }}
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Get a Quote
-              </Button>
-            </a>
-          </div>
-
-          {/* Mobile toggle */}
-          <button
-            className="lg:hidden p-2"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <X className={scrolled ? "" : "text-white"} size={24} style={scrolled ? { color: settings.secondaryColor } : undefined} />
-            ) : (
-              <Menu className={scrolled ? "" : "text-white"} size={24} style={scrolled ? { color: settings.secondaryColor } : undefined} />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white shadow-xl border-t border-gray-100"
-          >
-            <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
-              {topLevelItems.map((item) => {
-                const children = childrenByParent[item.id] || [];
-
-                if (item.isDropdown && children.length > 0) {
-                  return (
-                    <div key={item.id}>
-                      <button
-                        onClick={() => toggleMobileExpand(item.id)}
-                        className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
-                        style={{ color: settings.secondaryColor }}
-                      >
-                        {item.label}
-                        <ChevronDown
-                          size={16}
-                          className={`transition-transform ${mobileExpanded[item.id] ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                      <AnimatePresence>
-                        {mobileExpanded[item.id] && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="pl-4 space-y-0.5 border-l-2 ml-4" style={{ borderColor: `${settings.primaryColor}30` }}>
-                              {children.map((child) => (
-                                <a
-                                  key={child.id}
-                                  href={child.href}
-                                  onClick={() => setMobileOpen(false)}
-                                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                  <ChevronRight size={12} className="text-gray-400" />
-                                  <span className="text-sm font-medium" style={{ color: settings.secondaryColor }}>
-                                    {child.label}
-                                  </span>
-                                </a>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                }
-
-                return (
-                  <a
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
-                    style={{ color: settings.secondaryColor }}
-                  >
-                    {item.label}
-                  </a>
-                );
-              })}
-
-              <Separator className="my-2" />
-              <a href={agentInfo.phoneLink} className="block pt-2">
-                <Button
-                  className="w-full text-white font-semibold"
-                  style={{ backgroundColor: settings.accentColor }}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Get a Quote: {agentInfo.phone}
-                </Button>
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
-  );
-}
+// ─── Navigation (shared component) ────────────────────────────────
 
 // ─── Hero Section ────────────────────────────────────────────────
 
@@ -610,12 +355,26 @@ function HeroSection({
 }) {
   const rating = parseFloat(agentInfo.rating) || 0;
   const reviewCount = parseInt(agentInfo.reviewCount) || 0;
-  const states = agentInfo.states.split(",").map((s) => s.trim());
-  const languages = agentInfo.languages.split(",").map((s) => s.trim());
 
   const hasBannerImage = !!settings.heroBannerImage;
   const overlayColor = settings.heroBannerOverlay || "#001e60";
   const overlayOpacity = Math.min(100, Math.max(0, parseInt(settings.heroBannerOverlayOpacity || "70"))) / 100;
+
+  // Hero text position
+  const textPosition = settings.heroTextPosition || "center";
+  const isLeft = textPosition === "left";
+  const isRight = textPosition === "right";
+  const maxWidthClass = isLeft || isRight ? "max-w-2xl" : "max-w-4xl";
+  const textAlignClass = isLeft ? "text-left" : isRight ? "text-right" : "text-center";
+  const mlAuto = isRight ? "ml-auto" : "";
+
+  // CTA button settings
+  const cta1Text = settings.heroCtaText || "Get a Quote";
+  const cta1Color = settings.heroCtaColor || settings.accentColor;
+  const cta1Link = settings.heroCtaLink || agentInfo.phoneLink;
+  const cta2Text = settings.heroCta2Text || "Contact Us";
+  const cta2Color = settings.heroCta2Color; // empty = outline style
+  const cta2Link = settings.heroCta2Link || "#contact";
 
   return (
     <section
@@ -665,8 +424,8 @@ function HeroSection({
         />
       </div>
 
-      {/* Centered Content */}
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-40 text-center">
+      {/* Hero Content */}
+      <div className={`relative ${maxWidthClass} mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-40 ${textAlignClass} ${mlAuto}`}>
         <motion.div
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -679,8 +438,7 @@ function HeroSection({
               color: settings.accentColor,
             }}
           >
-            <Award className="w-4 h-4 mr-2" />
-            {agentInfo.badge} — Allstate
+            {heroSection?.subtitle || agentInfo.badge}
           </Badge>
         </motion.div>
 
@@ -713,6 +471,7 @@ function HeroSection({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="mt-6 text-lg sm:text-xl text-white/80 max-w-2xl mx-auto"
+          style={isLeft ? { marginLeft: 0 } : isRight ? { marginRight: 0, marginLeft: "auto" } : undefined}
         >
           {heroSection?.description || settings.heroDescription}
         </motion.p>
@@ -722,7 +481,7 @@ function HeroSection({
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-6 flex items-center justify-center gap-3"
+          className={`mt-6 flex items-center gap-3 ${isLeft ? "justify-start" : isRight ? "justify-end" : "justify-center"}`}
         >
           <StarRating rating={rating} size={20} />
           <span className="text-white font-bold text-lg">{rating}</span>
@@ -737,58 +496,27 @@ function HeroSection({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-8 flex flex-col sm:flex-row gap-4 justify-center"
+          className={`mt-8 flex flex-col sm:flex-row gap-4 ${isLeft ? "justify-start" : isRight ? "justify-end" : "justify-center"}`}
         >
-          <a href={agentInfo.phoneLink}>
+          <a href={cta1Link}>
             <Button
               size="lg"
               className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-              style={{ backgroundColor: settings.accentColor }}
+              style={{ backgroundColor: cta1Color }}
             >
-              <Phone className="w-5 h-5 mr-2" />
-              {settings.heroCta2Text} {agentInfo.phone}
+              {cta1Text}
             </Button>
           </a>
-          <a href="#contact">
+          <a href={cta2Link}>
             <Button
               size="lg"
-              variant="outline"
-              className="border-white/30 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
+              variant={cta2Color ? undefined : "outline"}
+              className={`font-bold text-lg px-8 py-6 ${cta2Color ? "text-white shadow-xl hover:shadow-2xl transition-all hover:scale-105" : "border-white/30 text-white hover:bg-white/10 bg-transparent"}`}
+              style={cta2Color ? { backgroundColor: cta2Color } : undefined}
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              {settings.heroCtaText}
+              {cta2Text}
             </Button>
           </a>
-        </motion.div>
-
-        {/* Quick Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-10 flex items-center justify-center gap-8 flex-wrap"
-        >
-          {[
-            { icon: Clock, label: "Mon–Fri", value: "8:30–5:00 PM" },
-            {
-              icon: Globe,
-              label: "Languages",
-              value: languages.map((l) => l.substring(0, 2).toUpperCase()).join(" / "),
-            },
-            {
-              icon: MapPin,
-              label: "Serving",
-              value: states.map((s) => s.substring(0, 2).toUpperCase()).join(", "),
-            },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2 text-white/70">
-              <item.icon className="w-4 h-4 flex-shrink-0" style={{ color: settings.lightColor }} />
-              <div>
-                <p className="text-xs text-white/50">{item.label}</p>
-                <p className="text-sm font-medium text-white/90">{item.value}</p>
-              </div>
-            </div>
-          ))}
         </motion.div>
 
         {/* Scroll indicator */}
@@ -1045,6 +773,7 @@ function ServicesSection({
                         className="text-lg group-hover:transition-colors"
                         style={{ color: settings.secondaryColor }}
                       >
+                        {page.emoji && <span className="mr-1.5">{page.emoji}</span>}
                         {page.title}
                       </CardTitle>
                     </CardHeader>
@@ -1711,158 +1440,7 @@ function CtaBanner({
   );
 }
 
-// ─── Footer ──────────────────────────────────────────────────────
-
-function Footer({
-  settings,
-  agentInfo,
-  insurancePages,
-}: {
-  settings: Settings;
-  agentInfo: AgentInfo;
-  insurancePages: InsurancePage[];
-}) {
-  const states = agentInfo.states.split(",").map((s) => s.trim());
-  const topInsurance = insurancePages.slice(0, 6);
-  const moreInsurance = insurancePages.slice(6);
-
-  return (
-    <footer
-      className="text-white"
-      style={{ backgroundColor: settings.footerBgColor || settings.darkColor }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Agent Info */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: settings.primaryColor }}
-              >
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">{agentInfo.name}</p>
-                <p className="text-xs text-white/60">{agentInfo.title}</p>
-              </div>
-            </div>
-            <p className="text-white/70 text-sm mb-4">{settings.siteDescription}</p>
-            <p className="text-sm italic" style={{ color: settings.lightColor }}>
-              &ldquo;{agentInfo.tagline}&rdquo;
-            </p>
-          </div>
-
-          {/* Insurance Products */}
-          <div>
-            <h4 className="font-bold text-lg mb-5">Insurance Products</h4>
-            <ul className="space-y-2.5">
-              {topInsurance.map((page) => (
-                <li key={page.id}>
-                  <a
-                    href={`/insurance/${page.slug}`}
-                    className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1.5"
-                  >
-                    <ChevronRight size={12} />
-                    {page.title}
-                  </a>
-                </li>
-              ))}
-              {moreInsurance.length > 0 && (
-                <li className="pt-2">
-                  <p className="text-xs text-white/40 mb-2 uppercase tracking-wider">More Products</p>
-                  {moreInsurance.map((page) => (
-                    <a
-                      key={page.id}
-                      href={`/insurance/${page.slug}`}
-                      className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1.5 py-1"
-                    >
-                      <ChevronRight size={12} />
-                      {page.title}
-                    </a>
-                  ))}
-                </li>
-              )}
-            </ul>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-bold text-lg mb-5">Quick Links</h4>
-            <ul className="space-y-2.5">
-              {[
-                { label: "Home", href: "/" },
-                { label: "About Suzanne", href: "/#about" },
-                { label: "Our Services", href: "/#services" },
-                { label: "Why Choose Us", href: "/#why-choose-us" },
-                { label: "Testimonials", href: "/#testimonials" },
-                { label: "FAQ", href: "/#faq" },
-                { label: "Contact Us", href: "/#contact" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1.5"
-                  >
-                    <ChevronRight size={12} />
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h4 className="font-bold text-lg mb-5">Contact Us</h4>
-            <div className="space-y-4">
-              <a
-                href={agentInfo.phoneLink}
-                className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-sm"
-              >
-                <Phone size={16} style={{ color: settings.lightColor }} />
-                {agentInfo.phone}
-              </a>
-              <a
-                href={`sms:${agentInfo.textNumber}`}
-                className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-sm"
-              >
-                <MessageCircle size={16} style={{ color: settings.accentColor }} />
-                Text: {agentInfo.textNumber}
-              </a>
-              <a
-                href={`mailto:${agentInfo.email}`}
-                className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-sm"
-              >
-                <Mail size={16} style={{ color: settings.lightColor }} />
-                {agentInfo.email}
-              </a>
-              <div className="flex items-start gap-3 text-white/70 text-sm">
-                <MapPin size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
-                {agentInfo.address}
-              </div>
-              <div className="flex items-start gap-3 text-white/70 text-sm">
-                <Globe size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
-                Licensed in {agentInfo.states}
-              </div>
-              <div className="flex items-start gap-3 text-white/70 text-sm">
-                <Clock size={16} className="flex-shrink-0 mt-0.5" style={{ color: settings.lightColor }} />
-                Mon–Fri: 8:30 AM – 5:00 PM
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Separator className="my-10 bg-white/10" />
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/50">
-          <p>&copy; {new Date().getFullYear()} {settings.footerCopyright}</p>
-          <p>{settings.footerText}</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
+// ─── Footer (shared component) ────────────────────────────────────
 
 // ─── Main Page ───────────────────────────────────────────────────
 

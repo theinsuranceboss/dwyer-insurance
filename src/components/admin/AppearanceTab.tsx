@@ -10,8 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
-import { Image as ImageIcon, Loader2, Save, Palette, Eye, MessageSquare, Upload } from 'lucide-react';
+import { Image as ImageIcon, Loader2, Save, Palette, Eye, MessageSquare, Upload, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { type SiteSetting, apiFetch, apiUpload, LoadingSpinner, APPEARANCE_SECTIONS, FOOTER_KEYS } from './shared';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function AppearanceTab() {
   const { toast } = useToast();
@@ -180,6 +187,25 @@ export default function AppearanceTab() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  ) : setting.key === 'heroTextPosition' ? (
+                    <div className="space-y-2">
+                      <Select value={setting.value || 'center'} onValueChange={(v) => updateValue(setting.key, v)}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="left">
+                            <span className="flex items-center gap-2"><AlignLeft className="w-4 h-4" /> Left</span>
+                          </SelectItem>
+                          <SelectItem value="center">
+                            <span className="flex items-center gap-2"><AlignCenter className="w-4 h-4" /> Center</span>
+                          </SelectItem>
+                          <SelectItem value="right">
+                            <span className="flex items-center gap-2"><AlignRight className="w-4 h-4" /> Right</span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   ) : setting.key.includes('Opacity') ? (
                     <div className="space-y-2">
@@ -350,6 +376,8 @@ export default function AppearanceTab() {
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {[
               { key: 'heroBannerOverlay', label: 'Hero Overlay' },
+              { key: 'heroCtaColor', label: 'CTA 1 Color' },
+              { key: 'heroCta2Color', label: 'CTA 2 Color' },
               { key: 'aboutBgColor', label: 'About BG' },
               { key: 'servicesBgColor', label: 'Services BG' },
               { key: 'footerBgColor', label: 'Footer BG' },

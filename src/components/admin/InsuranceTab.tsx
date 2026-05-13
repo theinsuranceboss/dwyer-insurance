@@ -147,6 +147,7 @@ export default function InsuranceTab() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
+                        {page.emoji && <span className="text-lg">{page.emoji}</span>}
                         <h3 className="font-semibold text-[#001e60]">{page.title}</h3>
                         {!page.visible && <Badge variant="secondary" className="text-[10px]">Hidden</Badge>}
                         <Badge variant="outline" className="text-[10px]">/{page.slug}</Badge>
@@ -211,7 +212,7 @@ function InsuranceForm({
     onChange({ ...data, features });
   };
 
-  const hasAppearanceValues = !!(data.bannerImage || data.bannerColorFrom || data.bannerColorTo || data.backgroundColor || data.cardAccentColor || data.textColor);
+  const hasAppearanceValues = !!(data.bannerImage || data.bannerColorFrom || data.bannerColorTo || data.backgroundColor || data.cardAccentColor || data.textColor || data.bannerTextPosition || data.bannerCta1Text || data.bannerCta1Color || data.bannerCta1Link || data.bannerCta2Text || data.bannerCta2Color || data.bannerCta2Link);
 
   return (
     <Card className="border-[#0033A0]/20">
@@ -240,6 +241,13 @@ function InsuranceForm({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Emoji</Label>
+            <div className="flex items-center gap-2">
+              <Input value={data.emoji || ''} onChange={(e) => onChange({ ...data, emoji: e.target.value })} placeholder="🛡️" className="w-24" />
+              {data.emoji && <span className="text-2xl">{data.emoji}</span>}
+            </div>
           </div>
         </div>
 
@@ -435,6 +443,89 @@ function InsuranceForm({
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Banner Text & CTA Buttons */}
+            <Separator className="my-2" />
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Banner Text &amp; Buttons</p>
+
+            <div className="space-y-2">
+              <Label className="text-sm">Banner Text Position</Label>
+              <Select value={data.bannerTextPosition || 'center'} onValueChange={(v) => onChange({ ...data, bannerTextPosition: v })}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="center">Center</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm">CTA Button 1 Text</Label>
+                <Input value={data.bannerCta1Text || ''} onChange={(e) => onChange({ ...data, bannerCta1Text: e.target.value })} placeholder="Call for a Quote" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">CTA Button 1 Link</Label>
+                <Input value={data.bannerCta1Link || ''} onChange={(e) => onChange({ ...data, bannerCta1Link: e.target.value })} placeholder="tel:+16107259900" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm">CTA Button 1 Color</Label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={data.bannerCta1Color || '#ff9e16'} onChange={(e) => onChange({ ...data, bannerCta1Color: e.target.value })} className="w-8 h-8 rounded cursor-pointer" />
+                <Input value={data.bannerCta1Color || ''} onChange={(e) => onChange({ ...data, bannerCta1Color: e.target.value })} className="font-mono text-xs" placeholder="#ff9e16" />
+                {data.bannerCta1Color && (
+                  <button
+                    type="button"
+                    className="px-3 py-1 rounded text-xs font-semibold text-white"
+                    style={{ backgroundColor: data.bannerCta1Color }}
+                  >
+                    {data.bannerCta1Text || 'CTA 1'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm">CTA Button 2 Text</Label>
+                <Input value={data.bannerCta2Text || ''} onChange={(e) => onChange({ ...data, bannerCta2Text: e.target.value })} placeholder="Request Online" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">CTA Button 2 Link</Label>
+                <Input value={data.bannerCta2Link || ''} onChange={(e) => onChange({ ...data, bannerCta2Link: e.target.value })} placeholder="/" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm">CTA Button 2 Color</Label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={data.bannerCta2Color || '#ffffff'} onChange={(e) => onChange({ ...data, bannerCta2Color: e.target.value })} className="w-8 h-8 rounded cursor-pointer" />
+                <Input value={data.bannerCta2Color || ''} onChange={(e) => onChange({ ...data, bannerCta2Color: e.target.value })} className="font-mono text-xs" placeholder="(empty = outline style)" />
+                {data.bannerCta2Color ? (
+                  <button
+                    type="button"
+                    className="px-3 py-1 rounded text-xs font-semibold text-white"
+                    style={{ backgroundColor: data.bannerCta2Color }}
+                  >
+                    {data.bannerCta2Text || 'CTA 2'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="px-3 py-1 rounded text-xs font-semibold border-2 border-current"
+                    style={{ color: data.bannerCta1Color || '#ff9e16' }}
+                  >
+                    {data.bannerCta2Text || 'CTA 2'}
+                  </button>
+                )}
+              </div>
+              <p className="text-[10px] text-gray-400">Leave empty for outline style button</p>
             </div>
           </div>
         )}

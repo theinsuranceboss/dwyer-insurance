@@ -9,6 +9,7 @@ interface InsurancePageData {
   slug: string;
   title: string;
   iconName: string;
+  emoji: string;
   [key: string]: unknown;
 }
 
@@ -66,7 +67,11 @@ export default function Footer({
               {col1Pages.map((type) => (
                 <li key={type.id}>
                   <a href={`/insurance/${type.slug}`} className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-1.5">
-                    {type.iconName && <DynamicIcon name={type.iconName} size={12} style={{ color: lightColor }} />}
+                    {type.emoji ? (
+                      <span className="text-sm">{type.emoji}</span>
+                    ) : type.iconName ? (
+                      <DynamicIcon name={type.iconName} size={12} style={{ color: lightColor }} />
+                    ) : null}
                     {type.title}
                   </a>
                 </li>
@@ -81,7 +86,11 @@ export default function Footer({
               {col2Pages.map((type) => (
                 <li key={type.id}>
                   <a href={`/insurance/${type.slug}`} className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-1.5">
-                    {type.iconName && <DynamicIcon name={type.iconName} size={12} style={{ color: lightColor }} />}
+                    {type.emoji ? (
+                      <span className="text-sm">{type.emoji}</span>
+                    ) : type.iconName ? (
+                      <DynamicIcon name={type.iconName} size={12} style={{ color: lightColor }} />
+                    ) : null}
                     {type.title}
                   </a>
                 </li>

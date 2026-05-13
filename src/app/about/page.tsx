@@ -1,18 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import {
-  Shield,
   Phone,
-  Mail,
-  MapPin,
   Clock,
-  Star,
-  ChevronDown,
-  ChevronRight,
-  Menu,
-  X,
   Award,
   Handshake,
   ArrowRight,
@@ -21,19 +13,15 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -74,6 +62,7 @@ interface MenuItem {
   visible: boolean;
   isDropdown: boolean;
   parent: string | null;
+  iconName: string;
 }
 
 interface AgentInfo {
@@ -115,6 +104,7 @@ interface InsurancePage {
   iconColor: string;
   iconBgColor: string;
   iconName: string;
+  emoji: string;
   order: number;
   visible: boolean;
 }
@@ -154,281 +144,6 @@ function AnimatedSection({
   );
 }
 
-function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          size={size}
-          className={
-            i <= Math.floor(rating)
-              ? "fill-yellow-400 text-yellow-400"
-              : i - 0.5 <= rating
-                ? "fill-yellow-400/50 text-yellow-400"
-                : "text-gray-300"
-          }
-        />
-      ))}
-    </div>
-  );
-}
-
-// ─── Navigation ──────────────────────────────────────────────────
-
-function Navigation({
-  menuItems,
-  agentInfo,
-  settings,
-}: {
-  menuItems: MenuItem[];
-  agentInfo: AgentInfo;
-  settings: Settings;
-}) {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
-  const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const topLevelItems = menuItems.filter((item) => !item.parent);
-  const childrenByParent = menuItems.reduce<Record<string, MenuItem[]>>((acc, item) => {
-    if (item.parent) {
-      if (!acc[item.parent]) acc[item.parent] = [];
-      acc[item.parent].push(item);
-    }
-    return acc;
-  }, {});
-
-  const toggleDesktopDropdown = (id: string, open: boolean) => {
-    setOpenDropdowns((prev) => ({ ...prev, [id]: open }));
-  };
-
-  const toggleMobileExpand = (id: string) => {
-    setMobileExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const navLinkClass = (isDropdown = false) =>
-    `nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 ${
-      isDropdown ? "cursor-pointer" : ""
-    } ${
-      scrolled
-        ? "hover:bg-gray-100"
-        : "text-white/90 hover:text-white hover:bg-white/10"
-    }`;
-
-  return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg"
-          : "bg-white/95 backdrop-blur-md shadow-sm"
-      }`}
-      style={scrolled ? { borderBottom: `1px solid ${settings.lightColor}30` } : undefined}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          <a href="/" className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: settings.primaryColor }}
-            >
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <p
-                className="font-bold text-lg leading-tight"
-                style={{ color: settings.secondaryColor }}
-              >
-                {agentInfo.name}
-              </p>
-              <p
-                className="text-xs leading-tight"
-                style={{ color: settings.primaryColor }}
-              >
-                {agentInfo.title}
-              </p>
-            </div>
-          </a>
-
-          <div className="hidden lg:flex items-center gap-1">
-            {topLevelItems.map((item) => {
-              const children = childrenByParent[item.id] || [];
-              if (item.isDropdown && children.length > 0) {
-                return (
-                  <div
-                    key={item.id}
-                    className="relative"
-                    onMouseEnter={() => toggleDesktopDropdown(item.id, true)}
-                    onMouseLeave={() => toggleDesktopDropdown(item.id, false)}
-                  >
-                    <button
-                      onClick={() => toggleDesktopDropdown(item.id, !openDropdowns[item.id])}
-                      className={navLinkClass(true)}
-                      style={{ color: settings.secondaryColor }}
-                    >
-                      {item.label}
-                      <ChevronDown
-                        size={14}
-                        className={`transition-transform ${openDropdowns[item.id] ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    <AnimatePresence>
-                      {openDropdowns[item.id] && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-                        >
-                          <div className="py-1.5">
-                            {children.map((child) => (
-                              <a
-                                key={child.id}
-                                href={child.href}
-                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-                              >
-                                <ChevronRight size={12} className="text-gray-400 flex-shrink-0" />
-                                <span className="text-sm font-medium text-gray-700">{child.label}</span>
-                              </a>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              }
-              return (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  className={navLinkClass()}
-                  style={{ color: settings.secondaryColor }}
-                >
-                  {item.label}
-                </a>
-              );
-            })}
-            <a href={agentInfo.phoneLink} className="ml-3">
-              <Button
-                size="sm"
-                className="text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-                style={{ backgroundColor: settings.accentColor }}
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Get a Quote
-              </Button>
-            </a>
-          </div>
-
-          <button
-            className="lg:hidden p-2"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <X size={24} style={{ color: settings.secondaryColor }} />
-            ) : (
-              <Menu size={24} style={{ color: settings.secondaryColor }} />
-            )}
-          </button>
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white shadow-xl border-t border-gray-100"
-          >
-            <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
-              {topLevelItems.map((item) => {
-                const children = childrenByParent[item.id] || [];
-                if (item.isDropdown && children.length > 0) {
-                  return (
-                    <div key={item.id}>
-                      <button
-                        onClick={() => toggleMobileExpand(item.id)}
-                        className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
-                        style={{ color: settings.secondaryColor }}
-                      >
-                        {item.label}
-                        <ChevronDown
-                          size={16}
-                          className={`transition-transform ${mobileExpanded[item.id] ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                      <AnimatePresence>
-                        {mobileExpanded[item.id] && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="pl-4 space-y-0.5 border-l-2 ml-4" style={{ borderColor: `${settings.primaryColor}30` }}>
-                              {children.map((child) => (
-                                <a
-                                  key={child.id}
-                                  href={child.href}
-                                  onClick={() => setMobileOpen(false)}
-                                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                  <ChevronRight size={12} className="text-gray-400" />
-                                  <span className="text-sm font-medium" style={{ color: settings.secondaryColor }}>
-                                    {child.label}
-                                  </span>
-                                </a>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                }
-                return (
-                  <a
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50"
-                    style={{ color: settings.secondaryColor }}
-                  >
-                    {item.label}
-                  </a>
-                );
-              })}
-              <Separator className="my-2" />
-              <a href={agentInfo.phoneLink} className="block pt-2">
-                <Button
-                  className="w-full text-white font-semibold"
-                  style={{ backgroundColor: settings.accentColor }}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Get a Quote: {agentInfo.phone}
-                </Button>
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
-  );
-}
-
 // ─── About Content Section ───────────────────────────────────────
 
 function AboutContentSection({
@@ -440,7 +155,6 @@ function AboutContentSection({
   agentInfo: AgentInfo;
   aboutSection: PageSection | undefined;
 }) {
-  const rating = parseFloat(agentInfo.rating) || 0;
   const reviewCount = parseInt(agentInfo.reviewCount) || 0;
   const states = agentInfo.states.split(",").map((s) => s.trim());
 
@@ -495,11 +209,11 @@ function AboutContentSection({
                   </div>
                   <h3 className="text-3xl font-bold mb-2">{agentInfo.name}</h3>
                   <p className="font-medium text-lg mb-4" style={{ color: settings.lightColor }}>
-                    Allstate {agentInfo.badge}
+                    {agentInfo.badge}
                   </p>
                   <p className="text-white/80 mb-6">
-                    Dedicated to providing personalized insurance solutions with the backing of
-                    Allstate&apos;s financial strength and claims expertise.
+                    Dedicated to providing personalized insurance solutions with
+                    exceptional service and claims expertise.
                   </p>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -636,7 +350,7 @@ function ValuesSection({ settings }: { settings: Settings }) {
     {
       icon: Award,
       title: "Elite Expertise",
-      desc: "Recognized as an Allstate Elite Agent for exceptional service and client satisfaction.",
+      desc: "Recognized as an Elite Agent for exceptional service and client satisfaction.",
     },
   ];
 
@@ -734,120 +448,13 @@ function CTASection({ settings, agentInfo }: { settings: Settings; agentInfo: Ag
   );
 }
 
-// ─── Footer ──────────────────────────────────────────────────────
-
-function Footer({
-  settings,
-  agentInfo,
-  insurancePages,
-}: {
-  settings: Settings;
-  agentInfo: AgentInfo;
-  insurancePages: InsurancePage[];
-}) {
-  return (
-    <footer className="text-white" style={{ backgroundColor: settings.footerBgColor || settings.darkColor }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: settings.primaryColor }}
-              >
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">{agentInfo.name}</p>
-                <p className="text-sm" style={{ color: settings.lightColor }}>{agentInfo.title}</p>
-              </div>
-            </div>
-            <p className="text-white/60 text-sm mb-4">
-              Elite Agent serving Wynnewood, PA and the surrounding communities.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-4">Insurance</h4>
-            <ul className="space-y-2">
-              {insurancePages.slice(0, 6).map((type) => (
-                <li key={type.id}>
-                  <a
-                    href={`/insurance/${type.slug}`}
-                    className="text-white/60 hover:text-white text-sm transition-colors"
-                  >
-                    {type.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-4">More Services</h4>
-            <ul className="space-y-2">
-              {insurancePages.slice(6).map((type) => (
-                <li key={type.id}>
-                  <a
-                    href={`/insurance/${type.slug}`}
-                    className="text-white/60 hover:text-white text-sm transition-colors"
-                  >
-                    {type.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-4">Contact</h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" style={{ color: settings.lightColor }} />
-                <a href={agentInfo.phoneLink} className="text-white/60 hover:text-white text-sm">
-                  {agentInfo.phone}
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" style={{ color: settings.lightColor }} />
-                <a href={`mailto:${agentInfo.email}`} className="text-white/60 hover:text-white text-sm">
-                  {agentInfo.email}
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" style={{ color: settings.lightColor }} />
-                <span className="text-white/60 text-sm">{agentInfo.address}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" style={{ color: settings.lightColor }} />
-                <span className="text-white/60 text-sm">Mon-Fri: 8:30 AM - 5:00 PM</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Separator className="bg-white/10 mb-8" />
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-white/40 text-sm">
-            {settings.footerCopyright || `© ${new Date().getFullYear()} ${agentInfo.name}. All rights reserved.`}
-          </p>
-          <p className="text-white/40 text-xs">
-            {settings.footerText || "You're in good hands."}
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 // ─── Loading Skeleton ────────────────────────────────────────────
 
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 lg:h-20">
+      <div className="fixed top-0 left-0 right-0 z-50 shadow-md" style={{ backgroundColor: "#001e60" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 md:h-20">
           <div className="flex items-center gap-3">
             <Skeleton className="w-10 h-10 rounded-full" />
             <div className="hidden sm:block space-y-1">
@@ -855,16 +462,16 @@ function LoadingSkeleton() {
               <Skeleton className="w-28 h-3" />
             </div>
           </div>
-          <div className="hidden lg:flex items-center gap-6">
-            {[...Array(7)].map((_, i) => (
+          <div className="hidden md:flex items-center gap-6">
+            {[...Array(5)].map((_, i) => (
               <Skeleton key={i} className="w-16 h-4" />
             ))}
           </div>
-          <Skeleton className="lg:hidden w-8 h-8" />
+          <Skeleton className="md:hidden w-8 h-8" />
         </div>
       </div>
 
-      <div className="pt-20">
+      <div className="pt-16 md:pt-20">
         <div className="py-20 lg:py-28">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -911,10 +518,15 @@ export default function AboutPage() {
   const aboutSection = pageSections.find((s: PageSection) => s.section === "about");
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navigation menuItems={menuItems} agentInfo={agentInfo} settings={settings} />
+    <div className="min-h-screen bg-white flex flex-col">
+      <Navigation
+        menuItems={menuItems}
+        agentInfo={agentInfo}
+        settings={settings}
+        insurancePages={insurancePages}
+      />
 
-      <main className="pt-16 lg:pt-20">
+      <main className="pt-16 md:pt-20 flex-1">
         <AboutContentSection settings={settings} agentInfo={agentInfo} aboutSection={aboutSection} />
         <ValuesSection settings={settings} />
         <CTASection settings={settings} agentInfo={agentInfo} />

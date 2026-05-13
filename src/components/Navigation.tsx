@@ -18,25 +18,57 @@ interface MenuItem {
   iconName: string;
 }
 
+interface InsurancePageBrief {
+  slug: string;
+  emoji: string;
+  [key: string]: unknown;
+}
+
 export default function Navigation({
   menuItems,
   settings,
   agentInfo,
+  insurancePages,
 }: {
   menuItems: MenuItem[];
   settings: Record<string, string>;
   agentInfo: Record<string, string>;
+  insurancePages?: InsurancePageBrief[];
 }) {
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
   const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
 
+  // Build emoji lookup by slug
+  const emojiBySlug: Record<string, string> = {};
+  if (insurancePages) {
+    for (const page of insurancePages) {
+      if (page.emoji && page.slug) {
+        emojiBySlug[page.slug] = page.emoji;
+      }
+    }
+  }
+
+  // Helper to get emoji for a menu child href
+  const getEmojiForHref = (href: string): string | null => {
+    // Match href like /insurance/auto
+    const match = href.match(/^\/insurance\/([^/]+)$/);
+    if (match && emojiBySlug[match[1]]) {
+      return emojiBySlug[match[1]];
+    }
+    return null;
+  };
+
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   const topLevelItems = menuItems.filter((item) => !item.parent);
   const childrenByParent = menuItems.reduce<Record<string, MenuItem[]>>((acc, item) => {
@@ -65,11 +97,11 @@ export default function Navigation({
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "shadow-xl" : "shadow-md"}`}
+      className="fixed top-0 left-0 right-0 z-50 shadow-md"
       style={{ backgroundColor: navBg }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+        <div className="flex items-center justify-between h-16 md:h-20">
           <a href="/" className="flex items-center gap-3">
             <img
               src={logoUrl}
@@ -82,8 +114,8 @@ export default function Navigation({
             </div>
           </a>
 
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
+          {/* Desktop Nav — visible at md and up */}
+          <div className="hidden md:flex items-center gap-1">
             {topLevelItems.map((item) => {
               const children = childrenByParent[item.id] || [];
               if (item.isDropdown && children.length > 0) {
@@ -115,20 +147,25 @@ export default function Navigation({
                           className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
                         >
                           <div className="py-1.5">
-                            {children.map((child) => (
-                              <a
-                                key={child.id}
-                                href={child.href}
-                                className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-                              >
-                                {child.iconName ? (
-                                  <DynamicIcon name={child.iconName} size={16} style={{ color: settings.primaryColor || "#0033A0" }} />
-                                ) : (
-                                  <span className="w-4" />
-                                )}
-                                <span className="text-sm font-medium text-gray-700">{child.label}</span>
-                              </a>
-                            ))}
+                            {children.map((child) => {
+                              const emoji = getEmojiForHref(child.href);
+                              return (
+                                <a
+                                  key={child.id}
+                                  href={child.href}
+                                  className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                                >
+                                  {emoji ? (
+                                    <span className="text-base flex-shrink-0">{emoji}</span>
+                                  ) : child.iconName ? (
+                                    <DynamicIcon name={child.iconName} size={16} style={{ color: settings.primaryColor || "#0033A0" }} />
+                                  ) : (
+                                    <span className="w-4" />
+                                  )}
+                                  <span className="text-sm font-medium text-gray-700">{child.label}</span>
+                                </a>
+                              );
+                            })}
                           </div>
                         </motion.div>
                       )}
@@ -158,8 +195,8 @@ export default function Navigation({
             </a>
           </div>
 
-          {/* Mobile toggle */}
-          <button className="lg:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+          {/* Mobile toggle — visible below md */}
+          <button className="md:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
             {mobileOpen ? <X className="text-white" size={24} /> : <Menu className="text-white" size={24} />}
           </button>
         </div>
@@ -172,7 +209,7 @@ export default function Navigation({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white shadow-xl border-t border-gray-100"
+            className="md:hidden bg-white shadow-xl border-t border-gray-100"
           >
             <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
               {topLevelItems.map((item) => {
@@ -203,21 +240,26 @@ export default function Navigation({
                             className="overflow-hidden"
                           >
                             <div className="pl-4 space-y-0.5 border-l-2 ml-4" style={{ borderColor: `${settings.primaryColor || "#0033A0"}30` }}>
-                              {children.map((child) => (
-                                <a
-                                  key={child.id}
-                                  href={child.href}
-                                  onClick={() => setMobileOpen(false)}
-                                  className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                  {child.iconName ? (
-                                    <DynamicIcon name={child.iconName} size={16} style={{ color: settings.primaryColor || "#0033A0" }} />
-                                  ) : (
-                                    <span className="w-4" />
-                                  )}
-                                  <span className="text-sm font-medium" style={{ color: settings.secondaryColor || "#001e60" }}>{child.label}</span>
-                                </a>
-                              ))}
+                              {children.map((child) => {
+                                const emoji = getEmojiForHref(child.href);
+                                return (
+                                  <a
+                                    key={child.id}
+                                    href={child.href}
+                                    onClick={() => setMobileOpen(false)}
+                                    className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+                                  >
+                                    {emoji ? (
+                                      <span className="text-base flex-shrink-0">{emoji}</span>
+                                    ) : child.iconName ? (
+                                      <DynamicIcon name={child.iconName} size={16} style={{ color: settings.primaryColor || "#0033A0" }} />
+                                    ) : (
+                                      <span className="w-4" />
+                                    )}
+                                    <span className="text-sm font-medium" style={{ color: settings.secondaryColor || "#001e60" }}>{child.label}</span>
+                                  </a>
+                                );
+                              })}
                             </div>
                           </motion.div>
                         )}

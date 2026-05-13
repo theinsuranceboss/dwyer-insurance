@@ -50,6 +50,14 @@ export interface InsurancePage {
   backgroundColor: string;
   cardAccentColor: string;
   textColor: string;
+  emoji: string;
+  bannerTextPosition: string;
+  bannerCta1Text: string;
+  bannerCta1Color: string;
+  bannerCta1Link: string;
+  bannerCta2Text: string;
+  bannerCta2Color: string;
+  bannerCta2Link: string;
 }
 
 export interface PageSection {
@@ -241,6 +249,11 @@ export const APPEARANCE_SECTIONS: {
     title: 'Homepage Banner',
     description: 'Configure the hero section background image, overlay color, and opacity.',
     keys: ['heroBannerImage', 'heroBannerOverlay', 'heroBannerOverlayOpacity'],
+  },
+  {
+    title: 'Hero Banner Text & Buttons',
+    description: 'Configure hero text position and CTA button colors and links.',
+    keys: ['heroTextPosition', 'heroCtaColor', 'heroCtaLink', 'heroCta2Color', 'heroCta2Link'],
   },
   {
     title: 'Section Backgrounds',

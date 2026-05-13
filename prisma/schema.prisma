@@ -51,6 +51,16 @@ model InsurancePage {
   backgroundColor   String   @default("") // Section background color
   cardAccentColor   String   @default("") // Accent color for cards/highlights
   textColor         String   @default("") // Override text color
+  // Banner Text & Buttons
+  bannerTextPosition String  @default("center") // "left", "center", "right"
+  bannerCta1Text    String   @default("Call for a Quote") // First CTA button text
+  bannerCta1Color   String   @default("#ff9e16") // First CTA button color
+  bannerCta1Link    String   @default("tel:+16107259900") // First CTA button link
+  bannerCta2Text    String   @default("Request Online") // Second CTA button text
+  bannerCta2Color   String   @default("") // Second CTA button color (empty = outline style)
+  bannerCta2Link    String   @default("/") // Second CTA button link
+  // Emoji
+  emoji             String   @default("") // Emoji for display in cards/nav
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

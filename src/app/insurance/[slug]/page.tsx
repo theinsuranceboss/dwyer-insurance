@@ -1,35 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Shield,
-  Car,
-  Home,
-  Heart,
-  Building2,
-  Bike,
-  Ship,
-  TreePine,
-  Umbrella,
   Phone,
-  Mail,
-  MapPin,
-  Clock,
-  Star,
-  Menu,
-  X,
-  Award,
-  CheckCircle2,
   ArrowRight,
+  CheckCircle2,
   Sparkles,
-  Fingerprint,
-  Wrench,
-  Landmark,
-  FileText,
-  ChevronDown,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,43 +19,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-
-// ─── Icon Mapping ──────────────────────────────────────────────────
-
-// ─── Dynamic Icon Component ───────────────────────────────────────
-// Static component that renders the correct Lucide icon by name.
-// This avoids the ESLint react-hooks/static-components error that
-// occurs when a component reference is created dynamically during render.
-
-function DynamicIcon({
-  name,
-  size,
-  className,
-  style,
-}: {
-  name: string;
-  size?: number;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const props = { size, className, style };
-  switch (name) {
-    case "Car": return <Car {...props} />;
-    case "Home": return <Home {...props} />;
-    case "Heart": return <Heart {...props} />;
-    case "Building2": return <Building2 {...props} />;
-    case "Landmark": return <Landmark {...props} />;
-    case "Bike": return <Bike {...props} />;
-    case "Ship": return <Ship {...props} />;
-    case "TreePine": return <TreePine {...props} />;
-    case "Umbrella": return <Umbrella {...props} />;
-    case "Fingerprint": return <Fingerprint {...props} />;
-    case "Wrench": return <Wrench {...props} />;
-    case "Briefcase": return <Building2 {...props} />; // Building2 as fallback for "Briefcase"
-    default: return <Shield {...props} />;
-  }
-}
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import AnimatedSection from "@/components/AnimatedSection";
+import DynamicIcon from "@/components/DynamicIcon";
 
 // ─── Types ─────────────────────────────────────────────────────────
 
@@ -99,6 +45,14 @@ interface InsurancePageData {
   backgroundColor: string;
   cardAccentColor: string;
   textColor: string;
+  emoji: string;
+  bannerTextPosition: string;
+  bannerCta1Text: string;
+  bannerCta1Color: string;
+  bannerCta1Link: string;
+  bannerCta2Text: string;
+  bannerCta2Color: string;
+  bannerCta2Link: string;
 }
 
 interface MenuItemData {
@@ -109,6 +63,7 @@ interface MenuItemData {
   visible: boolean;
   isDropdown: boolean;
   parent: string | null;
+  iconName: string;
 }
 
 interface SiteData {
@@ -118,313 +73,34 @@ interface SiteData {
   insurancePages: InsurancePageData[];
 }
 
-// ─── Helper Components ─────────────────────────────────────────────
-
-function AnimatedSection({
-  children,
-  className = "",
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-      transition={{ duration: 0.7, delay, ease: "easeOut" }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          size={size}
-          className={
-            i <= Math.floor(rating)
-              ? "fill-yellow-400 text-yellow-400"
-              : i - 0.5 <= rating
-                ? "fill-yellow-400/50 text-yellow-400"
-                : "text-gray-300"
-          }
-        />
-      ))}
-    </div>
-  );
-}
-
-// ─── Navigation ────────────────────────────────────────────────────
-
-function Navigation({
-  menuItems,
-  agentInfo,
-  currentPageTitle,
-}: {
-  menuItems: MenuItemData[];
-  agentInfo: Record<string, string>;
-  currentPageTitle: string;
-}) {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
-  const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const phone = agentInfo.phone || "(610) 725-9900";
-  const agentName = agentInfo.name || "Suzanne Dwyer";
-  const agentTitle = agentInfo.title || "Allstate Insurance Agent";
-
-  // Build parent/child structure from flat menu items
-  const topLevelItems = menuItems.filter((item) => !item.parent);
-  const childrenByParent = menuItems.reduce<Record<string, MenuItemData[]>>((acc, item) => {
-    if (item.parent) {
-      if (!acc[item.parent]) acc[item.parent] = [];
-      acc[item.parent].push(item);
-    }
-    return acc;
-  }, {});
-
-  const toggleDesktopDropdown = (id: string, open: boolean) => {
-    setOpenDropdowns((prev) => ({ ...prev, [id]: open }));
-  };
-
-  const toggleMobileExpand = (id: string) => {
-    setMobileExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-allstate-gray/30"
-          : "bg-allstate-dark/90 backdrop-blur-sm"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <a href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-allstate-blue flex items-center justify-center">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <p className={`font-bold text-lg leading-tight ${scrolled ? "text-allstate-navy" : "text-white"}`}>
-                {agentName}
-              </p>
-              <p className={`text-xs leading-tight ${scrolled ? "text-allstate-blue" : "text-allstate-light"}`}>
-                {agentTitle}
-              </p>
-            </div>
-          </a>
-
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {topLevelItems.map((item) => {
-              const children = childrenByParent[item.id] || [];
-
-              if (item.isDropdown && children.length > 0) {
-                return (
-                  <div
-                    key={item.id}
-                    className="relative"
-                    onMouseEnter={() => toggleDesktopDropdown(item.id, true)}
-                    onMouseLeave={() => toggleDesktopDropdown(item.id, false)}
-                  >
-                    <button
-                      onClick={() => toggleDesktopDropdown(item.id, !openDropdowns[item.id])}
-                      className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 cursor-pointer ${
-                        scrolled
-                          ? "text-allstate-navy hover:bg-gray-100"
-                          : "text-white/90 hover:text-white hover:bg-white/10"
-                      }`}
-                    >
-                      {item.label}
-                      <ChevronDown
-                        size={14}
-                        className={`transition-transform ${openDropdowns[item.id] ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    <AnimatePresence>
-                      {openDropdowns[item.id] && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-                        >
-                          <div className="py-1.5">
-                            {children.map((child) => (
-                              <a
-                                key={child.id}
-                                href={child.href}
-                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 transition-colors"
-                              >
-                                <ChevronRight size={12} className="text-gray-400 flex-shrink-0" />
-                                <span className="text-sm font-medium text-gray-700">
-                                  {child.label}
-                                </span>
-                              </a>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              }
-
-              return (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  className={`nav-link text-sm font-medium px-3 py-2 rounded-md transition-colors ${
-                    scrolled
-                      ? "text-allstate-navy hover:bg-gray-100"
-                      : "text-white/90 hover:text-white hover:bg-white/10"
-                  }`}
-                >
-                  {item.label}
-                </a>
-              );
-            })}
-            <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="ml-2">
-              <Button
-                size="sm"
-                className="bg-allstate-orange hover:bg-orange-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Get a Quote
-              </Button>
-            </a>
-          </div>
-
-          {/* Mobile toggle */}
-          <button
-            className="lg:hidden p-2"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <X className={scrolled ? "text-allstate-navy" : "text-white"} size={24} />
-            ) : (
-              <Menu className={scrolled ? "text-allstate-navy" : "text-white"} size={24} />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white shadow-xl border-t border-allstate-gray/30"
-          >
-            <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
-              {topLevelItems.map((item) => {
-                const children = childrenByParent[item.id] || [];
-
-                if (item.isDropdown && children.length > 0) {
-                  return (
-                    <div key={item.id}>
-                      <button
-                        onClick={() => toggleMobileExpand(item.id)}
-                        className="flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors font-medium hover:bg-gray-50 text-allstate-navy"
-                      >
-                        {item.label}
-                        <ChevronDown
-                          size={16}
-                          className={`transition-transform ${mobileExpanded[item.id] ? "rotate-180" : ""}`}
-                        />
-                      </button>
-                      <AnimatePresence>
-                        {mobileExpanded[item.id] && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="pl-4 space-y-0.5 border-l-2 ml-4 border-allstate-blue/30">
-                              {children.map((child) => (
-                                <a
-                                  key={child.id}
-                                  href={child.href}
-                                  onClick={() => setMobileOpen(false)}
-                                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                  <ChevronRight size={12} className="text-gray-400" />
-                                  <span className="text-sm font-medium text-allstate-navy">
-                                    {child.label}
-                                  </span>
-                                </a>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                }
-
-                return (
-                  <a
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-3 text-allstate-navy hover:bg-allstate-light/10 hover:text-allstate-blue rounded-lg transition-colors font-medium"
-                  >
-                    {item.label}
-                  </a>
-                );
-              })}
-              <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="block pt-2">
-                <Button className="w-full bg-allstate-orange hover:bg-orange-600 text-white font-semibold">
-                  <Phone className="w-4 h-4 mr-2" />
-                  Get a Quote: {phone}
-                </Button>
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
-  );
-}
-
 // ─── Insurance Hero ────────────────────────────────────────────────
 
-function InsuranceHero({ page }: { page: InsurancePageData }) {
-  const color = page.iconColor || "#0033A0";
+function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: Record<string, string> }) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
+  const darkColor = settings.darkColor || "#001e60";
 
   // Determine banner gradient: custom fields override iconColor-based default
   const gradientFrom = page.bannerColorFrom || color;
-  const gradientTo = page.bannerColorTo || "#001e60";
+  const gradientTo = page.bannerColorTo || darkColor;
   const hasCustomGradient = !!(page.bannerColorFrom || page.bannerColorTo);
   const hasBannerImage = !!page.bannerImage;
+
+  // Banner text position (default "left")
+  const textPosition = page.bannerTextPosition || "left";
+  const positionClasses =
+    textPosition === "center"
+      ? "text-center max-w-4xl mx-auto"
+      : textPosition === "right"
+        ? "text-right max-w-2xl ml-auto"
+        : "text-left max-w-2xl";
+
+  // CTA button fields
+  const cta1Text = page.bannerCta1Text || "Call for a Quote";
+  const cta1Color = page.bannerCta1Color || "#ff9e16";
+  const cta1Link = page.bannerCta1Link || "tel:+16107259900";
+  const cta2Text = page.bannerCta2Text || "Request Online";
+  const cta2Color = page.bannerCta2Color; // empty = outline style
+  const cta2Link = page.bannerCta2Link || "/";
 
   return (
     <section className="relative min-h-[70vh] flex items-center overflow-hidden">
@@ -444,7 +120,7 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
             ? `linear-gradient(135deg, ${gradientFrom}cc 0%, ${gradientTo}cc 100%)`
             : hasCustomGradient
               ? `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientFrom}cc 40%, ${gradientTo}cc 70%, ${gradientTo} 100%)`
-              : `linear-gradient(135deg, ${color} 0%, ${color}cc 40%, ${color}99 70%, #001e60 100%)`,
+              : `linear-gradient(135deg, ${color} 0%, ${color}cc 40%, ${color}99 70%, ${darkColor} 100%)`,
         }}
       />
 
@@ -459,7 +135,8 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
         <motion.div
           animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
           transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-20 right-10 w-96 h-96 bg-allstate-orange/10 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 rounded-full blur-3xl"
+          style={{ backgroundColor: `${gradientFrom}10` }}
         />
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
@@ -478,99 +155,76 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
         />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-40">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <Badge className="bg-white/20 text-white border-white/30 mb-6 px-4 py-2 text-sm font-semibold">
-                <Award className="w-4 h-4 mr-2" />
-                Allstate Insurance
-              </Badge>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
-            >
-              {page.title}
-              <span className="block mt-2" style={{ color: `${gradientFrom}50` }}>
-                {page.tagline}
-              </span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="mt-6 text-lg sm:text-xl text-white/80 max-w-lg"
-            >
-              Protect what matters most with personalized coverage from Suzanne Dwyer, your local Allstate agent in Wynnewood, PA.
-            </motion.p>
-
-            {/* CTA Buttons */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-40 w-full">
+        <div className={positionClasses}>
+          {page.tagline && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="mt-8 flex flex-col sm:flex-row gap-4"
+              transition={{ duration: 0.8 }}
             >
-              <a href={`tel:16107259900`}>
+              <Badge className="bg-white/20 text-white border-white/30 mb-6 px-4 py-2 text-sm font-semibold">
+                {page.tagline}
+              </Badge>
+            </motion.div>
+          )}
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
+          >
+            {page.emoji && <span className="mr-3">{page.emoji}</span>}
+            {page.title}
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mt-6 text-lg sm:text-xl text-white/80"
+          >
+            Protect what matters most with personalized coverage from your local insurance agent.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mt-8 flex flex-col sm:flex-row gap-4"
+          >
+            <a href={cta1Link}>
+              <Button
+                size="lg"
+                className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                style={{ backgroundColor: cta1Color }}
+              >
+                {cta1Text}
+              </Button>
+            </a>
+            {cta2Color ? (
+              <a href={cta2Link}>
                 <Button
                   size="lg"
-                  className="bg-allstate-orange hover:bg-orange-600 text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                  className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                  style={{ backgroundColor: cta2Color }}
                 >
-                  <Phone className="w-5 h-5 mr-2" />
-                  Call for a Quote
+                  {cta2Text}
                 </Button>
               </a>
-              <a href="/">
+            ) : (
+              <a href={cta2Link}>
                 <Button
                   size="lg"
                   variant="outline"
                   className="border-white/50 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
                 >
-                  <FileText className="w-5 h-5 mr-2" />
-                  Request Online
+                  {cta2Text}
                 </Button>
               </a>
-            </motion.div>
-          </div>
-
-          {/* Right - Large Icon Card */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="hidden lg:flex justify-center"
-          >
-            <motion.div
-              animate={{ y: [0, -12, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="relative"
-            >
-              <div
-                className="w-48 h-48 rounded-3xl flex items-center justify-center shadow-2xl"
-                style={{ backgroundColor: `${gradientFrom}90` }}
-              >
-                <DynamicIcon name={page.iconName} size={80} className="text-white" />
-              </div>
-              {/* Decorative circles */}
-              <div
-                className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-30"
-                style={{ backgroundColor: gradientFrom }}
-              />
-              <div
-                className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full opacity-20"
-                style={{ backgroundColor: gradientFrom }}
-              />
-            </motion.div>
+            )}
           </motion.div>
         </div>
       </div>
@@ -580,8 +234,8 @@ function InsuranceHero({ page }: { page: InsurancePageData }) {
 
 // ─── Description Section ───────────────────────────────────────────
 
-function DescriptionSection({ page }: { page: InsurancePageData }) {
-  const color = page.iconColor || "#0033A0";
+function DescriptionSection({ page, settings }: { page: InsurancePageData; settings: Record<string, string> }) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
   const accentColor = page.cardAccentColor || color;
   const textOverride = page.textColor || "";
 
@@ -622,6 +276,7 @@ function DescriptionSection({ page }: { page: InsurancePageData }) {
                     className="text-2xl lg:text-3xl font-bold mb-3"
                     style={{ color: accentColor }}
                   >
+                    {page.emoji && <span className="mr-2">{page.emoji}</span>}
                     {page.title}
                   </h3>
                   <p className="text-lg font-medium" style={{ color: `${accentColor}cc` }}>
@@ -661,25 +316,25 @@ function DescriptionSection({ page }: { page: InsurancePageData }) {
                 borderColor: `${accentColor}30`,
               }}
             >
+              {page.emoji && <span className="mr-1">{page.emoji}</span>}
               {page.title}
             </Badge>
-            <h2 className={`text-3xl sm:text-4xl font-bold mb-6 ${!textOverride ? "text-allstate-navy" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+            <h2 className={`text-3xl sm:text-4xl font-bold mb-6 ${!textOverride ? "text-gray-900" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
               {page.tagline}
             </h2>
             <p className={`text-lg mb-6 leading-relaxed ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
               {page.description}
             </p>
             <p className={`mb-8 ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
-              As an Allstate Elite Agent, Suzanne Dwyer takes the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
+              As an Elite Agent, we take the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
             </p>
 
-            <a href="tel:16107259900">
+            <a href={page.bannerCta1Link || "tel:+16107259900"}>
               <Button
                 className="font-semibold shadow-lg hover:shadow-xl transition-all text-white"
-                style={{ backgroundColor: accentColor }}
+                style={{ backgroundColor: page.bannerCta1Color || accentColor }}
               >
-                <Phone className="w-4 h-4 mr-2" />
-                Get a Free Quote
+                {page.bannerCta1Text || "Get a Free Quote"}
               </Button>
             </a>
           </AnimatedSection>
@@ -691,14 +346,14 @@ function DescriptionSection({ page }: { page: InsurancePageData }) {
 
 // ─── Features Grid ─────────────────────────────────────────────────
 
-function FeaturesGrid({ page }: { page: InsurancePageData }) {
-  const color = page.iconColor || "#0033A0";
+function FeaturesGrid({ page, settings }: { page: InsurancePageData; settings: Record<string, string> }) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
   const accentColor = page.cardAccentColor || color;
   const textOverride = page.textColor || "";
 
   return (
     <section
-      className={`py-20 lg:py-28 ${!page.backgroundColor ? "bg-allstate-light-gradient" : ""}`}
+      className={`py-20 lg:py-28 ${!page.backgroundColor ? "bg-gray-50" : ""}`}
       style={page.backgroundColor ? { backgroundColor: page.backgroundColor } : undefined}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -713,18 +368,18 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
           >
             Coverage Details
           </Badge>
-          <h2 className={`text-3xl sm:text-4xl font-bold mb-4 ${!textOverride ? "text-allstate-navy" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+          <h2 className={`text-3xl sm:text-4xl font-bold mb-4 ${!textOverride ? "text-gray-900" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
             What&apos;s <span style={{ color: accentColor }}>Covered</span>
           </h2>
           <p className={`text-lg max-w-2xl mx-auto ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
-            {page.title} from Allstate provides comprehensive protection. Here&apos;s what your policy includes:
+            {page.title} provides comprehensive protection. Here&apos;s what your policy includes:
           </p>
         </AnimatedSection>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {page.features.map((feature, i) => (
             <AnimatedSection key={i} delay={i * 0.05}>
-              <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-default border-allstate-gray/30 h-full">
+              <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-default border-gray-200/60 h-full">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     <div
@@ -737,7 +392,7 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
                         style={{ color: accentColor }}
                       />
                     </div>
-                    <p className={`font-medium text-sm leading-relaxed ${!textOverride ? "text-allstate-navy" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+                    <p className={`font-medium text-sm leading-relaxed ${!textOverride ? "text-gray-900" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
                       {feature}
                     </p>
                   </div>
@@ -753,8 +408,8 @@ function FeaturesGrid({ page }: { page: InsurancePageData }) {
 
 // ─── Pro Tip Callout ───────────────────────────────────────────────
 
-function ProTipCallout({ page }: { page: InsurancePageData }) {
-  const color = page.iconColor || "#0033A0";
+function ProTipCallout({ page, settings }: { page: InsurancePageData; settings: Record<string, string> }) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
   const accentColor = page.cardAccentColor || color;
   const textOverride = page.textColor || "";
 
@@ -785,7 +440,7 @@ function ProTipCallout({ page }: { page: InsurancePageData }) {
               </div>
               <div>
                 <h3 className="font-bold text-xl mb-2" style={{ color: accentColor }}>
-                  Pro Tip from Suzanne
+                  Pro Tip
                 </h3>
                 <p className={`text-lg leading-relaxed ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
                   {page.tip}
@@ -804,36 +459,47 @@ function ProTipCallout({ page }: { page: InsurancePageData }) {
 function OtherInsuranceTypes({
   allPages,
   currentSlug,
+  settings,
 }: {
   allPages: InsurancePageData[];
   currentSlug: string;
+  settings: Record<string, string>;
 }) {
   const otherPages = allPages.filter((p) => p.slug !== currentSlug);
+  const primaryColor = settings.primaryColor || "#0033A0";
+  const secondaryColor = settings.secondaryColor || "#001e60";
 
   return (
-    <section className="py-20 lg:py-28 bg-allstate-light-gradient">
+    <section className="py-20 lg:py-28 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
-          <Badge className="bg-allstate-blue/10 text-allstate-blue border-allstate-blue/20 mb-4">
+          <Badge
+            className="mb-4"
+            style={{
+              backgroundColor: `${primaryColor}15`,
+              color: primaryColor,
+              borderColor: `${primaryColor}30`,
+            }}
+          >
             Explore More
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-allstate-navy mb-4">
-            Other Insurance <span className="text-allstate-blue">Options</span>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: secondaryColor }}>
+            Other Insurance <span style={{ color: primaryColor }}>Options</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Suzanne Dwyer offers a full range of Allstate insurance products. Explore other coverage types to protect every aspect of your life.
+            We offer a full range of insurance products. Explore other coverage types to protect every aspect of your life.
           </p>
         </AnimatedSection>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {otherPages.map((page, i) => {
-            const color = page.iconColor || "#0033A0";
+            const color = page.iconColor || primaryColor;
             const bgColor = page.iconBgColor || `${color}15`;
 
             return (
               <AnimatedSection key={page.id} delay={i * 0.05}>
                 <a href={`/insurance/${page.slug}`}>
-                  <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-allstate-gray/30 h-full">
+                  <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-gray-200/60 h-full">
                     <CardHeader className="pb-3">
                       <div
                         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
@@ -841,7 +507,8 @@ function OtherInsuranceTypes({
                       >
                         <DynamicIcon name={page.iconName} size={28} style={{ color }} />
                       </div>
-                      <CardTitle className="text-lg text-allstate-navy group-hover:text-allstate-blue transition-colors">
+                      <CardTitle className="text-lg group-hover:transition-colors" style={{ color: secondaryColor }}>
+                        {page.emoji && <span className="mr-1.5">{page.emoji}</span>}
                         {page.title}
                       </CardTitle>
                     </CardHeader>
@@ -849,7 +516,7 @@ function OtherInsuranceTypes({
                       <CardDescription className="text-muted-foreground text-sm">
                         {page.tagline}
                       </CardDescription>
-                      <div className="mt-4 flex items-center text-allstate-blue font-medium text-sm group-hover:gap-2 transition-all">
+                      <div className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all" style={{ color: primaryColor }}>
                         Learn More <ArrowRight className="w-4 h-4 ml-1" />
                       </div>
                     </CardContent>
@@ -866,12 +533,20 @@ function OtherInsuranceTypes({
 
 // ─── CTA Section ───────────────────────────────────────────────────
 
-function CTASection({ page, agentInfo }: { page: InsurancePageData; agentInfo: Record<string, string> }) {
-  const color = page.iconColor || "#0033A0";
-  const phone = agentInfo.phone || "(610) 725-9900";
+function CTASection({ page, agentInfo, settings }: { page: InsurancePageData; agentInfo: Record<string, string>; settings: Record<string, string> }) {
+  const color = page.iconColor || settings.primaryColor || "#0033A0";
+  const darkColor = settings.darkColor || "#001e60";
+
+  // CTA button fields
+  const cta1Text = page.bannerCta1Text || "Call for a Quote";
+  const cta1Color = page.bannerCta1Color || settings.accentColor || "#ff9e16";
+  const cta1Link = page.bannerCta1Link || `tel:${(agentInfo.phone || "(610) 725-9900").replace(/[^\d+]/g, "")}`;
+  const cta2Text = page.bannerCta2Text || "Request Online";
+  const cta2Color = page.bannerCta2Color; // empty = outline style
+  const cta2Link = page.bannerCta2Link || "/";
 
   return (
-    <section className="py-16 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, #001e60 100%)` }}>
+    <section className="py-16 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}cc 50%, ${darkColor} 100%)` }}>
       <motion.div
         animate={{ x: [0, 30, 0], y: [0, -15, 0] }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -884,28 +559,39 @@ function CTASection({ page, agentInfo }: { page: InsurancePageData; agentInfo: R
             Ready to Get {page.title}?
           </h2>
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-            Get a personalized {page.title.toLowerCase()} quote from Suzanne Dwyer today. Bundle and save up to 25% on your premiums!
+            Get a personalized {page.title.toLowerCase()} quote today. Bundle and save up to 25% on your premiums!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href={`tel:${phone.replace(/[^\d+]/g, "")}`}>
+            <a href={cta1Link}>
               <Button
                 size="lg"
-                className="bg-allstate-orange hover:bg-orange-600 text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                style={{ backgroundColor: cta1Color }}
               >
-                <Phone className="w-5 h-5 mr-2" />
-                Call {phone}
+                {cta1Text}
               </Button>
             </a>
-            <a href="/">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/50 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
-              >
-                <FileText className="w-5 h-5 mr-2" />
-                Request a Quote Online
-              </Button>
-            </a>
+            {cta2Color ? (
+              <a href={cta2Link}>
+                <Button
+                  size="lg"
+                  className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                  style={{ backgroundColor: cta2Color }}
+                >
+                  {cta2Text}
+                </Button>
+              </a>
+            ) : (
+              <a href={cta2Link}>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white/50 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
+                >
+                  {cta2Text}
+                </Button>
+              </a>
+            )}
           </div>
         </AnimatedSection>
       </div>
@@ -913,139 +599,14 @@ function CTASection({ page, agentInfo }: { page: InsurancePageData; agentInfo: R
   );
 }
 
-// ─── Footer ────────────────────────────────────────────────────────
-
-function Footer({
-  agentInfo,
-  insurancePages,
-}: {
-  agentInfo: Record<string, string>;
-  insurancePages: InsurancePageData[];
-}) {
-  const agentName = agentInfo.name || "Suzanne Dwyer";
-  const phone = agentInfo.phone || "(610) 725-9900";
-  const email = agentInfo.email || "suzannedwyer@allstate.com";
-  const address = agentInfo.address || "Wynnewood, PA 19096";
-
-  return (
-    <footer className="bg-allstate-dark text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          {/* Agent Info */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-allstate-blue flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">{agentName}</p>
-                <p className="text-allstate-light text-sm">Allstate Insurance Agent</p>
-              </div>
-            </div>
-            <p className="text-white/60 text-sm mb-4">
-              Elite Agent serving Wynnewood, PA and the surrounding communities in Pennsylvania, New Jersey, and Delaware.
-            </p>
-            <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-allstate-orange" />
-              <span className="text-allstate-orange font-semibold text-sm">Elite Agent</span>
-            </div>
-          </div>
-
-          {/* Insurance Links */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Insurance</h4>
-            <ul className="space-y-2">
-              {insurancePages.slice(0, 6).map((type) => (
-                <li key={type.id}>
-                  <a
-                    href={`/insurance/${type.slug}`}
-                    className="text-white/60 hover:text-allstate-light text-sm transition-colors"
-                  >
-                    {type.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* More Insurance */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">More Services</h4>
-            <ul className="space-y-2">
-              {insurancePages.slice(6).map((type) => (
-                <li key={type.id}>
-                  <a
-                    href={`/insurance/${type.slug}`}
-                    className="text-white/60 hover:text-allstate-light text-sm transition-colors"
-                  >
-                    {type.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Contact</h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-allstate-light" />
-                <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="text-white/60 hover:text-allstate-light text-sm">
-                  {phone}
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-allstate-light" />
-                <a href={`mailto:${email}`} className="text-white/60 hover:text-allstate-light text-sm break-all">
-                  {email}
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-allstate-light" />
-                <span className="text-white/60 text-sm">{address}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-allstate-light" />
-                <span className="text-white/60 text-sm">Mon-Fri: 8:30 AM - 5:00 PM</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Separator className="bg-white/10 mb-8" />
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-center sm:text-left">
-            <p className="text-white/50 text-xs">
-              &copy; {new Date().getFullYear()} {agentName} &ndash; Allstate Insurance Agent. All Rights Reserved.
-            </p>
-            <p className="text-white/30 text-xs mt-1">
-              You&apos;re in good hands&reg; &mdash; Allstate Insurance Company
-            </p>
-          </div>
-          <div className="flex items-center gap-4 text-xs text-white/40">
-            <a href="https://www.allstate.com/" target="_blank" rel="noopener noreferrer" className="hover:text-allstate-light transition-colors">
-              Allstate.com
-            </a>
-            <a href="https://www.allstate.com/privacy-center" target="_blank" rel="noopener noreferrer" className="hover:text-allstate-light transition-colors">
-              Privacy
-            </a>
-            <a href="https://www.allstate.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-allstate-light transition-colors">
-              Terms
-            </a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 // ─── 404 Not Found ─────────────────────────────────────────────────
 
-function NotFoundPage() {
+function NotFoundPage({ settings }: { settings: Record<string, string> }) {
+  const primaryColor = settings.primaryColor || "#0033A0";
+  const secondaryColor = settings.secondaryColor || "#001e60";
+
   return (
-    <div className="min-h-screen flex flex-col bg-allstate-light-gradient">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <div className="flex-1 flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -1053,10 +614,10 @@ function NotFoundPage() {
           transition={{ duration: 0.7 }}
           className="text-center max-w-md"
         >
-          <div className="w-24 h-24 rounded-full bg-allstate-blue/10 flex items-center justify-center mx-auto mb-6">
-            <Shield className="w-12 h-12 text-allstate-blue" />
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: `${primaryColor}10` }}>
+            <Shield className="w-12 h-12" style={{ color: primaryColor }} />
           </div>
-          <h1 className="text-4xl font-bold text-allstate-navy mb-4">
+          <h1 className="text-4xl font-bold mb-4" style={{ color: secondaryColor }}>
             Insurance Type Not Found
           </h1>
           <p className="text-muted-foreground text-lg mb-8">
@@ -1065,7 +626,8 @@ function NotFoundPage() {
           <a href="/">
             <Button
               size="lg"
-              className="bg-allstate-blue hover:bg-allstate-navy text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+              className="text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+              style={{ backgroundColor: primaryColor }}
             >
               <ArrowRight className="w-5 h-5 mr-2 rotate-180" />
               Back to Homepage
@@ -1104,16 +666,16 @@ export default function InsuranceSlugPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-allstate-light-gradient">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 rounded-full bg-allstate-blue flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse" style={{ backgroundColor: "#0033A0" }}>
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <p className="text-allstate-navy font-semibold text-lg">Loading...</p>
+          <p className="text-gray-900 font-semibold text-lg">Loading...</p>
         </motion.div>
       </div>
     );
@@ -1121,7 +683,7 @@ export default function InsuranceSlugPage() {
 
   // No data
   if (!siteData) {
-    return <NotFoundPage />;
+    return <NotFoundPage settings={{}} />;
   }
 
   const currentPage = siteData.insurancePages.find(
@@ -1130,28 +692,44 @@ export default function InsuranceSlugPage() {
 
   // 404 if slug not found
   if (!currentPage) {
-    return <NotFoundPage />;
+    return (
+      <>
+        <Navigation
+          menuItems={siteData.menuItems}
+          settings={siteData.settings}
+          agentInfo={siteData.agentInfo}
+        />
+        <NotFoundPage settings={siteData.settings} />
+        <Footer
+          settings={siteData.settings}
+          agentInfo={siteData.agentInfo}
+          insurancePages={siteData.insurancePages}
+        />
+      </>
+    );
   }
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation
         menuItems={siteData.menuItems}
+        settings={siteData.settings}
         agentInfo={siteData.agentInfo}
-        currentPageTitle={currentPage.title}
       />
       <main className="flex-1">
-        <InsuranceHero page={currentPage} />
-        <DescriptionSection page={currentPage} />
-        <FeaturesGrid page={currentPage} />
-        <ProTipCallout page={currentPage} />
+        <InsuranceHero page={currentPage} settings={siteData.settings} />
+        <DescriptionSection page={currentPage} settings={siteData.settings} />
+        <FeaturesGrid page={currentPage} settings={siteData.settings} />
+        <ProTipCallout page={currentPage} settings={siteData.settings} />
         <OtherInsuranceTypes
           allPages={siteData.insurancePages}
           currentSlug={slug}
+          settings={siteData.settings}
         />
-        <CTASection page={currentPage} agentInfo={siteData.agentInfo} />
+        <CTASection page={currentPage} agentInfo={siteData.agentInfo} settings={siteData.settings} />
       </main>
       <Footer
+        settings={siteData.settings}
         agentInfo={siteData.agentInfo}
         insurancePages={siteData.insurancePages}
       />

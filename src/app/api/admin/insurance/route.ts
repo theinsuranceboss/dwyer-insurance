@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor } = body as {
+    const { slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor, emoji, bannerTextPosition, bannerCta1Text, bannerCta1Color, bannerCta1Link, bannerCta2Text, bannerCta2Color, bannerCta2Link } = body as {
       slug: string;
       title: string;
       tagline?: string;
@@ -57,6 +57,14 @@ export async function POST(request: NextRequest) {
       backgroundColor?: string;
       cardAccentColor?: string;
       textColor?: string;
+      emoji?: string;
+      bannerTextPosition?: string;
+      bannerCta1Text?: string;
+      bannerCta1Color?: string;
+      bannerCta1Link?: string;
+      bannerCta2Text?: string;
+      bannerCta2Color?: string;
+      bannerCta2Link?: string;
     };
 
     if (!slug || !title) {
@@ -85,6 +93,14 @@ export async function POST(request: NextRequest) {
         backgroundColor: backgroundColor ?? "",
         cardAccentColor: cardAccentColor ?? "",
         textColor: textColor ?? "",
+        emoji: emoji ?? "",
+        bannerTextPosition: bannerTextPosition ?? "center",
+        bannerCta1Text: bannerCta1Text ?? "",
+        bannerCta1Color: bannerCta1Color ?? "",
+        bannerCta1Link: bannerCta1Link ?? "",
+        bannerCta2Text: bannerCta2Text ?? "",
+        bannerCta2Color: bannerCta2Color ?? "",
+        bannerCta2Link: bannerCta2Link ?? "",
       },
     });
 
@@ -107,7 +123,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { id, slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor } = body as {
+    const { id, slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor, emoji, bannerTextPosition, bannerCta1Text, bannerCta1Color, bannerCta1Link, bannerCta2Text, bannerCta2Color, bannerCta2Link } = body as {
       id: string;
       slug?: string;
       title?: string;
@@ -126,6 +142,14 @@ export async function PUT(request: NextRequest) {
       backgroundColor?: string;
       cardAccentColor?: string;
       textColor?: string;
+      emoji?: string;
+      bannerTextPosition?: string;
+      bannerCta1Text?: string;
+      bannerCta1Color?: string;
+      bannerCta1Link?: string;
+      bannerCta2Text?: string;
+      bannerCta2Color?: string;
+      bannerCta2Link?: string;
     };
 
     if (!id) {
@@ -153,6 +177,14 @@ export async function PUT(request: NextRequest) {
     if (backgroundColor !== undefined) data.backgroundColor = backgroundColor;
     if (cardAccentColor !== undefined) data.cardAccentColor = cardAccentColor;
     if (textColor !== undefined) data.textColor = textColor;
+    if (emoji !== undefined) data.emoji = emoji;
+    if (bannerTextPosition !== undefined) data.bannerTextPosition = bannerTextPosition;
+    if (bannerCta1Text !== undefined) data.bannerCta1Text = bannerCta1Text;
+    if (bannerCta1Color !== undefined) data.bannerCta1Color = bannerCta1Color;
+    if (bannerCta1Link !== undefined) data.bannerCta1Link = bannerCta1Link;
+    if (bannerCta2Text !== undefined) data.bannerCta2Text = bannerCta2Text;
+    if (bannerCta2Color !== undefined) data.bannerCta2Color = bannerCta2Color;
+    if (bannerCta2Link !== undefined) data.bannerCta2Link = bannerCta2Link;
 
     const insurancePage = await db.insurancePage.update({
       where: { id },
