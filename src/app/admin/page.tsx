@@ -48,14 +48,14 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         <Card className="shadow-2xl border-0">
           <CardHeader className="text-center pb-2">
-            <div className="mx-auto w-16 h-16 rounded-full bg-[#0033A0] flex items-center justify-center mb-4">
-              <Shield className="w-8 h-8 text-white" />
+            <div className="mx-auto w-16 h-16 rounded-full overflow-hidden mb-4">
+              <img src="/logo.png" alt="Dwyer Insurance Group" className="w-full h-full object-cover" />
             </div>
             <CardTitle className="text-2xl font-bold text-[#001e60]">
               Admin Portal
             </CardTitle>
             <CardDescription className="text-gray-500">
-              Suzanne Dwyer &mdash; Allstate Insurance CMS
+              Dwyer Insurance Group &mdash; CMS
             </CardDescription>
           </CardHeader>
           <CardContent>

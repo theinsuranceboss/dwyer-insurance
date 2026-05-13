@@ -32,13 +32,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { label, href, order, visible, isDropdown, parent } = body as {
+    const { label, href, order, visible, isDropdown, parent, iconName } = body as {
       label: string;
       href: string;
       order?: number;
       visible?: boolean;
       isDropdown?: boolean;
       parent?: string;
+      iconName?: string;
     };
 
     if (!label || !href) {
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
         visible: visible ?? true,
         isDropdown: isDropdown ?? false,
         parent: parent ?? null,
+        iconName: iconName ?? "",
       },
     });
 
@@ -75,7 +77,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { id, label, href, order, visible, isDropdown, parent } = body as {
+    const { id, label, href, order, visible, isDropdown, parent, iconName } = body as {
       id: string;
       label?: string;
       href?: string;
@@ -83,6 +85,7 @@ export async function PUT(request: NextRequest) {
       visible?: boolean;
       isDropdown?: boolean;
       parent?: string;
+      iconName?: string;
     };
 
     if (!id) {
@@ -99,6 +102,7 @@ export async function PUT(request: NextRequest) {
     if (visible !== undefined) data.visible = visible;
     if (isDropdown !== undefined) data.isDropdown = isDropdown;
     if (parent !== undefined) data.parent = parent;
+    if (iconName !== undefined) data.iconName = iconName;
 
     const menuItem = await db.menuItem.update({
       where: { id },

@@ -14,14 +14,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Suzanne Dwyer | Allstate Insurance Agent - Wynnewood, PA",
+  title: "Dwyer Insurance Group | Insurance Agency - PA, NY, DE",
   description:
-    "Home, Life and Car Insurance from Suzanne Dwyer, Allstate Insurance Agent in Wynnewood, PA. Elite Agent with 4.3 stars and 273+ reviews. Serving Delaware, New Jersey, and Pennsylvania.",
+    "Home, Life and Car Insurance from Dwyer Insurance Group. Elite Agent, National Award Winner with 4.3 stars and 273+ reviews. Serving Pennsylvania, New York, and Delaware.",
   keywords: [
-    "Allstate",
     "Insurance",
-    "Suzanne Dwyer",
-    "Wynnewood PA",
+    "Dwyer Insurance Group",
+    "PA",
+    "NY",
+    "DE",
     "Auto Insurance",
     "Home Insurance",
     "Life Insurance",
@@ -33,14 +34,14 @@ export const metadata: Metadata = {
     "Condo Insurance",
     "ATV Insurance",
   ],
-  authors: [{ name: "Suzanne Dwyer" }],
+  authors: [{ name: "Dwyer Insurance Group" }],
   icons: {
-    icon: "/logo.svg",
+    icon: "/logo.png",
   },
   openGraph: {
-    title: "Suzanne Dwyer | Allstate Insurance Agent",
+    title: "Dwyer Insurance Group | Insurance Agency",
     description:
-      "You're in good hands. Home, Life and Car Insurance from Suzanne Dwyer, Elite Allstate Agent in Wynnewood, PA.",
+      "Protecting what matters most. Home, Life and Car Insurance from Dwyer Insurance Group, serving PA, NY, and DE.",
     type: "website",
   },
 };
