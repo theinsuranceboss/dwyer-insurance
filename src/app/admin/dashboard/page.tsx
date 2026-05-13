@@ -547,9 +547,51 @@ function AppearanceTab() {
                         <Input
                           value={setting.value}
                           onChange={(e) => updateValue(setting.key, e.target.value)}
-                          placeholder="https://example.com/image.jpg"
+                          placeholder="https://example.com/image.jpg or /hero-family.png"
                           className="flex-1"
                         />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="cursor-pointer">
+                          <Button variant="outline" size="sm" className="text-xs" asChild>
+                            <span>
+                              <ImageIcon className="w-3 h-3 mr-1" /> Upload Image
+                            </span>
+                          </Button>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              try {
+                                const uploadRes = await fetch('/api/upload', {
+                                  method: 'POST',
+                                  body: formData,
+                                });
+                                if (!uploadRes.ok) throw new Error();
+                                const uploadData = await uploadRes.json();
+                                updateValue(setting.key, uploadData.url);
+                                toast({ title: 'Image Uploaded', description: 'Image uploaded successfully. Save to apply.' });
+                              } catch {
+                                toast({ title: 'Error', description: 'Failed to upload image', variant: 'destructive' });
+                              }
+                            }}
+                          />
+                        </label>
+                        {setting.value && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-red-500 hover:text-red-700"
+                            onClick={() => updateValue(setting.key, '')}
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" /> Remove
+                          </Button>
+                        )}
                       </div>
                       {setting.value && (
                         <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden border bg-gray-50">
@@ -1359,6 +1401,47 @@ function InsuranceForm({
                   onChange={(e) => onChange({ ...data, bannerImage: e.target.value })}
                   placeholder="https://example.com/banner.jpg"
                 />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="cursor-pointer">
+                  <Button variant="outline" size="sm" className="text-xs" asChild>
+                    <span>
+                      <ImageIcon className="w-3 h-3 mr-1" /> Upload Banner Image
+                    </span>
+                  </Button>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      try {
+                        const uploadRes = await fetch('/api/upload', {
+                          method: 'POST',
+                          body: formData,
+                        });
+                        if (!uploadRes.ok) throw new Error();
+                        const uploadData = await uploadRes.json();
+                        onChange({ ...data, bannerImage: uploadData.url });
+                      } catch {
+                        // silent fail
+                      }
+                    }}
+                  />
+                </label>
+                {data.bannerImage && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-red-500 hover:text-red-700"
+                    onClick={() => onChange({ ...data, bannerImage: '' })}
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" /> Remove
+                  </Button>
+                )}
               </div>
               {data.bannerImage && (
                 <div className="relative w-full h-24 rounded-lg overflow-hidden border bg-gray-50">
