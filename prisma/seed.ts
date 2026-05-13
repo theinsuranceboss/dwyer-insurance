@@ -62,6 +62,11 @@ async function seed() {
     // Section Backgrounds
     { key: "aboutBgColor", value: "#ffffff", type: "color", category: "about", label: "About Section Background" },
     { key: "servicesBgColor", value: "#f8fafc", type: "color", category: "services", label: "Services Section Background" },
+    { key: "whyChooseUsBgColor", value: "#ffffff", type: "color", category: "whyChooseUs", label: "Why Choose Us Section Background" },
+    { key: "testimonialsBgColor", value: "#f8fafc", type: "color", category: "testimonials", label: "Testimonials Section Background" },
+    { key: "faqBgColor", value: "#ffffff", type: "color", category: "faq", label: "FAQ Section Background" },
+    { key: "contactBgColor", value: "#f8fafc", type: "color", category: "contact", label: "Contact Section Background" },
+    { key: "ctaBannerBgColor", value: "#0033A0", type: "color", category: "ctaBanner", label: "CTA Banner Section Background" },
     { key: "footerBgColor", value: "#001e60", type: "color", category: "footer", label: "Footer Background Color" },
     // Footer
     { key: "footerText", value: "You're in good hands® — Allstate Insurance Company", type: "text", category: "footer", label: "Footer Tagline" },

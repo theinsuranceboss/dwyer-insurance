@@ -270,9 +270,27 @@ export const APPEARANCE_SECTIONS: {
   },
   {
     title: 'Navigation & Layout',
-    description: 'Configure navigation transparency and section backgrounds.',
-    keys: ['navBgOpacity', 'aboutBgColor', 'servicesBgColor', 'footerBgColor'],
+    description: 'Configure navigation transparency.',
+    keys: ['navBgOpacity'],
+  },
+  {
+    title: 'Section Backgrounds',
+    description: 'Set background colors for different page sections.',
+    keys: ['aboutBgColor', 'servicesBgColor', 'whyChooseUsBgColor', 'testimonialsBgColor', 'faqBgColor', 'contactBgColor', 'ctaBannerBgColor', 'footerBgColor'],
   },
 ];
 
 export const FOOTER_KEYS = ['footerText', 'footerCopyright', 'footerColumn1Title', 'footerColumn2Title', 'footerColumn3Title', 'footerBgColor'];
+
+// ─── Section icons ──────────────────────────────────────────────────────────────
+
+export const SECTION_ICONS: Record<string, string> = {
+  hero: '🏠',
+  about: '👤',
+  services: '🛡️',
+  whyChooseUs: '⭐',
+  testimonials: '💬',
+  faq: '❓',
+  contact: '📞',
+  ctaBanner: '📢',
+};
