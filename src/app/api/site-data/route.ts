@@ -58,7 +58,7 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching site data:", error);
     return NextResponse.json(
-      { error: "Failed to fetch site data" },
+      { error: "Failed to fetch site data", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

@@ -176,6 +176,9 @@ export default function AppearanceTab() {
                             src={setting.value}
                             alt="Banner preview"
                             className="w-full h-full object-cover"
+                            style={{ 
+                              objectPosition: getValue('heroBannerImagePosition') || 'center center',
+                            }}
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = 'none';
                             }}
@@ -207,7 +210,37 @@ export default function AppearanceTab() {
                         </SelectContent>
                       </Select>
                     </div>
-                  ) : setting.key.includes('Opacity') ? (
+                  ) : setting.key === 'heroBannerImagePosition' ? (
+                    <div className="space-y-2">
+                      <Select value={setting.value || 'center center'} onValueChange={(v) => updateValue(setting.key, v)}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="center center">Center</SelectItem>
+                          <SelectItem value="top center">Top</SelectItem>
+                          <SelectItem value="bottom center">Bottom</SelectItem>
+                          <SelectItem value="left center">Left</SelectItem>
+                          <SelectItem value="right center">Right</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : setting.key === 'heroBannerImageSize' ? (
+                    <div className="space-y-2">
+                      <Select value={setting.value || 'cover'} onValueChange={(v) => updateValue(setting.key, v)}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cover">Cover (Full)</SelectItem>
+                          <SelectItem value="contain">Contain (Whole Image)</SelectItem>
+                          <SelectItem value="110%">Zoom 110%</SelectItem>
+                          <SelectItem value="125%">Zoom 125%</SelectItem>
+                          <SelectItem value="150%">Zoom 150%</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : setting.key.includes('Opacity') || setting.key === 'navBgOpacity' ? (
                     <div className="space-y-2">
                       <div className="flex items-center gap-4">
                         <Slider

@@ -53,6 +53,9 @@ interface InsurancePageData {
   bannerCta2Text: string;
   bannerCta2Color: string;
   bannerCta2Link: string;
+  bannerImagePosition: string;
+  bannerImageSize: string;
+  bannerTitleSize: number;
 }
 
 interface MenuItemData {
@@ -107,8 +110,12 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
       {/* Banner image background */}
       {hasBannerImage && (
         <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${page.bannerImage})` }}
+          className="absolute inset-0 bg-no-repeat"
+          style={{ 
+            backgroundImage: `url(${page.bannerImage})`,
+            backgroundPosition: page.bannerImagePosition || "center center",
+            backgroundSize: page.bannerImageSize || "cover"
+          }}
         />
       )}
 
@@ -173,9 +180,9 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
+            className="font-bold text-white leading-tight"
+            style={{ fontSize: `${page.bannerTitleSize || 52}px` }}
           >
-            {page.emoji && <span className="mr-3">{page.emoji}</span>}
             {page.title}
           </motion.h1>
 
@@ -185,7 +192,7 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mt-6 text-lg sm:text-xl text-white/80"
           >
-            Protect what matters most with personalized coverage from your local insurance agent.
+            {page.description}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -193,7 +200,7 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="mt-8 flex flex-col sm:flex-row gap-4"
+            className={`mt-8 flex flex-col sm:flex-row gap-4 ${textPosition === "center" ? "justify-center" : textPosition === "right" ? "justify-end" : "justify-start"}`}
           >
             <a href={cta1Link}>
               <Button
@@ -326,7 +333,7 @@ function DescriptionSection({ page, settings }: { page: InsurancePageData; setti
               {page.description}
             </p>
             <p className={`mb-8 ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
-              As an Elite Agent, we take the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
+              At Dwyer Insurance Group, we take the time to understand your unique situation and find the right coverage at the right price. With in-person and virtual appointments available, getting the protection you need has never been easier.
             </p>
 
             <a href={page.bannerCta1Link || "tel:+16107259900"}>
@@ -698,6 +705,7 @@ export default function InsuranceSlugPage() {
           menuItems={siteData.menuItems}
           settings={siteData.settings}
           agentInfo={siteData.agentInfo}
+          insurancePages={siteData.insurancePages}
         />
         <NotFoundPage settings={siteData.settings} />
         <Footer
@@ -715,6 +723,7 @@ export default function InsuranceSlugPage() {
         menuItems={siteData.menuItems}
         settings={siteData.settings}
         agentInfo={siteData.agentInfo}
+        insurancePages={siteData.insurancePages}
       />
       <main className="flex-1">
         <InsuranceHero page={currentPage} settings={siteData.settings} />

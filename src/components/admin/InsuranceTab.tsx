@@ -108,7 +108,7 @@ export default function InsuranceTab() {
   return (
     <div className="space-y-4 max-w-5xl">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-gray-500">{pages.length} insurance pages</p>
+        <p className="text-sm text-gray-500">{pages.length + 1} pages total</p>
         <Button onClick={() => setShowAdd(true)} className="bg-[#0033A0] hover:bg-[#001e60]">
           <Plus className="w-4 h-4 mr-2" /> Add Page
         </Button>
@@ -125,6 +125,29 @@ export default function InsuranceTab() {
       )}
 
       <div className="grid gap-4">
+        {/* Virtual Home Page Entry */}
+        <Card className="bg-blue-50/50 border-blue-100">
+          <CardContent className="pt-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-blue-100">
+                  <Home className="w-5 h-5 text-[#0033A0]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-[#001e60]">Home Page</h3>
+                    <Badge variant="outline" className="text-[10px]">/</Badge>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-0.5">The main landing page of your website</p>
+                </div>
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
+                <p className="text-xs text-gray-400 mt-2 mr-2">Edit via Appearance tab</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {pages.map((page) =>
           editingId === page.id ? (
             <InsuranceForm
@@ -366,17 +389,59 @@ function InsuranceForm({
                 </Button>
               </div>
               {data.bannerImage && (
-                <div className="relative w-full h-24 rounded-lg overflow-hidden border bg-gray-50">
+                <div className="relative w-full h-24 rounded-lg overflow-hidden border bg-gray-50 mt-2">
                   <img
                     src={data.bannerImage}
                     alt="Banner preview"
                     className="w-full h-full object-cover"
+                    style={{ 
+                      objectPosition: data.bannerImagePosition || "center center",
+                    }}
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
                 </div>
               )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm">Banner Image Position</Label>
+                <Select value={data.bannerImagePosition || 'center center'} onValueChange={(v) => onChange({ ...data, bannerImagePosition: v })}>
+                  <SelectTrigger className="text-xs h-8"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="center center">Center</SelectItem>
+                    <SelectItem value="top center">Top</SelectItem>
+                    <SelectItem value="bottom center">Bottom</SelectItem>
+                    <SelectItem value="left center">Left</SelectItem>
+                    <SelectItem value="right center">Right</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Banner Image Zoom/Size</Label>
+                <Select value={data.bannerImageSize || 'cover'} onValueChange={(v) => onChange({ ...data, bannerImageSize: v })}>
+                  <SelectTrigger className="text-xs h-8"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cover">Cover (Full)</SelectItem>
+                    <SelectItem value="contain">Contain (Whole)</SelectItem>
+                    <SelectItem value="110%">110%</SelectItem>
+                    <SelectItem value="125%">125%</SelectItem>
+                    <SelectItem value="150%">150%</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm">Banner Title Font Size (px)</Label>
+              <Input 
+                type="number" 
+                value={data.bannerTitleSize || 52} 
+                onChange={(e) => onChange({ ...data, bannerTitleSize: parseInt(e.target.value) || 52 })} 
+                className="w-32 h-8 text-xs"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

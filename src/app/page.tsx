@@ -129,6 +129,11 @@ interface Settings {
   heroBannerImage: string;
   heroBannerOverlay: string;
   heroBannerOverlayOpacity: string;
+  navBgOpacity: string;
+  heroTitleSize: string;
+  heroDescSize: string;
+  heroBannerImagePosition: string;
+  heroBannerImageSize: string;
   aboutBgColor: string;
   servicesBgColor: string;
   footerBgColor: string;
@@ -366,7 +371,14 @@ function HeroSection({
   const isRight = textPosition === "right";
   const maxWidthClass = isLeft || isRight ? "max-w-2xl" : "max-w-4xl";
   const textAlignClass = isLeft ? "text-left" : isRight ? "text-right" : "text-center";
-  const mlAuto = isRight ? "ml-auto" : "";
+  const mlAuto = isRight ? "ml-auto" : isLeft ? "" : "mx-auto";
+
+  // Banner image styles
+  const bannerImageStyle: React.CSSProperties = {
+    backgroundImage: `url(${settings.heroBannerImage})`,
+    backgroundPosition: settings.heroBannerImagePosition || "center center",
+    backgroundSize: settings.heroBannerImageSize || "cover",
+  };
 
   // CTA button settings
   const cta1Text = settings.heroCtaText || "Get a Quote";
@@ -385,8 +397,8 @@ function HeroSection({
       {hasBannerImage ? (
         <>
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${settings.heroBannerImage})` }}
+            className="absolute inset-0 bg-no-repeat"
+            style={bannerImageStyle}
           />
           <div
             className="absolute inset-0"
@@ -426,21 +438,23 @@ function HeroSection({
 
       {/* Hero Content */}
       <div className={`relative ${maxWidthClass} mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-40 ${textAlignClass} ${mlAuto}`}>
-        <motion.div
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <Badge
-            className="mb-6 px-4 py-2 text-sm font-semibold border-0"
-            style={{
-              backgroundColor: `${settings.accentColor}25`,
-              color: settings.accentColor,
-            }}
+        {heroSection?.subtitle && (
+          <motion.div
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
           >
-            {heroSection?.subtitle || agentInfo.badge}
-          </Badge>
-        </motion.div>
+            <Badge
+              className="mb-6 px-4 py-2 text-sm font-semibold border-0"
+              style={{
+                backgroundColor: `${settings.accentColor}25`,
+                color: settings.accentColor,
+              }}
+            >
+              {heroSection.subtitle}
+            </Badge>
+          </motion.div>
+        )}
 
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
@@ -449,29 +463,34 @@ function HeroSection({
           className="font-bold text-white leading-tight"
           style={{
             fontFamily: settings.headingFont,
-            fontSize: `${settings.headingFontSize}px`,
+            fontSize: `${settings.heroTitleSize || settings.headingFontSize}px`,
           }}
         >
           {heroSection?.title || settings.heroTitle}
-          <span
-            className="block mt-2"
-            style={{
-              background: `linear-gradient(135deg, ${settings.lightColor}, ${settings.accentColor})`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            {heroSection?.subtitle || settings.heroSubtitle}
-          </span>
+          {settings.heroSubtitle && (
+            <span
+              className="block mt-2"
+              style={{
+                background: `linear-gradient(135deg, ${settings.lightColor}, ${settings.accentColor})`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              {settings.heroSubtitle}
+            </span>
+          )}
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-6 text-lg sm:text-xl text-white/80 max-w-2xl mx-auto"
-          style={isLeft ? { marginLeft: 0 } : isRight ? { marginRight: 0, marginLeft: "auto" } : undefined}
+          className={`mt-6 text-white/80 ${isLeft || isRight ? "" : "max-w-2xl mx-auto"}`}
+          style={{
+            fontSize: `${settings.heroDescSize || "18"}px`,
+            ...(isLeft ? { marginLeft: 0 } : isRight ? { marginRight: 0, marginLeft: "auto" } : undefined)
+          }}
         >
           {heroSection?.description || settings.heroDescription}
         </motion.p>
@@ -599,11 +618,10 @@ function AboutSection({
                   </div>
                   <h3 className="text-3xl font-bold mb-2">{agentInfo.name}</h3>
                   <p className="font-medium text-lg mb-4" style={{ color: settings.lightColor }}>
-                    Allstate {agentInfo.badge}
+                    {agentInfo.badge}
                   </p>
                   <p className="text-white/80 mb-6">
-                    Dedicated to providing personalized insurance solutions with the backing of
-                    Allstate&apos;s financial strength and claims expertise.
+                    Dedicated to providing personalized insurance solutions with exceptional service and claims expertise.
                   </p>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -650,7 +668,6 @@ function AboutSection({
               style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
             >
               {aboutSection?.title || "Your Trusted Insurance Partner"}
-              <span style={{ color: settings.primaryColor }}> in Wynnewood</span>
             </h2>
             {aboutSection?.description && (
               <>
@@ -748,7 +765,7 @@ function ServicesSection({
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             {servicesSection?.description ||
-              "From auto and home to life and business, we offer a full range of Allstate insurance products to protect every aspect of your life."}
+              "From auto and home to life and business, we offer a full range of insurance products to protect every aspect of your life."}
           </p>
         </AnimatedSection>
 
@@ -813,8 +830,8 @@ function WhyChooseUsSection({
   const reasons = [
     {
       icon: Shield,
-      title: "Allstate Financial Strength",
-      desc: "Backed by one of the largest insurance companies in America with over 90 years of experience.",
+      title: "Dwyer Insurance Group",
+      desc: "A trusted local agency with deep roots in the Wynnewood community and decades of combined insurance experience.",
     },
     {
       icon: Award,
@@ -834,7 +851,7 @@ function WhyChooseUsSection({
     {
       icon: CheckCircle2,
       title: "Claims Satisfaction Guarantee",
-      desc: "Allstate's Claim Satisfaction Guarantee means you're happy with the outcome, or we make it right.",
+      desc: "Our claims satisfaction promise means you're happy with the outcome, or we make it right.",
     },
     {
       icon: Phone,
@@ -1410,7 +1427,7 @@ function CtaBanner({
           </h2>
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
             {ctaSection?.description ||
-              "Get a personalized insurance quote from Suzanne Dwyer today. Bundle and save up to 25% on your premiums!"}
+              "Get a personalized insurance quote from Dwyer Insurance Group today. Bundle and save up to 25% on your premiums!"}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href={agentInfo.phoneLink}>
@@ -1492,17 +1509,13 @@ export default function HomePage() {
         menuItems={menuItems}
         agentInfo={agentInfo}
         settings={settings}
+        insurancePages={insurancePages}
       />
       <main className="flex-1">
         <HeroSection
           settings={settings}
           agentInfo={agentInfo}
           heroSection={getSection("hero")}
-        />
-        <AboutSection
-          settings={settings}
-          agentInfo={agentInfo}
-          aboutSection={getSection("about")}
         />
         <ServicesSection
           settings={settings}

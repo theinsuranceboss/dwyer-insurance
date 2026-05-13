@@ -212,8 +212,7 @@ function AboutContentSection({
                     {agentInfo.badge}
                   </p>
                   <p className="text-white/80 mb-6">
-                    Dedicated to providing personalized insurance solutions with
-                    exceptional service and claims expertise.
+                    Dedicated to providing personalized insurance solutions with exceptional service and a commitment to your family's protection.
                   </p>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -260,7 +259,6 @@ function AboutContentSection({
               style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
             >
               {aboutSection?.title || "Your Trusted Insurance Partner"}
-              <span style={{ color: settings.primaryColor }}> in Wynnewood</span>
             </h2>
             {aboutSection?.description && (
               <>
@@ -350,7 +348,7 @@ function ValuesSection({ settings }: { settings: Settings }) {
     {
       icon: Award,
       title: "Elite Expertise",
-      desc: "Recognized as an Elite Agent for exceptional service and client satisfaction.",
+      desc: "Suzanne Dwyer brings years of insurance expertise and a commitment to finding you the best coverage at the best price.",
     },
   ];
 
@@ -371,7 +369,7 @@ function ValuesSection({ settings }: { settings: Settings }) {
             Why Families <span style={{ color: settings.primaryColor }}>Choose Us</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            For over a decade, we&apos;ve been helping families across Pennsylvania, New Jersey, and
+            Dwyer Insurance Group has been helping families across Pennsylvania, New Jersey, and
             Delaware find the right coverage at the right price.
           </p>
         </AnimatedSection>
@@ -417,7 +415,7 @@ function CTASection({ settings, agentInfo }: { settings: Settings; agentInfo: Ag
             Ready to Protect Your Family?
           </h2>
           <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-            Get a personalized insurance review from Suzanne Dwyer. Bundle and save up to 25% on
+            Get a personalized insurance review from Suzanne Dwyer at Dwyer Insurance Group. Bundle and save up to 25% on
             your premiums!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

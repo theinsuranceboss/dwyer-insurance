@@ -58,6 +58,9 @@ export interface InsurancePage {
   bannerCta2Text: string;
   bannerCta2Color: string;
   bannerCta2Link: string;
+  bannerImagePosition: string;
+  bannerImageSize: string;
+  bannerTitleSize: number;
 }
 
 export interface PageSection {
@@ -248,17 +251,27 @@ export const APPEARANCE_SECTIONS: {
   {
     title: 'Homepage Banner',
     description: 'Configure the hero section background image, overlay color, and opacity.',
-    keys: ['heroBannerImage', 'heroBannerOverlay', 'heroBannerOverlayOpacity'],
+    keys: ['heroBannerImage', 'heroBannerImagePosition', 'heroBannerImageSize', 'heroBannerOverlay', 'heroBannerOverlayOpacity'],
   },
   {
     title: 'Hero Banner Text & Buttons',
-    description: 'Configure hero text position and CTA button colors and links.',
-    keys: ['heroTextPosition', 'heroCtaColor', 'heroCtaLink', 'heroCta2Color', 'heroCta2Link'],
+    description: 'Configure hero text position, sizes, and CTA button colors and links.',
+    keys: [
+      'heroTextPosition', 
+      'heroTitleSize', 
+      'heroDescSize', 
+      'heroCtaText',
+      'heroCtaColor', 
+      'heroCtaLink', 
+      'heroCta2Text',
+      'heroCta2Color', 
+      'heroCta2Link'
+    ],
   },
   {
-    title: 'Section Backgrounds',
-    description: 'Set background colors for different page sections.',
-    keys: ['aboutBgColor', 'servicesBgColor', 'footerBgColor'],
+    title: 'Navigation & Layout',
+    description: 'Configure navigation transparency and section backgrounds.',
+    keys: ['navBgOpacity', 'aboutBgColor', 'servicesBgColor', 'footerBgColor'],
   },
 ];
 
