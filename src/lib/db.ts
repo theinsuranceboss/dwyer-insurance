@@ -4,8 +4,10 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Use the transaction pooler (port 6543) which is more reliable in serverless environments
-// We prioritize Vercel's native Postgres (Neon) if available, then fallback to Supabase Pooler
+// Order of priority for connection strings:
+// 1. Vercel Postgres (if available)
+// 2. Environment DATABASE_URL (if set)
+// 3. Hardcoded Supabase pooler fallback (Port 6543 is safer for serverless)
 const connectionString = 
   process.env.POSTGRES_PRISMA_URL || 
   process.env.DATABASE_URL || 
@@ -22,6 +24,3 @@ export const db =
   })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
-
-
-
