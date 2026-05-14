@@ -488,14 +488,34 @@ function InsuranceForm({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-sm">Banner Title Font Size (px)</Label>
-              <Input 
-                type="number" 
-                value={data.bannerTitleSize || 52} 
-                onChange={(e) => onChange({ ...data, bannerTitleSize: parseInt(e.target.value) || 52 })} 
-                className="w-32 h-8 text-xs"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm">Banner Title Font Size (px)</Label>
+                <Input 
+                  type="number" 
+                  value={data.bannerTitleSize || 52} 
+                  onChange={(e) => onChange({ ...data, bannerTitleSize: parseInt(e.target.value) || 52 })} 
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Banner Tagline Font Size (px)</Label>
+                <Input 
+                  type="number" 
+                  value={data.bannerTaglineSize || 14} 
+                  onChange={(e) => onChange({ ...data, bannerTaglineSize: parseInt(e.target.value) || 14 })} 
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Banner Desc Font Size (px)</Label>
+                <Input 
+                  type="number" 
+                  value={data.bannerDescriptionSize || 18} 
+                  onChange={(e) => onChange({ ...data, bannerDescriptionSize: parseInt(e.target.value) || 18 })} 
+                  className="h-8 text-xs"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -644,7 +664,17 @@ function InsuranceForm({
                   </button>
                 )}
               </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Feature Text Font Size (px)</Label>
+              <Input 
+                type="number" 
+                value={data.featureTextSize || 14} 
+                onChange={(e) => onChange({ ...data, featureTextSize: parseInt(e.target.value) || 14 })} 
+                className="w-32 h-8 text-xs"
+                placeholder="14"
+              />
               <p className="text-[10px] text-gray-400">Leave empty for outline style button</p>
+            </div>
             </div>
           </div>
         )}

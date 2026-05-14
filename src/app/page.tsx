@@ -510,7 +510,13 @@ function ServicesSection({
         <AnimatedSection className="text-center mb-16">
           <Badge
             className="mb-4 border-0"
-            style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+            style={{ 
+              backgroundColor: `${settings.primaryColor}15`, 
+              color: settings.primaryColor,
+              fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).subtitleSize) 
+                ? `${JSON.parse(servicesSection.content).subtitleSize}px` 
+                : undefined
+            }}
           >
             {servicesSection?.subtitle || "Our Services"}
           </Badge>
@@ -682,7 +688,11 @@ function WhyChooseUsSection({
             )}
             <Badge
               className="border-0"
-              style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+              style={{ 
+                backgroundColor: `${settings.primaryColor}15`, 
+                color: settings.primaryColor,
+                fontSize: sectionContent.subtitleSize ? `${sectionContent.subtitleSize}px` : undefined
+              }}
             >
               {whySection?.subtitle || "Why Choose Us"}
             </Badge>

@@ -55,6 +55,9 @@ interface InsurancePageData {
   bannerImagePosition: string;
   bannerImageSize: string;
   bannerTitleSize: number;
+  bannerTaglineSize: number;
+  bannerDescriptionSize: number;
+  featureTextSize: number;
 }
 
 interface MenuItemData {
@@ -169,7 +172,10 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <Badge className="bg-white/20 text-white border-white/30 mb-6 px-4 py-2 text-sm font-semibold">
+              <Badge 
+                className="bg-white/20 text-white border-white/30 mb-6 px-4 py-2 font-semibold"
+                style={{ fontSize: `${page.bannerTaglineSize || 14}px` }}
+              >
                 {page.tagline}
               </Badge>
             </motion.div>
@@ -191,7 +197,8 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-6 text-lg sm:text-xl text-white/80"
+            className="mt-6 text-white/80"
+            style={{ fontSize: `${page.bannerDescriptionSize || 20}px` }}
           >
             {page.description}
           </motion.p>
@@ -392,7 +399,13 @@ function FeaturesGrid({ page, settings }: { page: InsurancePageData; settings: R
                         style={{ color: accentColor }}
                       />
                     </div>
-                    <p className={`font-medium text-sm leading-relaxed ${!textOverride ? "text-gray-900" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
+                    <p 
+                      className={`font-medium leading-relaxed ${!textOverride ? "text-gray-900" : ""}`} 
+                      style={{ 
+                        color: textOverride || undefined,
+                        fontSize: `${page.featureTextSize || 14}px`
+                      }}
+                    >
                       {feature}
                     </p>
                   </div>

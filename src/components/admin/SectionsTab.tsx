@@ -201,6 +201,18 @@ export default function SectionsTab() {
                             placeholder="e.g. 48"
                           />
                         </div>
+                        <div className="space-y-2 sm:col-span-1">
+                          <Label className="text-sm font-medium">Subtitle Size (px)</Label>
+                          <Input
+                            type="number"
+                            value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).subtitleSize || '') : ''}
+                            onChange={(e) => {
+                              const content = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
+                              setEditData({ ...editData, content: JSON.stringify({ ...content, subtitleSize: parseInt(e.target.value) || '' }) });
+                            }}
+                            placeholder="e.g. 14"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">Description</Label>
@@ -240,42 +252,54 @@ export default function SectionsTab() {
                          </div>
                        )}
 
-                       {(section.section === 'whyChooseUs' || section.section === 'services') && (
-                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t pt-4 mt-2">
+                        {(section.section === 'whyChooseUs' || section.section === 'services') && (
+                         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 border-t pt-4 mt-2">
                            <div className="space-y-2">
-                             <Label className="text-xs">Item Icon Size (px)</Label>
+                             <Label className="text-xs font-bold">Item Icon Size (px)</Label>
                              <Input 
                                type="number"
                                value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).itemIconSize || '') : ''} 
                                onChange={(e) => {
-                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
+                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : { items: JSON.parse(editData.content || '[]') };
                                  setEditData({ ...editData, content: JSON.stringify({ ...current, itemIconSize: parseInt(e.target.value) || '' }) });
                                }}
-                               placeholder="e.g. 32"
+                               placeholder="Default: 32"
                              />
                            </div>
                            <div className="space-y-2">
-                             <Label className="text-xs">Item Title Size (px)</Label>
+                             <Label className="text-xs font-bold">Item Title Size (px)</Label>
                              <Input 
                                type="number"
                                value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).itemTitleSize || '') : ''} 
                                onChange={(e) => {
-                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
+                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : { items: JSON.parse(editData.content || '[]') };
                                  setEditData({ ...editData, content: JSON.stringify({ ...current, itemTitleSize: parseInt(e.target.value) || '' }) });
                                }}
-                               placeholder="e.g. 24"
+                               placeholder="Default: 24"
                              />
                            </div>
                            <div className="space-y-2">
-                             <Label className="text-xs">Item Desc Size (px)</Label>
+                             <Label className="text-xs font-bold">Item Desc Size (px)</Label>
                              <Input 
                                type="number"
                                value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).itemDescSize || '') : ''} 
                                onChange={(e) => {
-                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
+                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : { items: JSON.parse(editData.content || '[]') };
                                  setEditData({ ...editData, content: JSON.stringify({ ...current, itemDescSize: parseInt(e.target.value) || '' }) });
                                }}
-                               placeholder="e.g. 16"
+                               placeholder="Default: 18"
+                             />
+                           </div>
+                           <div className="space-y-2">
+                             <Label className="text-xs font-bold">Item Subtitle Size (px)</Label>
+                             <Input 
+                               type="number"
+                               value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).itemSubtitleSize || '') : ''} 
+                               onChange={(e) => {
+                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : { items: JSON.parse(editData.content || '[]') };
+                                 setEditData({ ...editData, content: JSON.stringify({ ...current, itemSubtitleSize: parseInt(e.target.value) || '' }) });
+                               }}
+                               placeholder="Default: 14"
                              />
                            </div>
                          </div>
@@ -364,11 +388,12 @@ export default function SectionsTab() {
                                         />
                                       </div>
                                       <div className="space-y-1">
-                                        <Label className="text-xs">Title Size (px)</Label>
+                                        <Label className="text-[10px] font-bold text-gray-400">Override Title Size</Label>
                                         <Input 
                                           type="number"
                                           value={item.titleSize || ''} 
-                                          className="h-8 text-xs" 
+                                          className="h-7 text-xs bg-white" 
+                                          placeholder={!Array.isArray(content) ? (content.itemTitleSize || 'Global') : 'Global'}
                                           onChange={(e) => {
                                             const newItems = [...items];
                                             newItems[idx] = { ...item, titleSize: parseInt(e.target.value) || '' };
@@ -381,11 +406,12 @@ export default function SectionsTab() {
                                         />
                                       </div>
                                       <div className="space-y-1">
-                                        <Label className="text-xs">Desc Size (px)</Label>
+                                        <Label className="text-[10px] font-bold text-gray-400">Override Desc Size</Label>
                                         <Input 
                                           type="number"
                                           value={item.descSize || ''} 
-                                          className="h-8 text-xs" 
+                                          className="h-7 text-xs bg-white" 
+                                          placeholder={!Array.isArray(content) ? (content.itemDescSize || 'Global') : 'Global'}
                                           onChange={(e) => {
                                             const newItems = [...items];
                                             newItems[idx] = { ...item, descSize: parseInt(e.target.value) || '' };
