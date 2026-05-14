@@ -368,16 +368,44 @@ export default function AppearanceTab() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm text-gray-600">Title Font Size (px)</Label>
-              <Input
-                type="number"
-                value={getValue('footerTitleSize')}
-                onChange={(e) => updateValue('footerTitleSize', e.target.value)}
-                placeholder="20"
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700">Footer Title Scale (%)</Label>
+              <div className="flex items-center gap-4">
+                <Slider
+                  value={[parseInt(getValue('footerTitleSizePct')) || 100]}
+                  onValueChange={([v]) => updateValue('footerTitleSizePct', v.toString())}
+                  min={20}
+                  max={200}
+                  step={5}
+                  className="flex-1"
+                />
+                <span className="text-sm font-bold w-12 text-center bg-blue-50 text-blue-700 rounded px-2 py-1">
+                  {getValue('footerTitleSizePct') || '100'}%
+                </span>
+              </div>
+              <p className="text-[10px] text-gray-400">Scales titles like &quot;Insurance&quot; and &quot;Contact&quot;</p>
             </div>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700">Footer Links Scale (%)</Label>
+              <div className="flex items-center gap-4">
+                <Slider
+                  value={[parseInt(getValue('footerLinkSizePct')) || 100]}
+                  onValueChange={([v]) => updateValue('footerLinkSizePct', v.toString())}
+                  min={20}
+                  max={200}
+                  step={5}
+                  className="flex-1"
+                />
+                <span className="text-sm font-bold w-12 text-center bg-blue-50 text-blue-700 rounded px-2 py-1">
+                  {getValue('footerLinkSizePct') || '100'}%
+                </span>
+              </div>
+              <p className="text-[10px] text-gray-400">Scales all links and descriptive text</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm text-gray-600">Title Font Weight</Label>
               <Select value={getValue('footerTitleWeight') || '700'} onValueChange={(v) => updateValue('footerTitleWeight', v)}>

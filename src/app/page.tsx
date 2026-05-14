@@ -14,19 +14,19 @@ import {
   Users,
   Handshake,
   CheckCircle2,
+  Separator,
+  Badge,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
   ArrowRight,
-  MessageCircle,
   Send,
+  MessageCircle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { cn, getScaledSize } from "@/lib/utils";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import CTASection from "@/components/CTASection";
@@ -146,6 +147,7 @@ interface PageSection {
   description: string;
   content: string;
   visible: boolean;
+  order: number;
 }
 
 interface Testimonial {
@@ -202,6 +204,9 @@ function AnimatedSection({
     </motion.div>
   );
 }
+
+// Typography helper
+// Scaling helper moved to @/lib/utils.ts
 
 function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
   return (
@@ -329,6 +334,14 @@ function HeroSection({
   const cta2Color = settings.heroCta2Color; // empty = outline style
   const cta2Link = settings.heroCta2Link || "#contact";
 
+  // Parse content JSON safely
+  let contentData: any = {};
+  try { if (heroSection?.content) contentData = JSON.parse(heroSection.content); } catch {}
+
+  const titleSizePct = contentData.titleSizePct ?? 100;
+  const descSizePct = contentData.descSizePct ?? 100;
+  const subtitleSizePct = contentData.subtitleSizePct ?? 100;
+
   return (
     <section
       id="hero"
@@ -386,10 +399,11 @@ function HeroSection({
             transition={{ duration: 0.8 }}
           >
             <Badge
-              className="mb-6 px-4 py-2 text-sm font-semibold border-0"
+              className="mb-6 px-4 py-2 font-semibold border-0"
               style={{
                 backgroundColor: `${settings.accentColor}25`,
                 color: settings.accentColor,
+                fontSize: getScaledSize(0.875, subtitleSizePct, 0.875)
               }}
             >
               {heroSection.subtitle}
@@ -404,7 +418,7 @@ function HeroSection({
           className="font-bold text-white leading-[1.1] mb-6"
           style={{
             fontFamily: settings.headingFont,
-            fontSize: `${settings.heroTitleSize || (parseInt(settings.headingFontSize) * 1.5 || 64)}px`,
+            fontSize: getScaledSize(4, titleSizePct, 4)
           }}
         >
           {heroSection?.title || "Dwyer Insurance Group"}
@@ -429,7 +443,7 @@ function HeroSection({
           transition={{ duration: 0.8, delay: 0.2 }}
           className={`mt-6 text-white/90 leading-relaxed ${isLeft || isRight ? "" : "max-w-2xl mx-auto"}`}
           style={{
-            fontSize: `${settings.heroDescSize || "20"}px`,
+            fontSize: getScaledSize(1.25, descSizePct, 1.25),
             ...(isLeft ? { marginLeft: 0 } : isRight ? { marginRight: 0, marginLeft: "auto" } : undefined)
           }}
         >
@@ -504,6 +518,15 @@ function ServicesSection({
   insurancePages: InsurancePage[];
   servicesSection: PageSection | undefined;
 }) {
+  let contentData: any = {};
+  try { if (servicesSection?.content) contentData = JSON.parse(servicesSection.content); } catch {}
+
+  const titleSizePct = contentData.titleSizePct ?? 100;
+  const descSizePct = contentData.descSizePct ?? 100;
+  const subtitleSizePct = contentData.subtitleSizePct ?? 100;
+  const itemTitleSizePct = contentData.itemTitleSizePct ?? 100;
+  const itemDescSizePct = contentData.itemDescSizePct ?? 100;
+
   return (
     <section id="services" className="py-20 lg:py-28" style={settings.servicesBgColor ? { backgroundColor: settings.servicesBgColor } : { background: `linear-gradient(180deg, #f8fafc 0%, ${settings.primaryColor}08 100%)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -513,21 +536,17 @@ function ServicesSection({
             style={{ 
               backgroundColor: `${settings.primaryColor}15`, 
               color: settings.primaryColor,
-              fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).subtitleSize) 
-                ? `${JSON.parse(servicesSection.content).subtitleSize}px` 
-                : undefined
+              fontSize: getScaledSize(0.875, subtitleSizePct, 0.875)
             }}
           >
             {servicesSection?.subtitle || "Our Services"}
           </Badge>
           <h2
-            className="text-3xl sm:text-4xl font-bold mb-4"
+            className="font-bold mb-4"
             style={{ 
               color: settings.secondaryColor, 
               fontFamily: settings.headingFont,
-              fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).titleSize) 
-                ? `${JSON.parse(servicesSection.content).titleSize}px` 
-                : undefined
+              fontSize: getScaledSize(2.25, titleSizePct, 2.25)
             }}
           >
             {servicesSection?.title || "Comprehensive Insurance Solutions"}
@@ -535,9 +554,7 @@ function ServicesSection({
           <p 
             className="text-muted-foreground max-w-2xl mx-auto"
             style={{ 
-              fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).descriptionSize) 
-                ? `${JSON.parse(servicesSection.content).descriptionSize}px` 
-                : "1.125rem"
+              fontSize: getScaledSize(1.125, descSizePct, 1.125)
             }}
           >
             {servicesSection?.description ||
@@ -577,9 +594,7 @@ function ServicesSection({
                       className="group-hover:transition-colors"
                       style={{ 
                         color: settings.secondaryColor,
-                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemTitleSize)
-                          ? `${JSON.parse(servicesSection.content).itemTitleSize}px`
-                          : '14px',
+                        fontSize: getScaledSize(1, itemTitleSizePct, 1),
                         lineHeight: "1.2",
                         fontWeight: "700"
                       }}
@@ -591,9 +606,7 @@ function ServicesSection({
                     <CardDescription 
                       className="text-muted-foreground mb-4"
                       style={{ 
-                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemDescSize)
-                          ? `${JSON.parse(servicesSection.content).itemDescSize}px`
-                          : '12px',
+                        fontSize: getScaledSize(0.875, itemDescSizePct, 0.875),
                         lineHeight: "1.4"
                       }}
                     >
@@ -660,59 +673,57 @@ function WhyChooseUsSection({
     },
   ];
 
+  let contentData: any = {};
   if (whySection?.content) {
     try {
       const parsed = JSON.parse(whySection.content);
-      const customReasons = Array.isArray(parsed) ? parsed : parsed.items;
-      if (Array.isArray(customReasons) && customReasons.length > 0) {
-        reasons = customReasons;
-      }
-    } catch (e) {
-      console.error("Error parsing whyChooseUs content:", e);
-    }
+      contentData = Array.isArray(parsed) ? { items: parsed } : parsed;
+    } catch {}
   }
 
-  const sectionContent = (whySection?.content && !Array.isArray(JSON.parse(whySection.content))) ? JSON.parse(whySection.content) : {};
-  const globalIconSize = sectionContent.itemIconSize || 24;
-  const globalTitleSize = sectionContent.itemTitleSize || 16;
-  const globalDescSize = sectionContent.itemDescSize || 11;
-  const sectionTitleSize = sectionContent.titleSize;
-  const sectionDescSize = sectionContent.descriptionSize;
+  if (contentData.items && Array.isArray(contentData.items) && contentData.items.length > 0) {
+    reasons = contentData.items;
+  }
+
+  const globalIconSize = Number(contentData.itemIconSize) || 24;
+  const titleSizePct = contentData.titleSizePct ?? 100;
+  const descSizePct = contentData.descSizePct ?? 100;
+  const subtitleSizePct = contentData.subtitleSizePct ?? 100;
+  const itemTitleSizePct = contentData.itemTitleSizePct ?? 100;
+  const itemDescSizePct = contentData.itemDescSizePct ?? 100;
 
   return (
     <section id="why-choose-us" className="py-20 lg:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
           <div className="flex items-center justify-center gap-2 mb-4">
-            {whySection?.content && JSON.parse(whySection.content).sectionIcon && (
-              <DynamicIcon name={JSON.parse(whySection.content).sectionIcon} size={20} style={{ color: settings.primaryColor }} />
+            {contentData.sectionIcon && (
+              <DynamicIcon name={contentData.sectionIcon} size={20} style={{ color: settings.primaryColor }} />
             )}
             <Badge
               className="border-0"
               style={{ 
                 backgroundColor: `${settings.primaryColor}15`, 
                 color: settings.primaryColor,
-                fontSize: sectionContent.subtitleSize ? `${sectionContent.subtitleSize}px` : undefined
+                fontSize: getScaledSize(0.875, subtitleSizePct, 0.875)
               }}
             >
               {whySection?.subtitle || "Why Choose Us"}
             </Badge>
           </div>
           <h2
-            className="text-3xl sm:text-5xl font-bold mb-6 tracking-tight"
+            className="font-bold mb-6 tracking-tight"
             style={{ 
               color: settings.secondaryColor, 
               fontFamily: settings.headingFont,
-              fontSize: sectionTitleSize ? `${sectionTitleSize}px` : undefined
+              fontSize: getScaledSize(2.25, titleSizePct, 2.25)
             }}
           >
             {whySection?.title || "Why Families Trust Dwyer Insurance Group"}
           </h2>
           <p 
             className="text-muted-foreground max-w-3xl mx-auto leading-relaxed"
-            style={{ 
-              fontSize: sectionDescSize ? `${sectionDescSize}px` : "1.125rem" // text-xl default
-            }}
+            style={{ fontSize: getScaledSize(1.125, descSizePct, 1.125) }}
           >
             {whySection?.description ||
               "Choosing the right insurance agent makes all the difference. Here's why hundreds of families trust Dwyer Insurance Group."}
@@ -740,7 +751,7 @@ function WhyChooseUsSection({
                     className="font-bold mb-2" 
                     style={{ 
                       color: settings.secondaryColor,
-                      fontSize: `${reason.titleSize || globalTitleSize || 13}px`,
+                      fontSize: getScaledSize(1, itemTitleSizePct, 1),
                       lineHeight: "1.3"
                     }}
                   >
@@ -749,7 +760,7 @@ function WhyChooseUsSection({
                   <p 
                     className="text-muted-foreground leading-relaxed"
                     style={{ 
-                      fontSize: `${reason.descSize || globalDescSize}px`,
+                      fontSize: getScaledSize(0.875, itemDescSizePct, 0.875),
                       lineHeight: "1.5"
                     }}
                   >
@@ -1318,67 +1329,52 @@ export default function HomePage() {
         insurancePages={insurancePages}
       />
       <main className="flex-1">
-        {getSection("hero")?.visible !== false && (
-          <HeroSection
-            settings={settings}
-            agentInfo={agentInfo}
-            heroSection={getSection("hero")}
-          />
-        )}
-        {getSection("services")?.visible !== false && (
-          <ServicesSection
-            settings={settings}
-            insurancePages={insurancePages}
-            servicesSection={getSection("services")}
-          />
-        )}
-        {getSection("whyChooseUs")?.visible !== false && (
-          <WhyChooseUsSection
-            settings={settings}
-            agentInfo={agentInfo}
-            whySection={getSection("whyChooseUs")}
-          />
-        )}
-        {getSection("ctaBanner")?.visible !== false && (
-          <div className="bg-white">
-            <CTASection 
-              page={{ 
-                title: "Expert Protection", 
-                iconColor: settings.primaryColor,
-                bannerCta1Text: settings.heroCtaText,
-                bannerCta1Link: settings.heroCtaLink,
-                bannerCta2Text: "Get a Quote",
-                bannerCta2Link: "/contact",
-                ctaTitle: getSection("ctaBanner")?.content && !Array.isArray(JSON.parse(getSection("ctaBanner")!.content)) ? JSON.parse(getSection("ctaBanner")!.content).ctaTitle : undefined,
-                ctaDescription: getSection("ctaBanner")?.content && !Array.isArray(JSON.parse(getSection("ctaBanner")!.content)) ? JSON.parse(getSection("ctaBanner")!.content).ctaDescription : undefined,
-              } as any} 
-              agentInfo={agentInfo} 
-              settings={settings} 
-            />
-          </div>
-        )}
-        {getSection("testimonials")?.visible !== false && (
-          <TestimonialsSection
-            settings={settings}
-            testimonials={testimonials}
-            testimonialsSection={getSection("testimonials")}
-          />
-        )}
-        {getSection("faq")?.visible !== false && (
-          <FaqSection
-            settings={settings}
-            faqs={faqs}
-            faqSection={getSection("faq")}
-          />
-        )}
-        {getSection("contact")?.visible !== false && (
-          <ContactSection
-            settings={settings}
-            agentInfo={agentInfo}
-            insurancePages={insurancePages}
-            contactSection={getSection("contact")}
-          />
-        )}
+        {pageSections
+          .filter(s => s.visible !== false)
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map((section) => {
+            switch (section.section) {
+              case "hero":
+                return <HeroSection key={section.id} settings={settings} agentInfo={agentInfo} heroSection={section} />;
+              case "services":
+                return <ServicesSection key={section.id} settings={settings} insurancePages={insurancePages} servicesSection={section} />;
+              case "whyChooseUs":
+                return <WhyChooseUsSection key={section.id} settings={settings} agentInfo={agentInfo} whySection={section} />;
+              case "ctaBanner":
+                let ctaTitle, ctaDesc;
+                try {
+                  const c = JSON.parse(section.content || '{}');
+                  ctaTitle = c.ctaTitle;
+                  ctaDesc = c.ctaDescription;
+                } catch {}
+                return (
+                  <div key={section.id} className="bg-white">
+                    <CTASection
+                      page={{
+                        title: "Expert Protection",
+                        iconColor: settings.primaryColor,
+                        bannerCta1Text: settings.heroCtaText,
+                        bannerCta1Link: settings.heroCtaLink,
+                        bannerCta2Text: "Get a Quote",
+                        bannerCta2Link: "/contact",
+                        ctaTitle,
+                        ctaDescription: ctaDesc
+                      } as any}
+                      agentInfo={agentInfo}
+                      settings={settings}
+                    />
+                  </div>
+                );
+              case "testimonials":
+                return <TestimonialsSection key={section.id} settings={settings} testimonials={testimonials} testimonialsSection={section} />;
+              case "faq":
+                return <FaqSection key={section.id} settings={settings} faqs={faqs} faqSection={section} />;
+              case "contact":
+                return <ContactSection key={section.id} settings={settings} agentInfo={agentInfo} insurancePages={insurancePages} contactSection={section} />;
+              default:
+                return null;
+            }
+          })}
       </main>
       <div className="mt-auto">
         <Footer

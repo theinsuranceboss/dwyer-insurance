@@ -22,8 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Plus, Save, X, Loader2, Upload, Palette, ChevronsUpDown, Home, Image as ImageIcon } from 'lucide-react';
+import { Shield, Plus, Save, X, Loader2, Upload, Palette, ChevronsUpDown, Home, Image as ImageIcon, ArrowUp, ArrowDown } from 'lucide-react';
 import { type InsurancePage, apiFetch, apiUpload, LoadingSpinner, DeleteButton, ICON_OPTIONS } from './shared';
 
 export default function InsuranceTab() {
@@ -375,18 +376,50 @@ function InsuranceForm({
         <div className="space-y-4">
           {(data.customSections || []).map((section: any, idx: number) => (
             <Card key={idx} className="bg-gray-50/50 border-dashed border-2 relative group">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="absolute top-2 right-2 h-6 w-6 p-0 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => {
-                  const current = [...(data.customSections || [])];
-                  current.splice(idx, 1);
-                  onChange({ ...data, customSections: current });
-                }}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+                <div className="flex items-center gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                    onClick={() => {
+                      if (idx === 0) return;
+                      const current = [...(data.customSections || [])];
+                      const [moved] = current.splice(idx, 1);
+                      current.splice(idx - 1, 0, moved);
+                      onChange({ ...data, customSections: current });
+                    }}
+                    disabled={idx === 0}
+                  >
+                    <ArrowUp className="w-3 h-3" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500"
+                    onClick={() => {
+                      const current = [...(data.customSections || [])];
+                      if (idx === current.length - 1) return;
+                      const [moved] = current.splice(idx, 1);
+                      current.splice(idx + 1, 0, moved);
+                      onChange({ ...data, customSections: current });
+                    }}
+                    disabled={idx === (data.customSections || []).length - 1}
+                  >
+                    <ArrowDown className="w-3 h-3" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0 text-red-500"
+                    onClick={() => {
+                      const current = [...(data.customSections || [])];
+                      current.splice(idx, 1);
+                      onChange({ ...data, customSections: current });
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
               <CardContent className="pt-6 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -655,33 +688,73 @@ function InsuranceForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label className="text-sm">Banner Title Font Size (px)</Label>
-                <Input 
-                  type="number" 
-                  value={data.bannerTitleSize || 52} 
-                  onChange={(e) => onChange({ ...data, bannerTitleSize: parseInt(e.target.value) || 52 })} 
-                  className="h-8 text-xs"
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+              <div className="space-y-3">
+                <Label className="text-xs font-bold text-gray-700">Banner Title Scale (%)</Label>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    value={[data.bannerTitleSize || 100]}
+                    onValueChange={([v]) => onChange({ ...data, bannerTitleSize: v })}
+                    min={20}
+                    max={300}
+                    step={5}
+                    className="flex-1"
+                  />
+                  <span className="text-xs font-bold w-12 text-center bg-blue-50 text-blue-700 rounded px-2 py-1">
+                    {data.bannerTitleSize || 100}%
+                  </span>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-sm">Banner Tagline Font Size (px)</Label>
-                <Input 
-                  type="number" 
-                  value={data.bannerTaglineSize || 14} 
-                  onChange={(e) => onChange({ ...data, bannerTaglineSize: parseInt(e.target.value) || 14 })} 
-                  className="h-8 text-xs"
-                />
+              <div className="space-y-3">
+                <Label className="text-xs font-bold text-gray-700">Banner Tagline Scale (%)</Label>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    value={[data.bannerTaglineSize || 100]}
+                    onValueChange={([v]) => onChange({ ...data, bannerTaglineSize: v })}
+                    min={20}
+                    max={300}
+                    step={5}
+                    className="flex-1"
+                  />
+                  <span className="text-xs font-bold w-12 text-center bg-blue-50 text-blue-700 rounded px-2 py-1">
+                    {data.bannerTaglineSize || 100}%
+                  </span>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-sm">Banner Desc Font Size (px)</Label>
-                <Input 
-                  type="number" 
-                  value={data.bannerDescriptionSize || 18} 
-                  onChange={(e) => onChange({ ...data, bannerDescriptionSize: parseInt(e.target.value) || 18 })} 
-                  className="h-8 text-xs"
-                />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+              <div className="space-y-3">
+                <Label className="text-xs font-bold text-gray-700">Banner Description Scale (%)</Label>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    value={[data.bannerDescriptionSize || 100]}
+                    onValueChange={([v]) => onChange({ ...data, bannerDescriptionSize: v })}
+                    min={20}
+                    max={300}
+                    step={5}
+                    className="flex-1"
+                  />
+                  <span className="text-xs font-bold w-12 text-center bg-blue-50 text-blue-700 rounded px-2 py-1">
+                    {data.bannerDescriptionSize || 100}%
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Label className="text-xs font-bold text-gray-700">Feature Text Scale (%)</Label>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    value={[data.featureTextSize || 100]}
+                    onValueChange={([v]) => onChange({ ...data, featureTextSize: v })}
+                    min={20}
+                    max={300}
+                    step={5}
+                    className="flex-1"
+                  />
+                  <span className="text-xs font-bold w-12 text-center bg-blue-50 text-blue-700 rounded px-2 py-1">
+                    {data.featureTextSize || 100}%
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -751,7 +824,6 @@ function InsuranceForm({
               </div>
             </div>
 
-            {/* Banner Text & CTA Buttons */}
             <Separator className="my-2" />
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Banner Text &amp; Buttons</p>
 
@@ -808,7 +880,7 @@ function InsuranceForm({
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 pb-4">
               <Label className="text-sm">CTA Button 2 Color</Label>
               <div className="flex items-center gap-2">
                 <input type="color" value={data.bannerCta2Color || '#ffffff'} onChange={(e) => onChange({ ...data, bannerCta2Color: e.target.value })} className="w-8 h-8 rounded cursor-pointer" />
@@ -831,17 +903,6 @@ function InsuranceForm({
                   </button>
                 )}
               </div>
-            <div className="space-y-2">
-              <Label className="text-sm">Feature Text Font Size (px)</Label>
-              <Input 
-                type="number" 
-                value={data.featureTextSize || 14} 
-                onChange={(e) => onChange({ ...data, featureTextSize: parseInt(e.target.value) || 14 })} 
-                className="w-32 h-8 text-xs"
-                placeholder="14"
-              />
-              <p className="text-[10px] text-gray-400">Leave empty for outline style button</p>
-            </div>
             </div>
           </div>
         )}
@@ -900,6 +961,33 @@ function HomepageForm({
       setSections(sections.map(s => s.id === section.id ? { ...s, visible } : s));
     } catch (e) {
       toast({ title: 'Error', description: 'Failed to update visibility', variant: 'destructive' });
+    }
+  };
+
+  const handleSectionMove = async (section: any, direction: 'up' | 'down') => {
+    const idx = sections.indexOf(section);
+    if (direction === 'up' && idx === 0) return;
+    if (direction === 'down' && idx === sections.length - 1) return;
+
+    const newSections = [...sections];
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    [newSections[idx], newSections[swapIdx]] = [newSections[swapIdx], newSections[idx]];
+
+    // Update orders
+    const updatedSections = newSections.map((s, i) => ({ ...s, order: i }));
+    setSections(updatedSections);
+
+    try {
+      // Bulk update orders
+      await Promise.all(updatedSections.map(s => 
+        apiFetch('/api/admin/sections', {
+          method: 'PUT',
+          body: JSON.stringify({ id: s.id, order: s.order }),
+        })
+      ));
+      toast({ title: 'Success', description: 'Section order updated' });
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to update section order', variant: 'destructive' });
     }
   };
 
@@ -999,19 +1087,41 @@ function HomepageForm({
             sections.filter(s => s.section !== 'hero').map((section) => (
               <AccordionItem key={section.id} value={section.id} className="border rounded-lg bg-white px-4">
                 <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center justify-between w-full pr-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center">
-                        <span className="text-sm">📄</span>
+                    <div className="flex items-center gap-4 flex-1 pr-4">
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0"
+                          onClick={() => handleSectionMove(section, 'up')}
+                          disabled={sections.indexOf(section) === 0}
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0"
+                          onClick={() => handleSectionMove(section, 'down')}
+                          disabled={sections.indexOf(section) === sections.length - 1}
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </Button>
                       </div>
-                      <span className="font-semibold capitalize">{section.section} Section</span>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center">
+                            <span className="text-sm">📄</span>
+                          </div>
+                          <span className="font-semibold capitalize">{section.section} Section</span>
+                        </div>
+                        <Switch 
+                          checked={section.visible} 
+                          onCheckedChange={(v) => handleSectionToggle(section, v)}
+                          onClick={(e) => e.stopPropagation()} 
+                        />
+                      </div>
                     </div>
-                    <Switch 
-                      checked={section.visible} 
-                      onCheckedChange={(v) => handleSectionToggle(section, v)}
-                      onClick={(e) => e.stopPropagation()} 
-                    />
-                  </div>
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-6 space-y-4">
                   <div className="grid grid-cols-2 gap-4">

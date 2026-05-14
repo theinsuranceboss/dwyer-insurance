@@ -2,324 +2,174 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import {
-  Phone,
-  Clock,
-  Award,
-  Handshake,
-  ArrowRight,
-  Globe,
-  ShieldCheck,
-  Users,
-} from "lucide-react";
+import { Phone, ArrowRight, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import DynamicIcon from "@/components/DynamicIcon";
+import { getScaledSize } from "@/lib/utils";
 
-// ─── Types ───────────────────────────────────────────────────────
+interface Settings { [key: string]: string; }
+interface MenuItem { id: string; label: string; href: string; order: number; visible: boolean; isDropdown: boolean; parent: string | null; iconName: string; }
+interface AgentInfo { [key: string]: string; }
+interface PageSection { id: string; section: string; title: string; subtitle: string; description: string; content: string; visible: boolean; }
+interface InsurancePage { id: string; slug: string; title: string; tagline: string; description: string; features: string[]; iconColor: string; iconBgColor: string; iconName: string; emoji: string; order: number; visible: boolean; }
+interface SiteData { settings: Settings; menuItems: MenuItem[]; agentInfo: AgentInfo; insurancePages: InsurancePage[]; pageSections: PageSection[]; }
 
-interface Settings {
-  primaryColor: string;
-  secondaryColor: string;
-  accentColor: string;
-  lightColor: string;
-  darkColor: string;
-  headingFont: string;
-  bodyFont: string;
-  baseFontSize: string;
-  headingFontSize: string;
-  borderRadius: string;
-  siteName: string;
-  siteDescription: string;
-  heroTitle: string;
-  heroSubtitle: string;
-  heroDescription: string;
-  heroCtaText: string;
-  heroCta2Text: string;
-  heroBannerImage: string;
-  heroBannerOverlay: string;
-  heroBannerOverlayOpacity: string;
-  aboutBgColor: string;
-  servicesBgColor: string;
-  footerBgColor: string;
-  footerText: string;
-  footerCopyright: string;
-  [key: string]: string;
-}
-
-interface MenuItem {
-  id: string;
-  label: string;
-  href: string;
-  order: number;
-  visible: boolean;
-  isDropdown: boolean;
-  parent: string | null;
-  iconName: string;
-}
-
-interface AgentInfo {
-  name: string;
-  title: string;
-  badge: string;
-  phone: string;
-  phoneLink: string;
-  textNumber: string;
-  email: string;
-  address: string;
-  states: string;
-  languages: string;
-  rating: string;
-  reviewCount: string;
-  photo: string;
-  tagline: string;
-  [key: string]: string;
-}
-
-interface PageSection {
-  id: string;
-  section: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  content: string;
-  visible: boolean;
-}
-
-interface InsurancePage {
-  id: string;
-  slug: string;
-  title: string;
-  tagline: string;
-  description: string;
-  features: string[];
-  tip: string;
-  iconColor: string;
-  iconBgColor: string;
-  iconName: string;
-  emoji: string;
-  order: number;
-  visible: boolean;
-}
-
-interface SiteData {
-  settings: Settings;
-  menuItems: MenuItem[];
-  agentInfo: AgentInfo;
-  insurancePages: InsurancePage[];
-  pageSections: PageSection[];
-}
-
-// ─── Helper Components ───────────────────────────────────────────
-
-function AnimatedSection({
-  children,
-  className = "",
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-}) {
+function AnimatedSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number; }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
-
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-      transition={{ duration: 0.7, delay, ease: "easeOut" }}
-      className={className}
-    >
+    <motion.div ref={ref} initial={{ opacity: 0, y: 40 }} animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }} transition={{ duration: 0.7, delay, ease: "easeOut" }} className={className}>
       {children}
     </motion.div>
   );
 }
 
-// ─── About Content Section ───────────────────────────────────────
-
-function AboutContentSection({
-  settings,
-  agentInfo,
-  aboutSection,
-}: {
-  settings: Settings;
-  agentInfo: AgentInfo;
-  aboutSection: PageSection | undefined;
-}) {
+function AboutContentSection({ settings, agentInfo, aboutSection }: { settings: Settings; agentInfo: AgentInfo; aboutSection: PageSection | undefined; }) {
   const reviewCount = parseInt(agentInfo.reviewCount) || 0;
-  const states = agentInfo.states.split(",").map((s) => s.trim());
+  const states = (agentInfo.states || "PA,NJ,DE").split(",").map((s) => s.trim());
 
-  let stats: { number: string; label: string }[] = [
+  let contentData: any = {};
+  try { if (aboutSection?.content) contentData = JSON.parse(aboutSection.content); } catch {}
+
+  const stats = contentData.stats || [
     { number: `${reviewCount}+`, label: "Happy Clients" },
-    { number: agentInfo.rating, label: "Star Rating" },
+    { number: agentInfo.rating || "4.3", label: "Star Rating" },
     { number: `${states.length}`, label: "States Licensed" },
     { number: "12+", label: "Insurance Types" },
   ];
 
-  if (aboutSection?.content) {
-    try {
-      const parsed = JSON.parse(aboutSection.content);
-      if (parsed.stats) stats = parsed.stats;
-    } catch {
-      // use defaults
-    }
-  }
+  const items = contentData.items || [
+    { icon: "ShieldCheck", title: "Personalized Coverage", desc: "Tailored insurance solutions, not one-size-fits-all policies" },
+    { icon: "Clock", title: "24/7 Support", desc: "Round-the-clock claims support and after-hours appointments" },
+    { icon: "Handshake", title: "Trusted Partnership", desc: "Building lasting relationships based on trust and transparency" },
+    { icon: "Globe", title: "Bilingual Service", desc: `Serving clients in ${agentInfo.languages || "English, Spanish"}` },
+  ];
+
+  const titleSizePct = contentData.titleSizePct ?? 100;
+  const descSizePct = contentData.descSizePct ?? 100;
+  const subtitleSizePct = contentData.subtitleSizePct ?? 100;
+  const itemTitleSizePct = contentData.itemTitleSizePct ?? 100;
+  const itemDescSizePct = contentData.itemDescSizePct ?? 100;
+
+  const photoBannerImage = contentData.photoBannerImage || "";
+  const photoBannerColor = contentData.photoBannerColor || "";
+  const photoBannerColorTo = contentData.photoBannerColorTo || "";
+
+  const cardBg = photoBannerImage
+    ? { backgroundImage: `url(${photoBannerImage})`, backgroundSize: "cover", backgroundPosition: "center" }
+    : photoBannerColor
+    ? { background: photoBannerColorTo ? `linear-gradient(135deg, ${photoBannerColor} 0%, ${photoBannerColorTo} 100%)` : photoBannerColor }
+    : { background: `linear-gradient(135deg, ${settings.secondaryColor} 0%, ${settings.primaryColor} 50%, ${settings.darkColor} 100%)` };
 
   return (
     <section className="py-20 lg:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Visual Side */}
           <AnimatedSection>
-            <div className="relative">
-              <div
-                className="rounded-3xl p-8 lg:p-12 text-white relative overflow-hidden"
-                style={{
-                  background: `linear-gradient(135deg, ${settings.secondaryColor} 0%, ${settings.primaryColor} 50%, ${settings.darkColor} 100%)`,
-                }}
-              >
-                <div
-                  className="absolute top-0 right-0 w-40 h-40 rounded-full -translate-y-1/2 translate-x-1/2"
-                  style={{ backgroundColor: `${settings.lightColor}15` }}
-                />
-                <div
-                  className="absolute bottom-0 left-0 w-32 h-32 rounded-full translate-y-1/2 -translate-x-1/2"
-                  style={{ backgroundColor: `${settings.accentColor}15` }}
-                />
-
-                <div className="relative z-10">
-                  <div
-                    className="w-28 h-28 rounded-full border-4 overflow-hidden mb-6 mx-auto lg:mx-0"
-                    style={{ borderColor: settings.lightColor, backgroundColor: settings.darkColor }}
-                  >
-                    <img
-                      src={agentInfo.photo}
-                      alt={`${agentInfo.name} - ${agentInfo.title}`}
-                      className="w-full h-full object-cover"
-                    />
+            <div className="relative group">
+              <div className="rounded-3xl p-8 lg:p-12 text-white relative overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02]" style={cardBg}>
+                {photoBannerImage && (
+                  <div className="absolute inset-0 rounded-3xl" style={{ backgroundColor: `${settings.secondaryColor}90` }} />
+                )}
+                
+                <div className="absolute top-0 right-0 w-64 h-64 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl opacity-20" style={{ backgroundColor: settings.lightColor }} />
+                <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl opacity-20" style={{ backgroundColor: settings.accentColor }} />
+                
+                <div className="relative z-10 text-center lg:text-left">
+                  <div className="w-32 h-32 rounded-full border-4 overflow-hidden mb-6 mx-auto lg:mx-0 shadow-lg" style={{ borderColor: 'rgba(255,255,255,0.3)', backgroundColor: settings.darkColor }}>
+                    <img src={agentInfo.photo} alt={agentInfo.name} className="w-full h-full object-cover" />
                   </div>
-                  <h3 className="text-3xl font-bold mb-2">{agentInfo.name}</h3>
-                  <p className="font-medium text-lg mb-4" style={{ color: settings.lightColor }}>
-                    {agentInfo.badge}
+                  <h3 className="text-3xl font-bold mb-2 tracking-tight">{agentInfo.name}</h3>
+                  <p className="font-medium text-lg mb-4" style={{ color: settings.lightColor }}>{agentInfo.badge}</p>
+                  <p 
+                    className="text-white/90 mb-8 leading-relaxed italic"
+                    style={{ fontSize: getScaledSize(1, itemDescSizePct, 1) }}
+                  >
+                    &ldquo;{contentData.photoCaption || "Dedicated to providing personalized insurance solutions with exceptional service and a commitment to your family's protection."}&rdquo;
                   </p>
-                  <p className="text-white/80 mb-6">
-                    Dedicated to providing personalized insurance solutions with exceptional service and a commitment to your family's protection.
-                  </p>
-
                   <div className="grid grid-cols-2 gap-4">
-                    {stats.map((stat) => (
-                      <div
-                        key={stat.label}
-                        className="bg-white/10 rounded-xl p-4 text-center backdrop-blur-sm"
-                      >
-                        <p className="text-2xl font-bold" style={{ color: settings.lightColor }}>
-                          {stat.number}
-                        </p>
-                        <p className="text-sm text-white/70">{stat.label}</p>
+                    {stats.map((stat: any) => (
+                      <div key={stat.label} className="bg-white/15 rounded-2xl p-4 text-center backdrop-blur-md border border-white/10">
+                        <p className="text-2xl font-bold" style={{ color: settings.lightColor }}>{stat.number}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">{stat.label}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-
-              {/* Floating badge */}
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-4 -right-4 text-white rounded-2xl px-4 py-3 shadow-xl"
+              <motion.div 
+                animate={{ y: [0, -10, 0] }} 
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} 
+                className="absolute -top-4 -right-4 text-white rounded-2xl px-5 py-3 shadow-2xl border-2 border-white/20" 
                 style={{ backgroundColor: settings.accentColor }}
               >
                 <div className="flex items-center gap-2">
                   <Award className="w-5 h-5" />
-                  <span className="font-bold text-sm">{agentInfo.badge}</span>
+                  <span className="font-black text-sm uppercase tracking-tighter">Certified Elite Agent</span>
                 </div>
               </motion.div>
             </div>
           </AnimatedSection>
 
-          {/* Content Side */}
           <AnimatedSection delay={0.2}>
-            <Badge
-              className="mb-4 border-0"
-              style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+            <Badge 
+              className="mb-4 border-0" 
+              style={{ 
+                backgroundColor: `${settings.primaryColor}15`, 
+                color: settings.primaryColor,
+                fontSize: getScaledSize(0.875, subtitleSizePct, 0.875)
+              }}
             >
-              {aboutSection?.subtitle || "About Suzanne"}
+              {aboutSection?.subtitle || "About Us"}
             </Badge>
             <h2
-              className="text-3xl sm:text-4xl font-bold mb-6"
-              style={{ 
-                color: settings.secondaryColor, 
+              className="font-bold mb-6 tracking-tight"
+              style={{
+                color: settings.secondaryColor,
                 fontFamily: settings.headingFont,
-                fontSize: (aboutSection?.content && !Array.isArray(JSON.parse(aboutSection.content)) && JSON.parse(aboutSection.content).titleSize) 
-                  ? `${JSON.parse(aboutSection.content).titleSize}px` 
-                  : undefined
+                fontSize: getScaledSize(2.5, titleSizePct, 2.5),
               }}
             >
               {aboutSection?.title || "Your Trusted Insurance Partner"}
             </h2>
             {aboutSection?.description && (
-              <>
+              <div className="space-y-4 mb-8">
                 {aboutSection.description.split("\n\n").map((paragraph, i) => (
-                  <p key={i} className="text-muted-foreground text-lg mb-4">
+                  <p 
+                    key={i} 
+                    className="text-muted-foreground leading-relaxed" 
+                    style={{ fontSize: getScaledSize(1.125, descSizePct, 1.125) }}
+                  >
                     {paragraph}
                   </p>
                 ))}
-              </>
+              </div>
             )}
-
-            <div className="space-y-4 mb-8">
-              {(aboutSection?.content && JSON.parse(aboutSection.content).items ? JSON.parse(aboutSection.content).items : [
-                {
-                  icon: "ShieldCheck",
-                  title: "Personalized Coverage",
-                  desc: "Tailored insurance solutions, not one-size-fits-all policies",
-                },
-                {
-                  icon: "Clock",
-                  title: "24/7 Support",
-                  desc: "Round-the-clock claims support and after-hours appointments",
-                },
-                {
-                  icon: "Handshake",
-                  title: "Trusted Partnership",
-                  desc: "Building lasting relationships based on trust and transparency",
-                },
-                {
-                  icon: "Globe",
-                  title: "Bilingual Service",
-                  desc: `Serving clients in ${agentInfo.languages}`,
-                },
-              ]).map((item: any) => (
-                <div key={item.title} className="flex items-start gap-4 group">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-80 transition-opacity"
-                    style={{ backgroundColor: `${settings.primaryColor}12` }}
-                  >
-                    <DynamicIcon name={item.icon} className="w-6 h-6" style={{ color: settings.primaryColor }} />
+            <div className="space-y-6 mb-8">
+              {items.map((item: any) => (
+                <div key={item.title} className="flex items-start gap-5 group">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 shadow-sm" style={{ backgroundColor: `${settings.primaryColor}10`, border: `1px solid ${settings.primaryColor}15` }}>
+                    <DynamicIcon name={item.icon} className="w-7 h-7" style={{ color: settings.primaryColor }} />
                   </div>
                   <div>
                     <h4 
-                      className="font-semibold" 
+                      className="font-bold mb-1" 
                       style={{ 
-                        color: settings.secondaryColor,
-                        fontSize: item.titleSize ? `${item.titleSize}px` : undefined
+                        color: settings.secondaryColor, 
+                        fontSize: getScaledSize(1.125, itemTitleSizePct, 1.125) 
                       }}
                     >
                       {item.title}
                     </h4>
                     <p 
-                      className="text-sm text-muted-foreground"
-                      style={{ fontSize: item.descSize ? `${item.descSize}px` : undefined }}
+                      className="text-muted-foreground leading-relaxed" 
+                      style={{ fontSize: getScaledSize(0.9375, itemDescSizePct, 0.9375) }}
                     >
                       {item.desc}
                     </p>
@@ -327,14 +177,14 @@ function AboutContentSection({
                 </div>
               ))}
             </div>
-
             <a href="/">
-              <Button
-                className="text-white font-semibold px-8 shadow-lg hover:shadow-xl transition-all"
+              <Button 
+                size="lg"
+                className="text-white font-bold px-10 py-7 shadow-xl hover:shadow-2xl transition-all rounded-2xl hover:scale-[1.02]" 
                 style={{ backgroundColor: settings.primaryColor }}
               >
-                Schedule a Consultation
-                <ArrowRight className="w-4 h-4 ml-2" />
+                {contentData.ctaText || "Schedule a Consultation"}
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </a>
           </AnimatedSection>
@@ -344,69 +194,79 @@ function AboutContentSection({
   );
 }
 
-// ─── Values Section ──────────────────────────────────────────────
+function ValuesSection({ settings, valuesSection }: { settings: Settings; valuesSection: PageSection | undefined }) {
+  let contentData: any = {};
+  try { if (valuesSection?.content) contentData = JSON.parse(valuesSection.content); } catch {}
 
-function ValuesSection({ settings }: { settings: Settings }) {
-  const values = [
-    {
-      icon: ShieldCheck,
-      title: "Protection First",
-      desc: "Your family's security is our top priority. We craft policies that truly protect what matters most.",
-    },
-    {
-      icon: Users,
-      title: "Community Focused",
-      desc: "As your neighbor in Wynnewood, we understand the unique needs of our community.",
-    },
-    {
-      icon: Handshake,
-      title: "Trust & Integrity",
-      desc: "Transparent advice, honest recommendations, and always putting your interests first.",
-    },
-    {
-      icon: Award,
-      title: "Elite Expertise",
-      desc: "Suzanne Dwyer brings years of insurance expertise and a commitment to finding you the best coverage at the best price.",
-    },
+  const valueTitleSizePct = contentData.itemTitleSizePct ?? 50; 
+  const valueDescSizePct = contentData.itemDescSizePct ?? 100;
+  const sectionTitleSizePct = contentData.titleSizePct ?? 100;
+  const sectionDescSizePct = contentData.descSizePct ?? 100;
+  const subtitleSizePct = contentData.subtitleSizePct ?? 100;
+
+  const values = contentData.items || [
+    { icon: "ShieldCheck", title: "Protection First", desc: "Your family's security is our top priority. We craft policies that truly protect what matters most." },
+    { icon: "Users", title: "Community Focused", desc: "As your neighbor in Wynnewood, we understand the unique needs of our community." },
+    { icon: "Handshake", title: "Trust & Integrity", desc: "Transparent advice, honest recommendations, and always putting your interests first." },
+    { icon: "Award", title: "Elite Expertise", desc: "Dwyer Insurance Group brings years of insurance expertise and a commitment to finding you the best coverage at the best price." },
   ];
 
+  if (valuesSection?.visible === false) return null;
+
   return (
-    <section className="py-20 lg:py-28" style={{ backgroundColor: `${settings.primaryColor}08` }}>
+    <section className="py-20 lg:py-28" style={{ backgroundColor: `${settings.primaryColor}05` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
-          <Badge
-            className="mb-4 border-0"
-            style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+          <Badge 
+            className="mb-4 border-0" 
+            style={{ 
+              backgroundColor: `${settings.primaryColor}15`, 
+              color: settings.primaryColor,
+              fontSize: getScaledSize(0.875, subtitleSizePct, 0.875)
+            }}
           >
-            Our Values
+            {valuesSection?.subtitle || "Our Values"}
           </Badge>
           <h2
-            className="text-3xl sm:text-4xl font-bold mb-4"
-            style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+            className="font-bold mb-6 tracking-tight"
+            style={{ 
+              color: settings.secondaryColor, 
+              fontFamily: settings.headingFont, 
+              fontSize: getScaledSize(2.25, sectionTitleSizePct, 2.25) 
+            }}
           >
-            Why Families <span style={{ color: settings.primaryColor }}>Choose Us</span>
+            {valuesSection?.title || "Why Families Choose Us"}
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Dwyer Insurance Group has been helping families across Pennsylvania, New Jersey, and
-            Delaware find the right coverage at the right price.
+          <p 
+            className="text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+            style={{ fontSize: getScaledSize(1.125, sectionDescSizePct, 1.125) }}
+          >
+            {valuesSection?.description || "Dwyer Insurance Group has been helping families across Pennsylvania, New Jersey, and Delaware find the right coverage at the right price."}
           </p>
         </AnimatedSection>
-
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {values.map((value, i) => (
-            <AnimatedSection key={value.title} delay={i * 0.1}>
-              <Card className="text-center h-full border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="pt-8 pb-6">
-                  <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                    style={{ backgroundColor: `${settings.primaryColor}15` }}
-                  >
-                    <value.icon className="w-8 h-8" style={{ color: settings.primaryColor }} />
+          {values.map((value: any, i: number) => (
+            <AnimatedSection key={i} delay={i * 0.1}>
+              <Card className="text-center h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-3xl overflow-hidden bg-white">
+                <CardContent className="pt-10 pb-8 px-6">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm" style={{ backgroundColor: `${settings.primaryColor}10`, border: `1px solid ${settings.primaryColor}05` }}>
+                    <DynamicIcon name={value.icon} className="w-8 h-8" style={{ color: settings.primaryColor }} />
                   </div>
-                  <h3 className="font-bold text-lg mb-2" style={{ color: settings.secondaryColor }}>
+                  <h3
+                    className="font-bold mb-3 tracking-tight"
+                    style={{ 
+                      color: settings.secondaryColor, 
+                      fontSize: getScaledSize(1.125, valueTitleSizePct, 1.125) 
+                    }}
+                  >
                     {value.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground">{value.desc}</p>
+                  <p 
+                    className="text-muted-foreground leading-relaxed" 
+                    style={{ fontSize: getScaledSize(0.875, valueDescSizePct, 0.875) }}
+                  >
+                    {value.desc}
+                  </p>
                 </CardContent>
               </Card>
             </AnimatedSection>
@@ -417,44 +277,23 @@ function ValuesSection({ settings }: { settings: Settings }) {
   );
 }
 
-// ─── CTA Section ─────────────────────────────────────────────────
-
 function CTASection({ settings, agentInfo }: { settings: Settings; agentInfo: AgentInfo }) {
   return (
-    <section
-      className="py-16 relative overflow-hidden"
-      style={{
-        background: `linear-gradient(135deg, ${settings.secondaryColor} 0%, ${settings.primaryColor} 50%, ${settings.darkColor} 100%)`,
-      }}
-    >
+    <section className="py-20 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${settings.secondaryColor} 0%, ${settings.primaryColor} 50%, ${settings.darkColor} 100%)` }}>
+      <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <AnimatedSection>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Ready to Protect Your Family?
-          </h2>
-          <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-            Get a personalized insurance review from Suzanne Dwyer at Dwyer Insurance Group. Bundle and save up to 25% on
-            your premiums!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href={agentInfo.phoneLink}>
-              <Button
-                size="lg"
-                className="text-white font-bold text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-                style={{ backgroundColor: settings.accentColor }}
-              >
-                <Phone className="w-5 h-5 mr-2" />
-                Call {agentInfo.phone}
+          <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-6 tracking-tighter">Ready to Protect Your Family?</h2>
+          <p className="text-white/80 text-xl mb-10 max-w-2xl mx-auto leading-relaxed">Get a personalized insurance review from Dwyer Insurance Group. Bundle and save up to 25% on your premiums!</p>
+          <div className="flex flex-col sm:flex-row gap-5 justify-center">
+            <a href={agentInfo.phoneLink || `tel:${agentInfo.phone}`}>
+              <Button size="lg" className="text-white font-black text-xl px-10 py-8 shadow-2xl hover:shadow-white/10 transition-all hover:scale-105 rounded-2xl" style={{ backgroundColor: settings.accentColor }}>
+                <Phone className="w-6 h-6 mr-3" />Call {agentInfo.phone}
               </Button>
             </a>
             <a href="/">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/50 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 bg-transparent"
-              >
-                Get a Free Quote
-                <ArrowRight className="w-5 h-5 ml-2" />
+              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 font-bold text-xl px-10 py-8 bg-white/5 backdrop-blur-sm rounded-2xl">
+                Get a Free Quote <ArrowRight className="w-6 h-6 ml-3" />
               </Button>
             </a>
           </div>
@@ -463,49 +302,6 @@ function CTASection({ settings, agentInfo }: { settings: Settings; agentInfo: Ag
     </section>
   );
 }
-
-// ─── Loading Skeleton ────────────────────────────────────────────
-
-function LoadingSkeleton() {
-  return (
-    <div className="min-h-screen bg-white">
-      <div className="fixed top-0 left-0 right-0 z-50 shadow-md" style={{ backgroundColor: "#001e60" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 md:h-20">
-          <div className="flex items-center gap-3">
-            <Skeleton className="w-10 h-10 rounded-full" />
-            <div className="hidden sm:block space-y-1">
-              <Skeleton className="w-36 h-5" />
-              <Skeleton className="w-28 h-3" />
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-6">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="w-16 h-4" />
-            ))}
-          </div>
-          <Skeleton className="md:hidden w-8 h-8" />
-        </div>
-      </div>
-
-      <div className="pt-16 md:pt-20">
-        <div className="py-20 lg:py-28">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <Skeleton className="w-full h-96 rounded-3xl" />
-              <div className="space-y-4">
-                <Skeleton className="w-24 h-6" />
-                <Skeleton className="w-80 h-10" />
-                <Skeleton className="w-full h-24" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Page ───────────────────────────────────────────────────
 
 export default function AboutPage() {
   const { toast } = useToast();
@@ -528,26 +324,33 @@ export default function AboutPage() {
     fetchData();
   }, [toast]);
 
-  if (loading || !siteData) return <LoadingSkeleton />;
+  if (loading || !siteData) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="space-y-4 w-full max-w-lg px-4">
+          <Skeleton className="w-full h-80 rounded-3xl" />
+          <Skeleton className="w-3/4 h-10" />
+          <Skeleton className="w-full h-32" />
+        </div>
+      </div>
+    );
+  }
 
   const { settings, menuItems, agentInfo, insurancePages, pageSections } = siteData;
-  const aboutSection = pageSections.find((s: PageSection) => s.section === "about");
+  const aboutSection = pageSections.find((s) => s.section === "about");
+  const valuesSection = pageSections.find((s) => s.section === "aboutValues") || 
+    { id: "default-values", section: "aboutValues", title: "Why Families Choose Us", subtitle: "Our Values", description: "", content: "{}", visible: true };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Navigation
-        menuItems={menuItems}
-        agentInfo={agentInfo}
-        settings={settings}
-        insurancePages={insurancePages}
-      />
-
+      <Navigation menuItems={menuItems} agentInfo={agentInfo} settings={settings} insurancePages={insurancePages} />
       <main className="pt-16 md:pt-20 flex-1">
-        <AboutContentSection settings={settings} agentInfo={agentInfo} aboutSection={aboutSection} />
-        <ValuesSection settings={settings} />
+        {(aboutSection?.visible !== false) && (
+          <AboutContentSection settings={settings} agentInfo={agentInfo} aboutSection={aboutSection} />
+        )}
+        <ValuesSection settings={settings} valuesSection={valuesSection as PageSection} />
         <CTASection settings={settings} agentInfo={agentInfo} />
       </main>
-
       <Footer settings={settings} agentInfo={agentInfo} insurancePages={insurancePages} />
     </div>
   );

@@ -14,7 +14,7 @@ export async function GET() {
           where: { visible: true },
           orderBy: { order: "asc" },
         }),
-        db.pageSection.findMany({ where: { visible: true } }),
+        db.pageSection.findMany({ orderBy: { order: 'asc' } }),
         db.testimonial.findMany({ where: { visible: true }, orderBy: { order: "asc" } }),
         db.faqItem.findMany({ where: { visible: true }, orderBy: { order: "asc" } }),
       ]);

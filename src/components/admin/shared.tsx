@@ -227,6 +227,7 @@ export function DynamicMenuIcon({ name, className }: { name: string; className?:
 export const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero Banner',
   about: 'About Section',
+  aboutValues: 'About — Values Cards',
   services: 'Services Section',
   whyChooseUs: 'Why Choose Us',
   testimonials: 'Testimonials Section',
@@ -314,13 +315,14 @@ export const APPEARANCE_SECTIONS: {
   },
 ];
 
-export const FOOTER_KEYS = ['footerText', 'footerCopyright', 'footerColumn1Title', 'footerColumn2Title', 'footerColumn3Title', 'footerBgColor', 'footerTitleSize', 'footerTitleCase'];
+export const FOOTER_KEYS = ['footerText', 'footerCopyright', 'footerColumn1Title', 'footerColumn2Title', 'footerColumn3Title', 'footerBgColor', 'footerTitleSizePct', 'footerLinkSizePct', 'footerTitleCase', 'footerTitleWeight'];
 
 // ─── Section icons ──────────────────────────────────────────────────────────────
 
 export const SECTION_ICONS: Record<string, string> = {
   hero: '🏠',
   about: '👤',
+  aboutValues: '🏅',
   services: '🛡️',
   whyChooseUs: '⭐',
   testimonials: '💬',
