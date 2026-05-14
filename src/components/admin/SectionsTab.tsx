@@ -155,8 +155,8 @@ export default function SectionsTab() {
                 <CardContent className="space-y-4">
                   {editingId === section.id ? (
                     <>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        <div className="space-y-2 sm:col-span-1">
                           <Label className="text-sm font-medium">Title</Label>
                           <Input
                             value={editData.title || ''}
@@ -164,7 +164,7 @@ export default function SectionsTab() {
                             placeholder="Section title..."
                           />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 sm:col-span-1">
                           <Label className="text-sm font-medium">Subtitle</Label>
                           <Input
                             value={editData.subtitle || ''}
@@ -172,12 +172,12 @@ export default function SectionsTab() {
                             placeholder="Section subtitle..."
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Section Icon</Label>
+                        <div className="space-y-2 sm:col-span-1">
+                          <Label className="text-sm font-medium">Icon</Label>
                           <Select 
-                            value={editData.content ? (JSON.parse(editData.content).sectionIcon || 'FileText') : 'FileText'} 
+                            value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).sectionIcon || 'FileText') : 'FileText'} 
                             onValueChange={(v) => {
-                              const content = editData.content ? JSON.parse(editData.content) : {};
+                              const content = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
                               setEditData({ ...editData, content: JSON.stringify({ ...content, sectionIcon: v }) });
                             }}
                           >
@@ -188,6 +188,18 @@ export default function SectionsTab() {
                               ))}
                             </SelectContent>
                           </Select>
+                        </div>
+                        <div className="space-y-2 sm:col-span-1">
+                          <Label className="text-sm font-medium">Title Size (px)</Label>
+                          <Input
+                            type="number"
+                            value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).titleSize || '') : ''}
+                            onChange={(e) => {
+                              const content = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
+                              setEditData({ ...editData, content: JSON.stringify({ ...content, titleSize: parseInt(e.target.value) || '' }) });
+                            }}
+                            placeholder="e.g. 48"
+                          />
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -200,41 +212,56 @@ export default function SectionsTab() {
                         />
                       </div>
 
-                      {section.section === 'whyChooseUs' && (
+                      {(section.section === 'whyChooseUs' || section.section === 'about') && (
                         <div className="space-y-4 border-t pt-4 mt-2">
                           <div className="flex items-center justify-between">
-                            <Label className="text-base font-bold">Reasons List (JSON Content)</Label>
+                            <Label className="text-base font-bold">
+                              {section.section === 'whyChooseUs' ? 'Reasons List (JSON Content)' : 'Features List (JSON Content)'}
+                            </Label>
                             <Button 
                               size="sm" 
                               variant="outline" 
                               onClick={() => {
-                                const currentContent = editData.content ? JSON.parse(editData.content) : [];
-                                const newContent = [...currentContent, { icon: 'Shield', title: 'New Reason', desc: 'Description here' }];
-                                setEditData({ ...editData, content: JSON.stringify(newContent) });
+                                const isArray = editData.content && Array.isArray(JSON.parse(editData.content));
+                                const currentData = editData.content ? JSON.parse(editData.content) : (section.section === 'whyChooseUs' ? [] : { items: [] });
+                                
+                                if (section.section === 'whyChooseUs' && isArray) {
+                                  const newItems = [...currentData, { icon: 'Shield', title: 'New Reason', desc: 'Description here' }];
+                                  setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                } else {
+                                  const items = currentData.items || [];
+                                  const newItems = [...items, { icon: 'ShieldCheck', title: 'New Feature', desc: 'Description here' }];
+                                  setEditData({ ...editData, content: JSON.stringify({ ...currentData, items: newItems }) });
+                                }
                               }}
                             >
-                              Add Reason
+                              Add Item
                             </Button>
                           </div>
                           <div className="grid gap-4">
                             {(() => {
                               try {
-                                const items = editData.content ? JSON.parse(editData.content) : [];
-                                if (!Array.isArray(items)) return null;
-                                return items.map((item, idx) => (
+                                const content = editData.content ? JSON.parse(editData.content) : (section.section === 'whyChooseUs' ? [] : { items: [] });
+                                const items = Array.isArray(content) ? content : (content.items || []);
+                                
+                                return items.map((item: any, idx: number) => (
                                   <div key={idx} className="p-3 border rounded-lg bg-gray-50 space-y-3 relative group">
                                     <Button 
                                       variant="ghost" 
                                       size="sm" 
                                       className="absolute top-2 right-2 h-6 w-6 p-0 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                       onClick={() => {
-                                        const newItems = items.filter((_, i) => i !== idx);
-                                        setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                        const newItems = items.filter((_: any, i: number) => i !== idx);
+                                        if (Array.isArray(content)) {
+                                          setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                        } else {
+                                          setEditData({ ...editData, content: JSON.stringify({ ...content, items: newItems }) });
+                                        }
                                       }}
                                     >
                                       <X className="w-4 h-4" />
                                     </Button>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                       <div className="space-y-1">
                                         <Label className="text-xs">Icon Name</Label>
                                         <Input 
@@ -243,7 +270,11 @@ export default function SectionsTab() {
                                           onChange={(e) => {
                                             const newItems = [...items];
                                             newItems[idx] = { ...item, icon: e.target.value };
-                                            setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                            if (Array.isArray(content)) {
+                                              setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                            } else {
+                                              setEditData({ ...editData, content: JSON.stringify({ ...content, items: newItems }) });
+                                            }
                                           }}
                                         />
                                       </div>
@@ -255,7 +286,45 @@ export default function SectionsTab() {
                                           onChange={(e) => {
                                             const newItems = [...items];
                                             newItems[idx] = { ...item, title: e.target.value };
-                                            setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                            if (Array.isArray(content)) {
+                                              setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                            } else {
+                                              setEditData({ ...editData, content: JSON.stringify({ ...content, items: newItems }) });
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Title Size (px)</Label>
+                                        <Input 
+                                          type="number"
+                                          value={item.titleSize || ''} 
+                                          className="h-8 text-xs" 
+                                          onChange={(e) => {
+                                            const newItems = [...items];
+                                            newItems[idx] = { ...item, titleSize: parseInt(e.target.value) || '' };
+                                            if (Array.isArray(content)) {
+                                              setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                            } else {
+                                              setEditData({ ...editData, content: JSON.stringify({ ...content, items: newItems }) });
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Desc Size (px)</Label>
+                                        <Input 
+                                          type="number"
+                                          value={item.descSize || ''} 
+                                          className="h-8 text-xs" 
+                                          onChange={(e) => {
+                                            const newItems = [...items];
+                                            newItems[idx] = { ...item, descSize: parseInt(e.target.value) || '' };
+                                            if (Array.isArray(content)) {
+                                              setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                            } else {
+                                              setEditData({ ...editData, content: JSON.stringify({ ...content, items: newItems }) });
+                                            }
                                           }}
                                         />
                                       </div>
@@ -268,7 +337,11 @@ export default function SectionsTab() {
                                         onChange={(e) => {
                                           const newItems = [...items];
                                           newItems[idx] = { ...item, desc: e.target.value };
-                                          setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                          if (Array.isArray(content)) {
+                                            setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                          } else {
+                                            setEditData({ ...editData, content: JSON.stringify({ ...content, items: newItems }) });
+                                          }
                                         }}
                                       />
                                     </div>

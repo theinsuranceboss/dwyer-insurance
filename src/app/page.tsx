@@ -635,7 +635,13 @@ function WhyChooseUsSection({
           </div>
           <h2
             className="text-3xl sm:text-5xl font-bold mb-6 tracking-tight"
-            style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+            style={{ 
+              color: settings.secondaryColor, 
+              fontFamily: settings.headingFont,
+              fontSize: (whySection?.content && !Array.isArray(JSON.parse(whySection.content)) && JSON.parse(whySection.content).titleSize) 
+                ? `${JSON.parse(whySection.content).titleSize}px` 
+                : undefined
+            }}
           >
             {whySection?.title || "Why Families Trust Dwyer Insurance Group"}
           </h2>
@@ -646,7 +652,7 @@ function WhyChooseUsSection({
         </AnimatedSection>
  
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {reasons.map((reason, i) => (
+          {reasons.map((reason: any, i: number) => (
             <AnimatedSection key={i} delay={i * 0.08}>
               <div className="group text-center">
                 <div
@@ -655,10 +661,21 @@ function WhyChooseUsSection({
                 >
                   <DynamicIcon name={reason.icon} className="w-8 h-8" style={{ color: settings.primaryColor }} />
                 </div>
-                <h3 className="text-2xl font-bold mb-4" style={{ color: settings.secondaryColor }}>
+                <h3 
+                  className="text-xl sm:text-2xl font-bold mb-4 px-2" 
+                  style={{ 
+                    color: settings.secondaryColor,
+                    fontSize: reason.titleSize ? `${reason.titleSize}px` : undefined 
+                  }}
+                >
                   {reason.title}
                 </h3>
-                <p className="text-muted-foreground leading-relaxed text-lg">{reason.desc}</p>
+                <p 
+                  className="text-muted-foreground leading-relaxed text-base sm:text-lg"
+                  style={{ fontSize: reason.descSize ? `${reason.descSize}px` : undefined }}
+                >
+                  {reason.desc}
+                </p>
               </div>
             </AnimatedSection>
           ))}

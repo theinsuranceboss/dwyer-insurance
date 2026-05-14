@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import DynamicIcon from "@/components/DynamicIcon";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -256,7 +257,13 @@ function AboutContentSection({
             </Badge>
             <h2
               className="text-3xl sm:text-4xl font-bold mb-6"
-              style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+              style={{ 
+                color: settings.secondaryColor, 
+                fontFamily: settings.headingFont,
+                fontSize: (aboutSection?.content && !Array.isArray(JSON.parse(aboutSection.content)) && JSON.parse(aboutSection.content).titleSize) 
+                  ? `${JSON.parse(aboutSection.content).titleSize}px` 
+                  : undefined
+              }}
             >
               {aboutSection?.title || "Your Trusted Insurance Partner"}
             </h2>
@@ -271,40 +278,51 @@ function AboutContentSection({
             )}
 
             <div className="space-y-4 mb-8">
-              {[
+              {(aboutSection?.content && JSON.parse(aboutSection.content).items ? JSON.parse(aboutSection.content).items : [
                 {
-                  icon: ShieldCheck,
+                  icon: "ShieldCheck",
                   title: "Personalized Coverage",
                   desc: "Tailored insurance solutions, not one-size-fits-all policies",
                 },
                 {
-                  icon: Clock,
+                  icon: "Clock",
                   title: "24/7 Support",
                   desc: "Round-the-clock claims support and after-hours appointments",
                 },
                 {
-                  icon: Handshake,
+                  icon: "Handshake",
                   title: "Trusted Partnership",
                   desc: "Building lasting relationships based on trust and transparency",
                 },
                 {
-                  icon: Globe,
+                  icon: "Globe",
                   title: "Bilingual Service",
                   desc: `Serving clients in ${agentInfo.languages}`,
                 },
-              ].map((item) => (
+              ]).map((item: any) => (
                 <div key={item.title} className="flex items-start gap-4 group">
                   <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-80 transition-opacity"
                     style={{ backgroundColor: `${settings.primaryColor}12` }}
                   >
-                    <item.icon className="w-6 h-6" style={{ color: settings.primaryColor }} />
+                    <DynamicIcon name={item.icon} className="w-6 h-6" style={{ color: settings.primaryColor }} />
                   </div>
                   <div>
-                    <h4 className="font-semibold" style={{ color: settings.secondaryColor }}>
+                    <h4 
+                      className="font-semibold" 
+                      style={{ 
+                        color: settings.secondaryColor,
+                        fontSize: item.titleSize ? `${item.titleSize}px` : undefined
+                      }}
+                    >
                       {item.title}
                     </h4>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    <p 
+                      className="text-sm text-muted-foreground"
+                      style={{ fontSize: item.descSize ? `${item.descSize}px` : undefined }}
+                    >
+                      {item.desc}
+                    </p>
                   </div>
                 </div>
               ))}
