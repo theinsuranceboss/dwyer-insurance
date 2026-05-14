@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       return {
         ...page,
         features,
-        customSections: JSON.parse(page.customSections || '[]'),
+        customSections: JSON.parse((page as any).customSections || '[]'),
       };
     });
     return NextResponse.json({ insurancePages: parsed });
@@ -114,12 +114,16 @@ export async function POST(request: NextRequest) {
         bannerCta2Text: bannerCta2Text ?? "",
         bannerCta2Color: bannerCta2Color ?? "",
         bannerCta2Link: bannerCta2Link ?? "",
-        customSections: JSON.stringify(customSections ?? []),
+        // Defensive check for customSections
+        ...((customSections !== undefined) ? { customSections: JSON.stringify(customSections) } : {})
       },
     });
 
+    const featuresParsed = JSON.parse(insurancePage.features);
+    const customSectionsParsed = JSON.parse((insurancePage as any).customSections || '[]');
+
     return NextResponse.json(
-      { insurancePage: { ...insurancePage, features: JSON.parse(insurancePage.features), customSections: JSON.parse(insurancePage.customSections) } },
+      { insurancePage: { ...insurancePage, features: featuresParsed, customSections: customSectionsParsed } },
       { status: 201 }
     );
   } catch (error) {
@@ -200,7 +204,7 @@ export async function PUT(request: NextRequest) {
     if (bannerCta2Text !== undefined) data.bannerCta2Text = bannerCta2Text;
     if (bannerCta2Color !== undefined) data.bannerCta2Color = bannerCta2Color;
     if (bannerCta2Link !== undefined) data.bannerCta2Link = bannerCta2Link;
-    if (customSections !== undefined) data.customSections = JSON.stringify(customSections);
+    if (customSections !== undefined) (data as any).customSections = JSON.stringify(customSections);
 
     const insurancePage = await db.insurancePage.update({
       where: { id },
@@ -208,7 +212,7 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json({
-      insurancePage: { ...insurancePage, features: JSON.parse(insurancePage.features), customSections: JSON.parse(insurancePage.customSections || '[]') },
+      insurancePage: { ...insurancePage, features: JSON.parse(insurancePage.features), customSections: JSON.parse((insurancePage as any).customSections || '[]') },
     });
   } catch (error) {
     console.error("Error updating insurance page:", error);

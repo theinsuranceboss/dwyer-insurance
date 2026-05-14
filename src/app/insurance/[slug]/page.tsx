@@ -754,7 +754,7 @@ export default function InsuranceSlugPage() {
         <InsuranceHero page={currentPage} settings={siteData.settings} />
         <DescriptionSection page={currentPage} settings={siteData.settings} />
         <FeaturesGrid page={currentPage} settings={siteData.settings} />
-        <CustomSections sections={currentPage.customSections} settings={siteData.settings} />
+        {currentPage.customSections && <CustomSections sections={currentPage.customSections} settings={siteData.settings} />}
 
         <OtherInsuranceTypes
           allPages={siteData.insurancePages}

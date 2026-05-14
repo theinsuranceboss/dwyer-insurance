@@ -42,10 +42,11 @@ export async function GET() {
       agentInfoMap[a.key] = a.value;
     }
 
-    // Parse features JSON for insurance pages
+    // Parse features and custom sections JSON for insurance pages
     const parsedInsurancePages = insurancePages.map((page) => ({
       ...page,
-      features: JSON.parse(page.features) as string[],
+      features: JSON.parse(page.features || "[]") as string[],
+      customSections: JSON.parse((page as any).customSections || "[]") as any[],
     }));
 
     return NextResponse.json({
