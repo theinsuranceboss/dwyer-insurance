@@ -5,13 +5,10 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 // Order of priority for connection strings:
-// 1. Vercel Postgres (if available)
-// 2. Environment DATABASE_URL (if set)
-// 3. Hardcoded Supabase pooler fallback (Port 6543 is safer for serverless)
-const connectionString = 
-  process.env.POSTGRES_PRISMA_URL || 
-  process.env.DATABASE_URL || 
-  "postgres://postgres.icnznvlgwkagaupnjlit:ZqfjKZ%21FW5pG8Pj@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
+// Ignore Vercel's out-of-sync database and use the master Supabase database.
+// The password is properly URL-encoded (%21 instead of !) to prevent connection parsing errors.
+const connectionString = "postgres://postgres:ZqfjKZ%21FW5pG8Pj@db.icnznvlgwkagaupnjlit.supabase.co:5432/postgres";
+
 
 export const db =
   globalForPrisma.prisma ??
