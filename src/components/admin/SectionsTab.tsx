@@ -287,7 +287,7 @@ export default function SectionsTab() {
                                  const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : { items: JSON.parse(editData.content || '[]') };
                                  setEditData({ ...editData, content: JSON.stringify({ ...current, itemTitleSize: parseInt(e.target.value) || '' }) });
                                }}
-                               placeholder="Default: 14"
+                               placeholder="Default: 13"
                              />
                            </div>
                            <div className="space-y-2">

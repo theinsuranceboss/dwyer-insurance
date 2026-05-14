@@ -401,13 +401,13 @@ function HeroSection({
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
-          className="font-bold text-white leading-tight"
+          className="font-bold text-white leading-[1.1] mb-6"
           style={{
             fontFamily: settings.headingFont,
-            fontSize: `${settings.heroTitleSize || settings.headingFontSize}px`,
+            fontSize: `${settings.heroTitleSize || (parseInt(settings.headingFontSize) * 1.5 || 64)}px`,
           }}
         >
-          {heroSection?.title || settings.heroTitle}
+          {heroSection?.title || "Dwyer Insurance Group"}
           {settings.heroSubtitle && (
             <span
               className="block mt-2"
@@ -427,13 +427,13 @@ function HeroSection({
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className={`mt-6 text-white/80 ${isLeft || isRight ? "" : "max-w-2xl mx-auto"}`}
+          className={`mt-6 text-white/90 leading-relaxed ${isLeft || isRight ? "" : "max-w-2xl mx-auto"}`}
           style={{
-            fontSize: `${settings.heroDescSize || "18"}px`,
+            fontSize: `${settings.heroDescSize || "20"}px`,
             ...(isLeft ? { marginLeft: 0 } : isRight ? { marginRight: 0, marginLeft: "auto" } : undefined)
           }}
         >
-          {heroSection?.description || settings.heroDescription}
+          {heroSection?.description || "Protecting what matters most to you with comprehensive insurance solutions tailored to your unique needs."}
         </motion.p>
 
         {/* Rating */}
@@ -581,7 +581,7 @@ function ServicesSection({
                         color: settings.secondaryColor,
                         fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemTitleSize)
                           ? `${JSON.parse(servicesSection.content).itemTitleSize}px`
-                          : '14px',
+                          : '13px',
                         lineHeight: "1.2"
                       }}
                     >
@@ -741,7 +741,7 @@ function WhyChooseUsSection({
                     className="font-bold mb-2" 
                     style={{ 
                       color: settings.secondaryColor,
-                      fontSize: `${reason.titleSize || globalTitleSize}px`,
+                      fontSize: `${reason.titleSize || globalTitleSize || 13}px`,
                       lineHeight: "1.3"
                     }}
                   >
