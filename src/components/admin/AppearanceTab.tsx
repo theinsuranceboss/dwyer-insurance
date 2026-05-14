@@ -48,7 +48,14 @@ export default function AppearanceTab() {
       if (exists) {
         return prev.map((s) => (s.key === key ? { ...s, value } : s));
       }
-      return [...prev, { id: `new-${key}`, key, value, type: 'text', category: 'footer', label: key }];
+      return [...prev, { 
+        id: `new-${key}`, 
+        key, 
+        value, 
+        type: (key.includes('Size') || key.includes('FontSize')) ? 'size' : 'text', 
+        category: 'appearance', 
+        label: key 
+      }];
     });
   };
 
@@ -80,8 +87,14 @@ export default function AppearanceTab() {
     <div className="space-y-6 max-w-4xl">
       {APPEARANCE_SECTIONS.map((section) => {
         const sectionSettings = section.keys
-          .map((key) => getSetting(key))
-          .filter((s): s is SiteSetting => !!s);
+          .map((key) => getSetting(key) || { 
+            id: `missing-${key}`, 
+            key, 
+            value: '', 
+            type: (key.includes('Size') || key.includes('FontSize')) ? 'size' : 'text', 
+            label: key,
+            category: 'appearance'
+          });
 
         return (
           <Card key={section.title}>

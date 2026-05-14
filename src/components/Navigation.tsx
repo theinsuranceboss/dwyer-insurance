@@ -112,6 +112,19 @@ export default function Navigation({
   );
 
   return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          ${settings.baseFontSize ? `font-size: ${settings.baseFontSize}px;` : ""}
+        }
+        h1, h2, h3, h4, h5, h6 {
+          ${settings.headingFontSize ? `font-size: ${settings.headingFontSize}px !important;` : ""}
+        }
+        /* Maintain body font size if root is changed */
+        body {
+          font-size: 1rem;
+        }
+      `}} />
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -372,5 +385,6 @@ export default function Navigation({
         )}
       </AnimatePresence>
     </motion.nav>
+    </>
   );
 }

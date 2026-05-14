@@ -538,7 +538,6 @@ function ServicesSection({
                       className="text-lg group-hover:transition-colors"
                       style={{ color: settings.secondaryColor }}
                     >
-                      {page.emoji && <span className="mr-2">{page.emoji}</span>}
                       {page.title}
                     </CardTitle>
                   </CardHeader>

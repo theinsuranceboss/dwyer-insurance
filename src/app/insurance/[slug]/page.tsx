@@ -174,17 +174,7 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
             </motion.div>
           )}
 
-          {/* Large prominent emoji before title */}
-          {page.emoji && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.05 }}
-              className="text-6xl sm:text-7xl lg:text-8xl mb-4"
-            >
-              {page.emoji}
-            </motion.div>
-          )}
+
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -280,14 +270,7 @@ function DescriptionSection({ page, settings }: { page: InsurancePageData; setti
                 />
 
                 <div className="relative z-10">
-                  {/* Large prominent emoji instead of icon circle */}
-                  <motion.div
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="text-6xl lg:text-7xl mb-6"
-                  >
-                    {page.emoji || "🛡️"}
-                  </motion.div>
+
 
                   <h3
                     className="text-2xl lg:text-3xl font-bold mb-3"
@@ -757,7 +740,7 @@ export default function InsuranceSlugPage() {
         <InsuranceHero page={currentPage} settings={siteData.settings} />
         <DescriptionSection page={currentPage} settings={siteData.settings} />
         <FeaturesGrid page={currentPage} settings={siteData.settings} />
-        <ProTipCallout page={currentPage} settings={siteData.settings} />
+
         <OtherInsuranceTypes
           allPages={siteData.insurancePages}
           currentSlug={slug}

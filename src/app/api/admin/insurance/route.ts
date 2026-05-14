@@ -19,10 +19,21 @@ export async function GET(request: NextRequest) {
       orderBy: { order: "asc" },
     });
     // Parse features JSON for each page
-    const parsed = insurancePages.map((page) => ({
-      ...page,
-      features: JSON.parse(page.features) as string[],
-    }));
+    const parsed = insurancePages.map((page) => {
+      let features: string[] = [];
+      try {
+        if (page.features) {
+          const parsedFeatures = JSON.parse(page.features);
+          features = Array.isArray(parsedFeatures) ? parsedFeatures : [];
+        }
+      } catch (e) {
+        console.error(`Error parsing features for page ${page.slug}:`, e);
+      }
+      return {
+        ...page,
+        features,
+      };
+    });
     return NextResponse.json({ insurancePages: parsed });
   } catch (error) {
     console.error("Error fetching insurance pages:", error);

@@ -62,7 +62,7 @@ export default function MenuTab() {
       toast({ title: 'Success', description: 'Menu item created' });
       setShowAdd(null);
       setAddChildTo(null);
-      setNewItem({ label: '', href: '/', order: 0, visible: true, isDropdown: false, parent: null, iconName: '' });
+      setNewItem({ label: '', href: '/', order: 0, visible: true, isDropdown: false, parent: null as string | null, iconName: '' });
       fetchItems();
     } catch {
       toast({ title: 'Error', description: 'Failed to create menu item', variant: 'destructive' });
@@ -208,6 +208,23 @@ export default function MenuTab() {
                   <Input type="number" value={newItem.order} onChange={(e) => setNewItem({ ...newItem, order: parseInt(e.target.value) || 0 })} className="w-20" />
                 </div>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Parent Menu Item (Sub-menu)</Label>
+              <Select 
+                value={newItem.parent || '__none__'} 
+                onValueChange={(v) => setNewItem({ ...newItem, parent: v === '__none__' ? null : v, isDropdown: false })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="None (Top-level)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">None (Top-level)</SelectItem>
+                  {items.filter(i => i.isDropdown || !i.parent).map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex gap-2">
               <Button onClick={handleAdd} className="bg-[#0033A0] hover:bg-[#001e60]">Create</Button>
@@ -363,7 +380,6 @@ function MenuRow({
                   <Label className="text-xs">Dropdown</Label>
                 </div>
               )}
-              {isChild && (
                 <div className="flex items-center gap-2">
                   <Label className="text-xs">Parent:</Label>
                   <Select
@@ -375,13 +391,12 @@ function MenuRow({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__none__">None (Top-level)</SelectItem>
-                      {dropdownParents.map((p) => (
+                      {items.filter(i => i.id !== editData.id && (i.isDropdown || !i.parent)).map((p) => (
                         <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-              )}
             </div>
           </div>
         ) : (

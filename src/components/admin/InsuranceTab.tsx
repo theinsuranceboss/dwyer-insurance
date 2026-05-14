@@ -32,6 +32,9 @@ export default function InsuranceTab() {
     tip: '', iconColor: '#0033A0', iconBgColor: '#e8edf5', iconName: 'Shield',
     order: 0, visible: true,
   });
+  const [editingHome, setEditingHome] = useState(false);
+  const [homeData, setHomeData] = useState<Record<string, string>>({});
+  const [savingHome, setSavingHome] = useState(false);
 
   const fetchPages = useCallback(async () => {
     try {
@@ -126,27 +129,72 @@ export default function InsuranceTab() {
 
       <div className="grid gap-4">
         {/* Virtual Home Page Entry */}
-        <Card className="bg-blue-50/50 border-blue-100">
-          <CardContent className="pt-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3 flex-1">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-blue-100">
-                  <Home className="w-5 h-5 text-[#0033A0]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-[#001e60]">Home Page</h3>
-                    <Badge variant="outline" className="text-[10px]">/</Badge>
+        {editingHome ? (
+          <HomepageForm
+            data={homeData}
+            onChange={(newData) => setHomeData(newData)}
+            onSave={async () => {
+              setSavingHome(true);
+              try {
+                const res = await apiFetch('/api/admin/settings', {
+                  method: 'PUT',
+                  body: JSON.stringify({ settings: Object.entries(homeData).map(([key, value]) => ({ key, value })) }),
+                });
+                if (!res.ok) throw new Error();
+                toast({ title: 'Success', description: 'Home page updated' });
+                setEditingHome(false);
+              } catch {
+                toast({ title: 'Error', description: 'Failed to update home page', variant: 'destructive' });
+              } finally {
+                setSavingHome(false);
+              }
+            }}
+            onCancel={() => setEditingHome(false)}
+            isSaving={savingHome}
+          />
+        ) : (
+          <Card className="bg-blue-50/50 border-blue-100">
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-blue-100">
+                    <Home className="w-5 h-5 text-[#0033A0]" />
                   </div>
-                  <p className="text-sm text-gray-500 mt-0.5">The main landing page of your website</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-[#001e60]">Home Page</h3>
+                      <Badge variant="outline" className="text-[10px]">/</Badge>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-0.5">The main landing page of your website</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    setLoading(true);
+                    try {
+                      const res = await apiFetch('/api/admin/settings');
+                      const data = await res.json();
+                      const settings = data.settings || [];
+                      const homeFields = ['heroTitle', 'heroSubtitle', 'heroDescription', 'heroBannerImage', 'heroCtaText', 'heroCtaLink'];
+                      const extracted: Record<string, string> = {};
+                      homeFields.forEach(f => {
+                        extracted[f] = settings.find((s: any) => s.key === f)?.value || '';
+                      });
+                      setHomeData(extracted);
+                      setEditingHome(true);
+                    } catch {
+                      toast({ title: 'Error', description: 'Failed to load home page data', variant: 'destructive' });
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}>
+                    Edit
+                  </Button>
                 </div>
               </div>
-              <div className="flex gap-2 flex-shrink-0">
-                <p className="text-xs text-gray-400 mt-2 mr-2">Edit via Appearance tab</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {pages.map((page) =>
           editingId === page.id ? (
@@ -598,6 +646,93 @@ function InsuranceForm({
         <div className="flex gap-2 pt-2">
           <Button onClick={onSave} className="bg-[#0033A0] hover:bg-[#001e60]">
             <Save className="w-4 h-4 mr-2" /> {isNew ? 'Create' : 'Save Changes'}
+          </Button>
+          <Button variant="outline" onClick={onCancel}>Cancel</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function HomepageForm({
+  data,
+  onChange,
+  onSave,
+  onCancel,
+  isSaving
+}: {
+  data: Record<string, string>;
+  onChange: (data: Record<string, string>) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  isSaving: boolean;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const bannerFileRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <Card className="border-blue-200 bg-blue-50/30">
+      <CardContent className="pt-6 space-y-4">
+        <h3 className="font-semibold text-[#001e60]">Edit Home Page</h3>
+        <div className="grid grid-cols-1 gap-4">
+          <div className="space-y-2">
+            <Label>Hero Title</Label>
+            <Input value={data.heroTitle || ''} onChange={(e) => onChange({ ...data, heroTitle: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Hero Subtitle</Label>
+            <Input value={data.heroSubtitle || ''} onChange={(e) => onChange({ ...data, heroSubtitle: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Hero Description</Label>
+            <Textarea value={data.heroDescription || ''} onChange={(e) => onChange({ ...data, heroDescription: e.target.value })} rows={3} />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Hero Banner Image</Label>
+          <div className="flex items-center gap-2">
+            <Input value={data.heroBannerImage || ''} onChange={(e) => onChange({ ...data, heroBannerImage: e.target.value })} placeholder="/uploads/..." />
+            <input
+              ref={bannerFileRef}
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setUploading(true);
+                try {
+                  const res = await apiUpload(file);
+                  onChange({ ...data, heroBannerImage: res.url });
+                } catch {
+                  // silent
+                } finally {
+                  setUploading(false);
+                }
+              }}
+              className="hidden"
+            />
+            <Button size="sm" variant="outline" onClick={() => bannerFileRef.current?.click()} disabled={uploading}>
+              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>CTA Text</Label>
+            <Input value={data.heroCtaText || ''} onChange={(e) => onChange({ ...data, heroCtaText: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>CTA Link</Label>
+            <Input value={data.heroCtaLink || ''} onChange={(e) => onChange({ ...data, heroCtaLink: e.target.value })} />
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <Button onClick={onSave} className="bg-[#0033A0] hover:bg-[#001e60]" disabled={isSaving}>
+            {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            Save Home Page
           </Button>
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
         </div>
