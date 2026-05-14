@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
       return {
         ...page,
         features,
+        customSections: JSON.parse(page.customSections || '[]'),
       };
     });
     return NextResponse.json({ insurancePages: parsed });
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor, emoji, bannerTextPosition, bannerCta1Text, bannerCta1Color, bannerCta1Link, bannerCta2Text, bannerCta2Color, bannerCta2Link } = body as {
+    const { slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor, emoji, bannerTextPosition, bannerCta1Text, bannerCta1Color, bannerCta1Link, bannerCta2Text, bannerCta2Color, bannerCta2Link, customSections } = body as {
       slug: string;
       title: string;
       tagline?: string;
@@ -76,6 +77,7 @@ export async function POST(request: NextRequest) {
       bannerCta2Text?: string;
       bannerCta2Color?: string;
       bannerCta2Link?: string;
+      customSections?: any[];
     };
 
     if (!slug || !title) {
@@ -112,11 +114,12 @@ export async function POST(request: NextRequest) {
         bannerCta2Text: bannerCta2Text ?? "",
         bannerCta2Color: bannerCta2Color ?? "",
         bannerCta2Link: bannerCta2Link ?? "",
+        customSections: JSON.stringify(customSections ?? []),
       },
     });
 
     return NextResponse.json(
-      { insurancePage: { ...insurancePage, features: JSON.parse(insurancePage.features) } },
+      { insurancePage: { ...insurancePage, features: JSON.parse(insurancePage.features), customSections: JSON.parse(insurancePage.customSections) } },
       { status: 201 }
     );
   } catch (error) {
@@ -134,7 +137,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { id, slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor, emoji, bannerTextPosition, bannerCta1Text, bannerCta1Color, bannerCta1Link, bannerCta2Text, bannerCta2Color, bannerCta2Link } = body as {
+    const { id, slug, title, tagline, description, features, tip, iconColor, iconBgColor, iconName, order, visible, bannerImage, bannerColorFrom, bannerColorTo, backgroundColor, cardAccentColor, textColor, emoji, bannerTextPosition, bannerCta1Text, bannerCta1Color, bannerCta1Link, bannerCta2Text, bannerCta2Color, bannerCta2Link, customSections } = body as {
       id: string;
       slug?: string;
       title?: string;
@@ -161,6 +164,7 @@ export async function PUT(request: NextRequest) {
       bannerCta2Text?: string;
       bannerCta2Color?: string;
       bannerCta2Link?: string;
+      customSections?: any[];
     };
 
     if (!id) {
@@ -196,6 +200,7 @@ export async function PUT(request: NextRequest) {
     if (bannerCta2Text !== undefined) data.bannerCta2Text = bannerCta2Text;
     if (bannerCta2Color !== undefined) data.bannerCta2Color = bannerCta2Color;
     if (bannerCta2Link !== undefined) data.bannerCta2Link = bannerCta2Link;
+    if (customSections !== undefined) data.customSections = JSON.stringify(customSections);
 
     const insurancePage = await db.insurancePage.update({
       where: { id },
@@ -203,7 +208,7 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json({
-      insurancePage: { ...insurancePage, features: JSON.parse(insurancePage.features) },
+      insurancePage: { ...insurancePage, features: JSON.parse(insurancePage.features), customSections: JSON.parse(insurancePage.customSections || '[]') },
     });
   } catch (error) {
     console.error("Error updating insurance page:", error);

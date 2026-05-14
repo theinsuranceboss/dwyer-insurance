@@ -356,6 +356,173 @@ function InsuranceForm({
           <Input value={data.tip || ''} onChange={(e) => onChange({ ...data, tip: e.target.value })} />
         </div>
 
+        <Separator className="my-4" />
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-bold text-[#001e60] uppercase tracking-wider">Custom Sections</h4>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-8 border-[#0033A0] text-[#0033A0]"
+            onClick={() => {
+              const current = data.customSections || [];
+              onChange({ ...data, customSections: [...current, { type: 'text', title: 'New Section', subtitle: '', description: '', items: [], visible: true }] });
+            }}
+          >
+            <Plus className="w-3 h-3 mr-1" /> Add Custom Section
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          {(data.customSections || []).map((section: any, idx: number) => (
+            <Card key={idx} className="bg-gray-50/50 border-dashed border-2 relative group">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="absolute top-2 right-2 h-6 w-6 p-0 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => {
+                  const current = [...(data.customSections || [])];
+                  current.splice(idx, 1);
+                  onChange({ ...data, customSections: current });
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+              <CardContent className="pt-6 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Section Type</Label>
+                    <Select value={section.type || 'text'} onValueChange={(v) => {
+                      const current = [...(data.customSections || [])];
+                      current[idx] = { ...section, type: v };
+                      onChange({ ...data, customSections: current });
+                    }}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text & Title</SelectItem>
+                        <SelectItem value="banner">Image Banner</SelectItem>
+                        <SelectItem value="icons">Icons with Text</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Title</Label>
+                    <Input className="h-8 text-xs" value={section.title || ''} onChange={(e) => {
+                      const current = [...(data.customSections || [])];
+                      current[idx] = { ...section, title: e.target.value };
+                      onChange({ ...data, customSections: current });
+                    }} />
+                  </div>
+                </div>
+
+                {section.type === 'banner' && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Image URL</Label>
+                    <Input className="h-8 text-xs" value={section.image || ''} onChange={(e) => {
+                      const current = [...(data.customSections || [])];
+                      current[idx] = { ...section, image: e.target.value };
+                      onChange({ ...data, customSections: current });
+                    }} />
+                  </div>
+                )}
+
+                {(section.type === 'text' || section.type === 'banner') && (
+                  <>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Subtitle</Label>
+                      <Input className="h-8 text-xs" value={section.subtitle || ''} onChange={(e) => {
+                        const current = [...(data.customSections || [])];
+                        current[idx] = { ...section, subtitle: e.target.value };
+                        onChange({ ...data, customSections: current });
+                      }} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Description</Label>
+                      <Textarea className="text-xs min-h-[60px]" value={section.description || ''} onChange={(e) => {
+                        const current = [...(data.customSections || [])];
+                        current[idx] = { ...section, description: e.target.value };
+                        onChange({ ...data, customSections: current });
+                      }} />
+                    </div>
+                  </>
+                )}
+
+                {section.type === 'icons' && (
+                  <div className="space-y-2 border-t pt-2 mt-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[10px] font-bold">Items List</Label>
+                      <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]" onClick={() => {
+                        const current = [...(data.customSections || [])];
+                        const items = section.items || [];
+                        current[idx] = { ...section, items: [...items, { icon: 'Shield', title: 'New Item', subtitle: '', desc: '' }] };
+                        onChange({ ...data, customSections: current });
+                      }}>
+                        + Add Item
+                      </Button>
+                    </div>
+                    <div className="grid gap-2">
+                      {(section.items || []).map((item: any, sIdx: number) => (
+                        <div key={sIdx} className="p-2 border rounded bg-white relative group/item">
+                           <button 
+                             className="absolute top-1 right-1 text-red-400 hover:text-red-600 opacity-0 group-hover/item:opacity-100"
+                             onClick={() => {
+                               const current = [...(data.customSections || [])];
+                               const items = [...(section.items || [])];
+                               items.splice(sIdx, 1);
+                               current[idx] = { ...section, items };
+                               onChange({ ...data, customSections: current });
+                             }}
+                           >
+                             <X className="w-3 h-3" />
+                           </button>
+                           <div className="grid grid-cols-2 gap-2">
+                             <Input className="h-7 text-[10px]" value={item.icon || ''} placeholder="Icon" onChange={(e) => {
+                               const current = [...(data.customSections || [])];
+                               const items = [...(section.items || [])];
+                               items[sIdx] = { ...item, icon: e.target.value };
+                               current[idx] = { ...section, items };
+                               onChange({ ...data, customSections: current });
+                             }} />
+                             <Input className="h-7 text-[10px]" value={item.title || ''} placeholder="Title" onChange={(e) => {
+                               const current = [...(data.customSections || [])];
+                               const items = [...(section.items || [])];
+                               items[sIdx] = { ...item, title: e.target.value };
+                               current[idx] = { ...section, items };
+                               onChange({ ...data, customSections: current });
+                             }} />
+                           </div>
+                           <Input className="h-7 text-[10px] mt-1" value={item.subtitle || ''} placeholder="Subtitle" onChange={(e) => {
+                               const current = [...(data.customSections || [])];
+                               const items = [...(section.items || [])];
+                               items[sIdx] = { ...item, subtitle: e.target.value };
+                               current[idx] = { ...section, items };
+                               onChange({ ...data, customSections: current });
+                           }} />
+                           <Textarea className="text-[10px] min-h-[40px] mt-1" value={item.desc || ''} placeholder="Description" onChange={(e) => {
+                               const current = [...(data.customSections || [])];
+                               const items = [...(section.items || [])];
+                               items[sIdx] = { ...item, desc: e.target.value };
+                               current[idx] = { ...section, items };
+                               onChange({ ...data, customSections: current });
+                           }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 pt-2">
+                  <Switch checked={section.visible !== false} onCheckedChange={(v) => {
+                    const current = [...(data.customSections || [])];
+                    current[idx] = { ...section, visible: v };
+                    onChange({ ...data, customSections: current });
+                  }} />
+                  <Label className="text-[10px]">Section Visible</Label>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
         <div className="grid grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label>Icon Color</Label>

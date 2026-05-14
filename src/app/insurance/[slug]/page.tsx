@@ -58,6 +58,7 @@ interface InsurancePageData {
   bannerTaglineSize: number;
   bannerDescriptionSize: number;
   featureTextSize: number;
+  customSections: any[];
 }
 
 interface MenuItemData {
@@ -533,6 +534,74 @@ function OtherInsuranceTypes({
   );
 }
 
+// ─── Custom Sections ──────────────────────────────────────────────
+function CustomSections({ sections, settings }: { sections: any[]; settings: Record<string, string> }) {
+  if (!sections || sections.length === 0) return null;
+
+  return (
+    <>
+      {sections.filter(s => s.visible !== false).map((section, idx) => (
+        <section key={idx} className="py-20 lg:py-28 bg-white border-t border-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {section.type === 'banner' && section.image && (
+              <div className="relative rounded-3xl overflow-hidden min-h-[400px] flex items-center mb-16 shadow-2xl">
+                <div className="absolute inset-0">
+                  <img src={section.image} className="w-full h-full object-cover" alt={section.title} />
+                  <div className="absolute inset-0 bg-black/40" />
+                </div>
+                <div className="relative z-10 p-12 text-center w-full">
+                  <h2 className="text-4xl font-bold text-white mb-4">{section.title}</h2>
+                  {section.subtitle && <p className="text-xl text-white/90 mb-6">{section.subtitle}</p>}
+                  {section.description && <p className="text-lg text-white/80 max-w-2xl mx-auto">{section.description}</p>}
+                </div>
+              </div>
+            )}
+
+            {(section.type === 'text' || (section.type === 'banner' && !section.image)) && (
+              <AnimatedSection className="text-center mb-16">
+                {section.subtitle && (
+                   <Badge className="mb-4" style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}>
+                     {section.subtitle}
+                   </Badge>
+                )}
+                <h2 className="text-3xl sm:text-4xl font-bold mb-6" style={{ color: settings.secondaryColor }}>
+                  {section.title}
+                </h2>
+                {section.description && (
+                  <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                    {section.description}
+                  </p>
+                )}
+              </AnimatedSection>
+            )}
+
+            {section.type === 'icons' && section.items && section.items.length > 0 && (
+              <div className="space-y-16">
+                <div className="text-center">
+                  <h2 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: settings.secondaryColor }}>{section.title}</h2>
+                  {section.subtitle && <p className="text-lg text-muted-foreground">{section.subtitle}</p>}
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {section.items.map((item: any, i: number) => (
+                    <div key={i} className="group p-8 rounded-2xl bg-gray-50/50 hover:bg-white border border-transparent hover:border-gray-100 transition-all hover:shadow-xl">
+                      <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform" style={{ color: settings.primaryColor }}>
+                         <span className="text-2xl">{item.icon || '🛡️'}</span>
+                      </div>
+                      <h3 className="text-xl font-bold mb-2" style={{ color: settings.secondaryColor }}>{item.title}</h3>
+                      {item.subtitle && <p className="text-sm font-semibold mb-3" style={{ color: settings.primaryColor }}>{item.subtitle}</p>}
+                      <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      ))}
+    </>
+  );
+}
+
 // CTASection is now imported from @/components/CTASection
 
 // ─── 404 Not Found ─────────────────────────────────────────────────
@@ -685,6 +754,7 @@ export default function InsuranceSlugPage() {
         <InsuranceHero page={currentPage} settings={siteData.settings} />
         <DescriptionSection page={currentPage} settings={siteData.settings} />
         <FeaturesGrid page={currentPage} settings={siteData.settings} />
+        <CustomSections sections={currentPage.customSections} settings={siteData.settings} />
 
         <OtherInsuranceTypes
           allPages={siteData.insurancePages}

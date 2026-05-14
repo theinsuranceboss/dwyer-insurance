@@ -549,72 +549,70 @@ function ServicesSection({
           {insurancePages.map((page, i) => (
             <AnimatedSection key={page.id} delay={i * 0.04}>
               <a href={`/insurance/${page.slug}`}>
-                <Card
-                  className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full"
+                <div
+                  className="group h-full p-6 rounded-2xl transition-all duration-300 hover:shadow-md border border-transparent hover:border-gray-100 bg-white/50 backdrop-blur-sm cursor-pointer"
                   style={{ borderRadius: `${settings.borderRadius}px` }}
                 >
-                  <CardHeader className="pb-3">
-                    <div
-                      className="rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform mb-4"
-                      style={{ 
-                        backgroundColor: `${settings.primaryColor}15`,
-                        width: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
-                          ? `${JSON.parse(servicesSection.content).itemIconSize * 2}px`
-                          : '48px',
-                        height: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
-                          ? `${JSON.parse(servicesSection.content).itemIconSize * 2}px`
-                          : '48px'
-                      }}
-                    >
-                      {page.emoji ? (
-                        <span style={{ 
-                          fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
-                            ? `${JSON.parse(servicesSection.content).itemIconSize}px`
-                            : '20px'
-                        }}>
-                          {page.emoji}
-                        </span>
-                      ) : (
-                        <DynamicIcon 
-                          name={page.iconName || 'Shield'} 
-                          size={(servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
-                            ? JSON.parse(servicesSection.content).itemIconSize
-                            : 24} 
-                          style={{ color: settings.primaryColor }} 
-                        />
-                      )}
-                    </div>
-                    <CardTitle
-                      className="group-hover:transition-colors"
-                      style={{ 
-                        color: settings.secondaryColor,
-                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemTitleSize)
-                          ? `${JSON.parse(servicesSection.content).itemTitleSize}px`
-                          : '14px'
-                      }}
-                    >
-                      {page.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription 
-                      className="text-muted-foreground"
-                      style={{ 
-                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemDescSize)
-                          ? `${JSON.parse(servicesSection.content).itemDescSize}px`
-                          : '12px'
-                      }}
-                    >
-                      {page.tagline}
-                    </CardDescription>
-                    <div
-                      className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all"
-                      style={{ color: settings.primaryColor }}
-                    >
-                      Learn More <ArrowRight className="w-4 h-4 ml-1" />
-                    </div>
-                  </CardContent>
-                </Card>
+                  <div
+                    className="rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform mb-4"
+                    style={{ 
+                      backgroundColor: `${settings.primaryColor}15`,
+                      width: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
+                        ? `${JSON.parse(servicesSection.content).itemIconSize * 1.8}px`
+                        : '40px',
+                      height: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
+                        ? `${JSON.parse(servicesSection.content).itemIconSize * 1.8}px`
+                        : '40px'
+                    }}
+                  >
+                    {page.emoji ? (
+                      <span style={{ 
+                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
+                          ? `${JSON.parse(servicesSection.content).itemIconSize}px`
+                          : '18px'
+                      }}>
+                        {page.emoji}
+                      </span>
+                    ) : (
+                      <DynamicIcon 
+                        name={page.iconName || 'Shield'} 
+                        size={(servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
+                          ? JSON.parse(servicesSection.content).itemIconSize
+                          : 20} 
+                        style={{ color: settings.primaryColor }} 
+                      />
+                    )}
+                  </div>
+                  <h3
+                    className="font-bold mb-3 group-hover:transition-colors"
+                    style={{ 
+                      color: settings.secondaryColor,
+                      fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemTitleSize)
+                        ? `${JSON.parse(servicesSection.content).itemTitleSize}px`
+                        : '14px',
+                      lineHeight: "1.4"
+                    }}
+                  >
+                    {page.title}
+                  </h3>
+                  <p 
+                    className="text-muted-foreground leading-relaxed"
+                    style={{ 
+                      fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemDescSize)
+                        ? `${JSON.parse(servicesSection.content).itemDescSize}px`
+                        : '12px',
+                      lineHeight: "1.6"
+                    }}
+                  >
+                    {page.tagline}
+                  </p>
+                  <div
+                    className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all opacity-0 group-hover:opacity-100"
+                    style={{ color: settings.primaryColor }}
+                  >
+                    Learn More <ArrowRight className="w-4 h-4 ml-1" />
+                  </div>
+                </div>
               </a>
             </AnimatedSection>
           ))}

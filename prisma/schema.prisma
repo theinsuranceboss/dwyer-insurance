@@ -67,6 +67,7 @@ model InsurancePage {
   bannerTitleSize   Int      @default(52) // Banner title font size in px
   // Emoji
   emoji             String   @default("") // Emoji for display in cards/nav
+  customSections    String   @default("[]") // JSON array of custom section objects
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
