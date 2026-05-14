@@ -691,9 +691,15 @@ function WhyChooseUsSection({
   const subtitleSizePct = contentData.subtitleSizePct ?? 100;
   const itemTitleSizePct = contentData.itemTitleSizePct ?? 100;
   const itemDescSizePct = contentData.itemDescSizePct ?? 100;
+  const itemTitleColor = contentData.itemTitleColor || settings.secondaryColor;
+  const itemDescColor = contentData.itemDescColor || "text-muted-foreground";
 
   return (
-    <section id="why-choose-us" className="py-20 lg:py-28 bg-white">
+    <section 
+      id="why-choose-us" 
+      className="py-20 lg:py-28 relative overflow-hidden"
+      style={{ backgroundColor: settings.whyChooseUsBgColor || "transparent" }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
           <div className="flex items-center justify-center gap-2 mb-4">
