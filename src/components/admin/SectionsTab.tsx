@@ -213,6 +213,18 @@ export default function SectionsTab() {
                             placeholder="e.g. 14"
                           />
                         </div>
+                        <div className="space-y-2 sm:col-span-1">
+                          <Label className="text-sm font-medium">Desc Size (px)</Label>
+                          <Input
+                            type="number"
+                            value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).descriptionSize || '') : ''}
+                            onChange={(e) => {
+                              const content = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
+                              setEditData({ ...editData, content: JSON.stringify({ ...content, descriptionSize: parseInt(e.target.value) || '' }) });
+                            }}
+                            placeholder="e.g. 18"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">Description</Label>
@@ -275,7 +287,7 @@ export default function SectionsTab() {
                                  const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : { items: JSON.parse(editData.content || '[]') };
                                  setEditData({ ...editData, content: JSON.stringify({ ...current, itemTitleSize: parseInt(e.target.value) || '' }) });
                                }}
-                               placeholder="Default: 24"
+                               placeholder="Default: 14"
                              />
                            </div>
                            <div className="space-y-2">
@@ -287,7 +299,7 @@ export default function SectionsTab() {
                                  const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : { items: JSON.parse(editData.content || '[]') };
                                  setEditData({ ...editData, content: JSON.stringify({ ...current, itemDescSize: parseInt(e.target.value) || '' }) });
                                }}
-                               placeholder="Default: 18"
+                               placeholder="Default: 12"
                              />
                            </div>
                            <div className="space-y-2">

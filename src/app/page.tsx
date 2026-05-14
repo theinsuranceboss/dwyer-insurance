@@ -532,7 +532,14 @@ function ServicesSection({
           >
             {servicesSection?.title || "Comprehensive Insurance Solutions"}
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p 
+            className="text-muted-foreground max-w-2xl mx-auto"
+            style={{ 
+              fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).descriptionSize) 
+                ? `${JSON.parse(servicesSection.content).descriptionSize}px` 
+                : "1.125rem"
+            }}
+          >
             {servicesSection?.description ||
               "From auto and home to life and business, we offer a full range of insurance products to protect every aspect of your life."}
           </p>
@@ -583,7 +590,7 @@ function ServicesSection({
                         color: settings.secondaryColor,
                         fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemTitleSize)
                           ? `${JSON.parse(servicesSection.content).itemTitleSize}px`
-                          : '18px'
+                          : '14px'
                       }}
                     >
                       {page.title}
@@ -595,7 +602,7 @@ function ServicesSection({
                       style={{ 
                         fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemDescSize)
                           ? `${JSON.parse(servicesSection.content).itemDescSize}px`
-                          : '14px'
+                          : '12px'
                       }}
                     >
                       {page.tagline}
@@ -675,8 +682,10 @@ function WhyChooseUsSection({
 
   const sectionContent = (whySection?.content && !Array.isArray(JSON.parse(whySection.content))) ? JSON.parse(whySection.content) : {};
   const globalIconSize = sectionContent.itemIconSize || 32;
-  const globalTitleSize = sectionContent.itemTitleSize || 24;
-  const globalDescSize = sectionContent.itemDescSize || 18;
+  const globalTitleSize = sectionContent.itemTitleSize || 14;
+  const globalDescSize = sectionContent.itemDescSize || 12;
+  const sectionTitleSize = sectionContent.titleSize;
+  const sectionDescSize = sectionContent.descriptionSize;
 
   return (
     <section id="why-choose-us" className="py-20 lg:py-28 bg-white">
@@ -702,46 +711,53 @@ function WhyChooseUsSection({
             style={{ 
               color: settings.secondaryColor, 
               fontFamily: settings.headingFont,
-              fontSize: (whySection?.content && !Array.isArray(JSON.parse(whySection.content)) && JSON.parse(whySection.content).titleSize) 
-                ? `${JSON.parse(whySection.content).titleSize}px` 
-                : undefined
+              fontSize: sectionTitleSize ? `${sectionTitleSize}px` : undefined
             }}
           >
             {whySection?.title || "Why Families Trust Dwyer Insurance Group"}
           </h2>
-          <p className="text-muted-foreground text-xl max-w-3xl mx-auto leading-relaxed">
+          <p 
+            className="text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+            style={{ 
+              fontSize: sectionDescSize ? `${sectionDescSize}px` : "1.125rem" // text-xl default
+            }}
+          >
             {whySection?.description ||
               "Choosing the right insurance agent makes all the difference. Here's why hundreds of families trust Dwyer Insurance Group."}
           </p>
         </AnimatedSection>
  
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {reasons.map((reason: any, i: number) => (
             <AnimatedSection key={i} delay={i * 0.08}>
-              <div className="group text-center">
+              <div className="group h-full p-6 rounded-2xl transition-all duration-300 hover:shadow-md border border-transparent hover:border-gray-100 bg-white/50 backdrop-blur-sm">
                 <div
-                  className="rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform shadow-sm"
+                  className="rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-sm"
                   style={{ 
                     backgroundColor: `${settings.primaryColor}08`, 
                     border: `1px solid ${settings.primaryColor}15`,
-                    width: `${globalIconSize * 2}px`,
-                    height: `${globalIconSize * 2}px`
+                    width: `${globalIconSize * 1.8}px`,
+                    height: `${globalIconSize * 1.8}px`
                   }}
                 >
                   <DynamicIcon name={reason.icon} size={globalIconSize} style={{ color: settings.primaryColor }} />
                 </div>
                 <h3 
-                  className="font-bold mb-4 px-2" 
+                  className="font-bold mb-3" 
                   style={{ 
                     color: settings.secondaryColor,
-                    fontSize: `${reason.titleSize || globalTitleSize}px` 
+                    fontSize: `${reason.titleSize || globalTitleSize}px`,
+                    lineHeight: "1.4"
                   }}
                 >
                   {reason.title}
                 </h3>
                 <p 
                   className="text-muted-foreground leading-relaxed"
-                  style={{ fontSize: `${reason.descSize || globalDescSize}px` }}
+                  style={{ 
+                    fontSize: `${reason.descSize || globalDescSize}px`,
+                    lineHeight: "1.6"
+                  }}
                 >
                   {reason.desc}
                 </p>
