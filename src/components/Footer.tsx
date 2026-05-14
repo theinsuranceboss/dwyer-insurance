@@ -65,8 +65,8 @@ export default function Footer({
                 </div>
               )}
               <div>
-                <p className="font-bold text-lg">{settings.logoText || logoText}</p>
-                <p className="text-sm" style={{ color: lightColor }}>{settings.logoSubtext || logoSubtext}</p>
+                <p className="font-bold text-base">{settings.logoText || logoText}</p>
+                <p className="text-xs" style={{ color: lightColor }}>{settings.logoSubtext || logoSubtext}</p>
               </div>
             </div>
             <p className="text-white/60 text-sm mb-4">Elite Agency serving PA, NY, and DE.</p>
@@ -78,15 +78,15 @@ export default function Footer({
 
           {/* Insurance Column 1 */}
           <div>
-            <h4 className="font-semibold text-white mb-4">{col1Title}</h4>
-            <ul className="space-y-2">
+            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs opacity-70">{col1Title}</h4>
+            <ul className="space-y-3">
               {col1Pages.map((type) => (
                 <li key={type.id}>
-                  <a href={`/insurance/${type.slug}`} className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-1.5">
+                  <a href={`/insurance/${type.slug}`} className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-2">
                     {type.emoji ? (
                       <span className="text-sm">{type.emoji}</span>
                     ) : type.iconName ? (
-                      <DynamicIcon name={type.iconName} size={12} style={{ color: lightColor }} />
+                      <DynamicIcon name={type.iconName} size={14} style={{ color: lightColor }} />
                     ) : null}
                     {type.title}
                   </a>
@@ -97,15 +97,15 @@ export default function Footer({
 
           {/* Insurance Column 2 */}
           <div>
-            <h4 className="font-semibold text-white mb-4">{col2Title}</h4>
-            <ul className="space-y-2">
+            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs opacity-70">{col2Title}</h4>
+            <ul className="space-y-3">
               {col2Pages.map((type) => (
                 <li key={type.id}>
-                  <a href={`/insurance/${type.slug}`} className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-1.5">
+                  <a href={`/insurance/${type.slug}`} className="text-white/60 hover:text-white text-sm transition-colors flex items-center gap-2">
                     {type.emoji ? (
                       <span className="text-sm">{type.emoji}</span>
                     ) : type.iconName ? (
-                      <DynamicIcon name={type.iconName} size={12} style={{ color: lightColor }} />
+                      <DynamicIcon name={type.iconName} size={14} style={{ color: lightColor }} />
                     ) : null}
                     {type.title}
                   </a>
@@ -116,7 +116,7 @@ export default function Footer({
 
           {/* Contact */}
           <div>
-            <h4 className="font-semibold text-white mb-4">{col3Title}</h4>
+            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs opacity-70">{col3Title}</h4>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 flex-shrink-0" style={{ color: lightColor }} />

@@ -42,6 +42,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import CTASection from "@/components/CTASection";
 import DynamicIcon from "@/components/DynamicIcon";
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -535,6 +536,16 @@ function ServicesSection({
                   style={{ borderRadius: `${settings.borderRadius}px` }}
                 >
                   <CardHeader className="pb-3">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform mb-4"
+                      style={{ backgroundColor: `${settings.primaryColor}15` }}
+                    >
+                      {page.emoji ? (
+                        <span className="text-xl">{page.emoji}</span>
+                      ) : (
+                        <DynamicIcon name={page.iconName || 'Shield'} size={24} style={{ color: settings.primaryColor }} />
+                      )}
+                    </div>
                     <CardTitle
                       className="text-lg group-hover:transition-colors"
                       style={{ color: settings.secondaryColor }}
@@ -656,8 +667,8 @@ function WhyChooseUsSection({
             <AnimatedSection key={i} delay={i * 0.08}>
               <div className="group text-center">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: `${settings.primaryColor}10` }}
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform shadow-sm"
+                  style={{ backgroundColor: `${settings.primaryColor}08`, border: `1px solid ${settings.primaryColor}15` }}
                 >
                   <DynamicIcon name={reason.icon} className="w-8 h-8" style={{ color: settings.primaryColor }} />
                 </div>
@@ -1258,6 +1269,24 @@ export default function HomePage() {
             agentInfo={agentInfo}
             whySection={getSection("whyChooseUs")}
           />
+        )}
+        {getSection("ctaBanner")?.visible !== false && (
+          <div className="bg-white">
+            <CTASection 
+              page={{ 
+                title: "Expert Protection", 
+                iconColor: settings.primaryColor,
+                bannerCta1Text: settings.heroCtaText,
+                bannerCta1Link: settings.heroCtaLink,
+                bannerCta2Text: "Get a Quote",
+                bannerCta2Link: "/contact",
+                ctaTitle: getSection("ctaBanner")?.content && !Array.isArray(JSON.parse(getSection("ctaBanner")!.content)) ? JSON.parse(getSection("ctaBanner")!.content).ctaTitle : undefined,
+                ctaDescription: getSection("ctaBanner")?.content && !Array.isArray(JSON.parse(getSection("ctaBanner")!.content)) ? JSON.parse(getSection("ctaBanner")!.content).ctaDescription : undefined,
+              } as any} 
+              agentInfo={agentInfo} 
+              settings={settings} 
+            />
+          </div>
         )}
         {getSection("testimonials")?.visible !== false && (
           <TestimonialsSection

@@ -211,6 +211,34 @@ export default function SectionsTab() {
                           placeholder="Section description..."
                         />
                       </div>
+ 
+                       {section.section === 'ctaBanner' && (
+                         <div className="grid grid-cols-1 gap-4 border-t pt-4 mt-2">
+                           <div className="space-y-2">
+                             <Label className="text-sm font-medium">CTA Title (Overwrites Default)</Label>
+                             <Input 
+                               value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).ctaTitle || '') : ''} 
+                               onChange={(e) => {
+                                 const current = editData.content ? JSON.parse(editData.content) : {};
+                                 setEditData({ ...editData, content: JSON.stringify({ ...current, ctaTitle: e.target.value }) });
+                               }}
+                               placeholder="Ready to Get Protected?"
+                             />
+                           </div>
+                           <div className="space-y-2">
+                             <Label className="text-sm font-medium">CTA Description (Overwrites Default)</Label>
+                             <Textarea 
+                               value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).ctaDescription || '') : ''} 
+                               onChange={(e) => {
+                                 const current = editData.content ? JSON.parse(editData.content) : {};
+                                 setEditData({ ...editData, content: JSON.stringify({ ...current, ctaDescription: e.target.value }) });
+                               }}
+                               rows={3}
+                               placeholder="Get a personalized quote today. Bundle and save up to 25% on your premiums!"
+                             />
+                           </div>
+                         </div>
+                       )}
 
                       {(section.section === 'whyChooseUs' || section.section === 'about') && (
                         <div className="space-y-4 border-t pt-4 mt-2">
