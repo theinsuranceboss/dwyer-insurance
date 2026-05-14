@@ -39,7 +39,7 @@ export default function Navigation({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [insuranceOpen, setInsuranceOpen] = useState(false);
-  const [mobileInsuranceOpen, setMobileInsuranceOpen] = useState(false);
+  const [mobileInsuranceOpen, setMobileInsuranceOpen] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const insuranceRef = useRef<HTMLDivElement>(null);
 
@@ -136,29 +136,67 @@ export default function Navigation({
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <a href="/" className="flex items-center gap-3 flex-shrink-0">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${accentColor}25` }}
-            >
-              <Shield className="w-5 h-5" style={{ color: accentColor }} />
-            </div>
+            {settings.logoUrl ? (
+              <img 
+                src={settings.logoUrl} 
+                alt="Logo" 
+                className="object-contain"
+                style={{ width: `${settings.logoWidth || "40"}px` }}
+              />
+            ) : (
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: `${accentColor}25` }}
+              >
+                <Shield className="w-5 h-5" style={{ color: accentColor }} />
+              </div>
+            )}
             <div className="hidden sm:block">
-              <p className="font-bold text-base leading-tight text-white">{logoText}</p>
-              <p className="text-xs leading-tight" style={{ color: `${accentColor}99` }}>{logoSubtext}</p>
+              <p className="font-bold text-base leading-tight text-white">{settings.logoText || logoText}</p>
+              <p className="text-xs leading-tight" style={{ color: `${accentColor}99` }}>{settings.logoSubtext || logoSubtext}</p>
             </div>
           </a>
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-1">
-            {mainNavItems.map((item) => (
-              <a
-                key={item.id}
-                href={item.href}
-                className="text-sm font-medium px-3 py-2 rounded-md transition-colors text-white/90 hover:text-white hover:bg-white/10"
-              >
-                {item.label}
-              </a>
-            ))}
+            {menuItems.filter(item => !item.parent && item.visible).sort((a, b) => a.order - b.order).map((item) => {
+              const children = menuItems.filter(child => child.parent === item.id && child.visible).sort((a, b) => a.order - b.order);
+              const hasChildren = children.length > 0 || item.isDropdown;
+
+              if (hasChildren) {
+                return (
+                  <div key={item.id} className="relative group">
+                    <button className="text-sm font-medium px-3 py-2 rounded-md transition-colors flex items-center gap-1 cursor-pointer text-white/90 hover:text-white hover:bg-white/10">
+                      {item.label}
+                      <ChevronDown size={14} className="group-hover:rotate-180 transition-transform" />
+                    </button>
+                    <div className="absolute top-full left-0 mt-1 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
+                      <div className="bg-white rounded-xl shadow-2xl border border-gray-100 py-2 min-w-[200px]">
+                        {children.map(child => (
+                          <a 
+                            key={child.id} 
+                            href={child.href} 
+                            className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                          >
+                            <span className="text-sm font-medium">{child.label}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  className="text-sm font-medium px-3 py-2 rounded-md transition-colors text-white/90 hover:text-white hover:bg-white/10"
+                >
+                  {item.label}
+                </a>
+              );
+            })}
 
             {/* Insurance Mega-Dropdown */}
             {pages.length > 0 && (
@@ -308,34 +346,80 @@ export default function Navigation({
           >
             <div className="px-4 py-4 space-y-1 max-h-[80vh] overflow-y-auto">
               {/* Main nav links */}
-              {mainNavItems.map((item) => (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-3 rounded-xl transition-colors font-medium hover:bg-gray-50"
-                  style={{ color: settings.secondaryColor || "#001e60" }}
-                >
-                  {item.label}
-                </a>
-              ))}
+              {menuItems.filter(item => !item.parent && item.visible).sort((a, b) => a.order - b.order).map((item) => {
+                const children = menuItems.filter(child => child.parent === item.id && child.visible).sort((a, b) => a.order - b.order);
+                const hasChildren = children.length > 0 || item.isDropdown;
+
+                if (hasChildren) {
+                  return (
+                    <div key={item.id} className="border-b border-gray-50 last:border-0">
+                      <button
+                        onClick={() => setMobileInsuranceOpen(mobileInsuranceOpen === item.id ? null : item.id)}
+                        className="flex items-center justify-between w-full px-4 py-3 rounded-xl transition-colors font-medium hover:bg-gray-50"
+                        style={{ color: settings.secondaryColor || "#001e60" }}
+                      >
+                        <span>{item.label}</span>
+                        <ChevronDown
+                          size={16}
+                          className={`transition-transform duration-200 ${mobileInsuranceOpen === item.id ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      <AnimatePresence>
+                        {mobileInsuranceOpen === item.id && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden bg-gray-50/50 rounded-xl mx-2 mb-2"
+                          >
+                            <div className="py-1">
+                              {children.map(child => (
+                                <a
+                                  key={child.id}
+                                  href={child.href}
+                                  onClick={() => setMobileOpen(false)}
+                                  className="block px-8 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900"
+                                >
+                                  {child.label}
+                                </a>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                }
+
+                return (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-3 rounded-xl transition-colors font-medium hover:bg-gray-50"
+                    style={{ color: settings.secondaryColor || "#001e60" }}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
 
               {/* Insurance accordion */}
               {pages.length > 0 && (
                 <div>
                   <button
-                    onClick={() => setMobileInsuranceOpen(!mobileInsuranceOpen)}
+                    onClick={() => setMobileInsuranceOpen(mobileInsuranceOpen === 'insurance' ? null : 'insurance')}
                     className="flex items-center justify-between w-full px-4 py-3 rounded-xl transition-colors font-medium hover:bg-gray-50"
                     style={{ color: settings.secondaryColor || "#001e60" }}
                   >
                     <span>🛡️ Insurance Types</span>
                     <ChevronDown
                       size={16}
-                      className={`transition-transform duration-200 ${mobileInsuranceOpen ? "rotate-180" : ""}`}
+                      className={`transition-transform duration-200 ${mobileInsuranceOpen === 'insurance' ? "rotate-180" : ""}`}
                     />
                   </button>
                   <AnimatePresence>
-                    {mobileInsuranceOpen && (
+                    {mobileInsuranceOpen === 'insurance' && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}

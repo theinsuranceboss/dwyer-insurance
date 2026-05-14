@@ -438,9 +438,6 @@ function ProTipCallout({ page, settings }: { page: InsurancePageData; settings: 
                 <Sparkles size={28} style={{ color: accentColor }} />
               </div>
               <div>
-                <h3 className="font-bold text-xl mb-2" style={{ color: accentColor }}>
-                  Pro Tip
-                </h3>
                 <p className={`text-lg leading-relaxed ${!textOverride ? "text-muted-foreground" : ""}`} style={textOverride ? { color: textOverride } : undefined}>
                   {page.tip}
                 </p>

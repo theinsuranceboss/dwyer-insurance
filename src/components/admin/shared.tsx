@@ -69,6 +69,7 @@ export interface PageSection {
   title: string;
   subtitle: string;
   description: string;
+  content: string;
   visible: boolean;
 }
 
@@ -293,9 +294,18 @@ export const APPEARANCE_SECTIONS: {
     ],
   },
   {
-    title: 'Navigation & Layout',
-    description: 'Configure navigation transparency and global text sizes.',
-    keys: ['navBgOpacity', 'baseFontSize', 'headingFontSize'],
+    title: 'Navigation & Branding',
+    description: 'Configure navigation transparency, logo, and global text sizes.',
+    keys: [
+      'navBgOpacity', 
+      'baseFontSize', 
+      'headingFontSize',
+      'logoUrl',
+      'logoWidth',
+      'logoText',
+      'logoSubtext',
+      'footerLogoUrl'
+    ],
   },
   {
     title: 'Section Backgrounds',

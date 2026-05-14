@@ -32,11 +32,12 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { id, title, subtitle, description, visible } = body as {
+    const { id, title, subtitle, description, content, visible } = body as {
       id: string;
       title?: string;
       subtitle?: string;
       description?: string;
+      content?: string;
       visible?: boolean;
     };
 
@@ -51,6 +52,7 @@ export async function PUT(request: NextRequest) {
     if (title !== undefined) data.title = title;
     if (subtitle !== undefined) data.subtitle = subtitle;
     if (description !== undefined) data.description = description;
+    if (content !== undefined) data.content = content;
     if (visible !== undefined) data.visible = visible;
 
     const pageSection = await db.pageSection.update({

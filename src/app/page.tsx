@@ -42,6 +42,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import DynamicIcon from "@/components/DynamicIcon";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -573,75 +574,91 @@ function WhyChooseUsSection({
   agentInfo: AgentInfo;
   whySection: PageSection | undefined;
 }) {
-  const reasons = [
+  let reasons = [
     {
-      icon: Shield,
+      icon: "Shield",
       title: "Dwyer Insurance Group",
       desc: "A trusted local agency with deep roots in the Wynnewood community and decades of combined insurance experience.",
     },
     {
-      icon: Award,
+      icon: "Award",
       title: `${agentInfo.badge} Recognition`,
       desc: "Our elite status reflects our commitment to exceptional service and client satisfaction.",
     },
     {
-      icon: Users,
+      icon: "Users",
       title: "Personalized Attention",
       desc: "Every client gets a customized insurance review. No cookie-cutter policies here.",
     },
     {
-      icon: Handshake,
+      icon: "Handshake",
       title: "Local Community Expert",
       desc: `Based in ${agentInfo.address}, we understand the unique needs of the community.`,
     },
     {
-      icon: CheckCircle2,
+      icon: "CheckCircle2",
       title: "Claims Satisfaction Guarantee",
       desc: "Our Claims Satisfaction Guarantee means you're happy with the outcome, or we make it right.",
     },
     {
-      icon: Phone,
+      icon: "Phone",
       title: "Easy to Reach",
       desc: `Call ${agentInfo.phone}, text ${agentInfo.textNumber}, or email — we are always accessible.`,
     },
   ];
 
+  if (whySection?.content) {
+    try {
+      const customReasons = JSON.parse(whySection.content);
+      if (Array.isArray(customReasons) && customReasons.length > 0) {
+        reasons = customReasons;
+      }
+    } catch (e) {
+      console.error("Error parsing whyChooseUs content:", e);
+    }
+  }
+
   return (
     <section id="why-choose-us" className="py-20 lg:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection className="text-center mb-16">
-          <Badge
-            className="mb-4 border-0"
-            style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
-          >
-            {whySection?.subtitle || "Why Choose Us"}
-          </Badge>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            {whySection?.content && JSON.parse(whySection.content).sectionIcon && (
+              <DynamicIcon name={JSON.parse(whySection.content).sectionIcon} size={20} style={{ color: settings.primaryColor }} />
+            )}
+            <Badge
+              className="border-0"
+              style={{ backgroundColor: `${settings.primaryColor}15`, color: settings.primaryColor }}
+            >
+              {whySection?.subtitle || "Why Choose Us"}
+            </Badge>
+          </div>
           <h2
-            className="text-3xl sm:text-4xl font-bold mb-4"
+            className="text-3xl sm:text-5xl font-bold mb-6 tracking-tight"
             style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
           >
             {whySection?.title || "Why Families Trust Dwyer Insurance Group"}
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-xl max-w-3xl mx-auto leading-relaxed">
             {whySection?.description ||
               "Choosing the right insurance agent makes all the difference. Here's why hundreds of families trust Dwyer Insurance Group."}
           </p>
         </AnimatedSection>
-
+ 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {reasons.map((reason, i) => (
-            <AnimatedSection key={reason.title} delay={i * 0.08}>
+            <AnimatedSection key={i} delay={i * 0.08}>
               <div className="group text-center">
                 <div
                   className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform"
                   style={{ backgroundColor: `${settings.primaryColor}10` }}
                 >
-                  <reason.icon className="w-8 h-8" style={{ color: settings.primaryColor }} />
+                  <DynamicIcon name={reason.icon} className="w-8 h-8" style={{ color: settings.primaryColor }} />
                 </div>
-                <h3 className="text-xl font-bold mb-3" style={{ color: settings.secondaryColor }}>
+                <h3 className="text-2xl font-bold mb-4" style={{ color: settings.secondaryColor }}>
                   {reason.title}
                 </h3>
-                <p className="text-muted-foreground">{reason.desc}</p>
+                <p className="text-muted-foreground leading-relaxed text-lg">{reason.desc}</p>
               </div>
             </AnimatedSection>
           ))}
@@ -1204,37 +1221,49 @@ export default function HomePage() {
         insurancePages={insurancePages}
       />
       <main className="flex-1">
-        <HeroSection
-          settings={settings}
-          agentInfo={agentInfo}
-          heroSection={getSection("hero")}
-        />
-        <ServicesSection
-          settings={settings}
-          insurancePages={insurancePages}
-          servicesSection={getSection("services")}
-        />
-        <WhyChooseUsSection
-          settings={settings}
-          agentInfo={agentInfo}
-          whySection={getSection("whyChooseUs")}
-        />
-        <TestimonialsSection
-          settings={settings}
-          testimonials={testimonials}
-          testimonialsSection={getSection("testimonials")}
-        />
-        <FaqSection
-          settings={settings}
-          faqs={faqs}
-          faqSection={getSection("faq")}
-        />
-        <ContactSection
-          settings={settings}
-          agentInfo={agentInfo}
-          insurancePages={insurancePages}
-          contactSection={getSection("contact")}
-        />
+        {getSection("hero")?.visible !== false && (
+          <HeroSection
+            settings={settings}
+            agentInfo={agentInfo}
+            heroSection={getSection("hero")}
+          />
+        )}
+        {getSection("services")?.visible !== false && (
+          <ServicesSection
+            settings={settings}
+            insurancePages={insurancePages}
+            servicesSection={getSection("services")}
+          />
+        )}
+        {getSection("whyChooseUs")?.visible !== false && (
+          <WhyChooseUsSection
+            settings={settings}
+            agentInfo={agentInfo}
+            whySection={getSection("whyChooseUs")}
+          />
+        )}
+        {getSection("testimonials")?.visible !== false && (
+          <TestimonialsSection
+            settings={settings}
+            testimonials={testimonials}
+            testimonialsSection={getSection("testimonials")}
+          />
+        )}
+        {getSection("faq")?.visible !== false && (
+          <FaqSection
+            settings={settings}
+            faqs={faqs}
+            faqSection={getSection("faq")}
+          />
+        )}
+        {getSection("contact")?.visible !== false && (
+          <ContactSection
+            settings={settings}
+            agentInfo={agentInfo}
+            insurancePages={insurancePages}
+            contactSection={getSection("contact")}
+          />
+        )}
       </main>
       <div className="mt-auto">
         <Footer

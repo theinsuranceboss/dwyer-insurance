@@ -10,8 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
-import { type PageSection, apiFetch, LoadingSpinner, SECTION_LABELS, SECTION_ICONS } from './shared';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Loader2, Save, Eye, EyeOff, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { type PageSection, apiFetch, LoadingSpinner, SECTION_LABELS, SECTION_ICONS, ICON_OPTIONS } from './shared';
 
 export default function SectionsTab() {
   const { toast } = useToast();
@@ -148,7 +155,7 @@ export default function SectionsTab() {
                 <CardContent className="space-y-4">
                   {editingId === section.id ? (
                     <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <Label className="text-sm font-medium">Title</Label>
                           <Input
@@ -165,6 +172,23 @@ export default function SectionsTab() {
                             placeholder="Section subtitle..."
                           />
                         </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Section Icon</Label>
+                          <Select 
+                            value={editData.content ? (JSON.parse(editData.content).sectionIcon || 'FileText') : 'FileText'} 
+                            onValueChange={(v) => {
+                              const content = editData.content ? JSON.parse(editData.content) : {};
+                              setEditData({ ...editData, content: JSON.stringify({ ...content, sectionIcon: v }) });
+                            }}
+                          >
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {ICON_OPTIONS.map(name => (
+                                <SelectItem key={name} value={name}>{name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">Description</Label>
@@ -175,6 +199,88 @@ export default function SectionsTab() {
                           placeholder="Section description..."
                         />
                       </div>
+
+                      {section.section === 'whyChooseUs' && (
+                        <div className="space-y-4 border-t pt-4 mt-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-base font-bold">Reasons List (JSON Content)</Label>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => {
+                                const currentContent = editData.content ? JSON.parse(editData.content) : [];
+                                const newContent = [...currentContent, { icon: 'Shield', title: 'New Reason', desc: 'Description here' }];
+                                setEditData({ ...editData, content: JSON.stringify(newContent) });
+                              }}
+                            >
+                              Add Reason
+                            </Button>
+                          </div>
+                          <div className="grid gap-4">
+                            {(() => {
+                              try {
+                                const items = editData.content ? JSON.parse(editData.content) : [];
+                                if (!Array.isArray(items)) return null;
+                                return items.map((item, idx) => (
+                                  <div key={idx} className="p-3 border rounded-lg bg-gray-50 space-y-3 relative group">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="absolute top-2 right-2 h-6 w-6 p-0 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      onClick={() => {
+                                        const newItems = items.filter((_, i) => i !== idx);
+                                        setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                      }}
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Icon Name</Label>
+                                        <Input 
+                                          value={item.icon} 
+                                          className="h-8 text-xs" 
+                                          onChange={(e) => {
+                                            const newItems = [...items];
+                                            newItems[idx] = { ...item, icon: e.target.value };
+                                            setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                          }}
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Title</Label>
+                                        <Input 
+                                          value={item.title} 
+                                          className="h-8 text-xs" 
+                                          onChange={(e) => {
+                                            const newItems = [...items];
+                                            newItems[idx] = { ...item, title: e.target.value };
+                                            setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-xs">Description</Label>
+                                      <Textarea 
+                                        value={item.desc} 
+                                        className="text-xs min-h-[60px]" 
+                                        onChange={(e) => {
+                                          const newItems = [...items];
+                                          newItems[idx] = { ...item, desc: e.target.value };
+                                          setEditData({ ...editData, content: JSON.stringify(newItems) });
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                ));
+                              } catch (e) {
+                                return <p className="text-red-500 text-xs">Invalid JSON content</p>;
+                              }
+                            })()}
+                          </div>
+                        </div>
+                      )}
                       <Separator />
                       <div className="flex gap-2">
                         <Button

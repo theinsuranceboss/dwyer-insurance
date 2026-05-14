@@ -10,6 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -668,73 +674,190 @@ function HomepageForm({
   isSaving: boolean;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [sections, setSections] = useState<any[]>([]);
+  const [loadingSections, setLoadingSections] = useState(true);
   const bannerFileRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    async function fetchSections() {
+      try {
+        const res = await apiFetch('/api/admin/sections');
+        const d = await res.json();
+        setSections(d.pageSections || []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingSections(false);
+      }
+    }
+    fetchSections();
+  }, []);
+
+  const handleSectionToggle = async (section: any, visible: boolean) => {
+    try {
+      await apiFetch('/api/admin/sections', {
+        method: 'PUT',
+        body: JSON.stringify({ id: section.id, visible }),
+      });
+      setSections(sections.map(s => s.id === section.id ? { ...s, visible } : s));
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to update visibility', variant: 'destructive' });
+    }
+  };
+
+  const handleSectionSave = async (section: any) => {
+    try {
+      await apiFetch('/api/admin/sections', {
+        method: 'PUT',
+        body: JSON.stringify(section),
+      });
+      toast({ title: 'Success', description: `${section.section} updated` });
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to update section', variant: 'destructive' });
+    }
+  };
 
   return (
     <Card className="border-blue-200 bg-blue-50/30">
-      <CardContent className="pt-6 space-y-4">
-        <h3 className="font-semibold text-[#001e60]">Edit Home Page</h3>
-        <div className="grid grid-cols-1 gap-4">
-          <div className="space-y-2">
-            <Label>Hero Title</Label>
-            <Input value={data.heroTitle || ''} onChange={(e) => onChange({ ...data, heroTitle: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label>Hero Subtitle</Label>
-            <Input value={data.heroSubtitle || ''} onChange={(e) => onChange({ ...data, heroSubtitle: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label>Hero Description</Label>
-            <Textarea value={data.heroDescription || ''} onChange={(e) => onChange({ ...data, heroDescription: e.target.value })} rows={3} />
-          </div>
+      <CardContent className="pt-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-xl text-[#001e60]">Home Page Editor</h3>
+          <Badge variant="outline">Live Dashboard</Badge>
         </div>
 
-        <div className="space-y-2">
-          <Label>Hero Banner Image</Label>
-          <div className="flex items-center gap-2">
-            <Input value={data.heroBannerImage || ''} onChange={(e) => onChange({ ...data, heroBannerImage: e.target.value })} placeholder="/uploads/..." />
-            <input
-              ref={bannerFileRef}
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setUploading(true);
-                try {
-                  const res = await apiUpload(file);
-                  onChange({ ...data, heroBannerImage: res.url });
-                } catch {
-                  // silent
-                } finally {
-                  setUploading(false);
-                }
-              }}
-              className="hidden"
-            />
-            <Button size="sm" variant="outline" onClick={() => bannerFileRef.current?.click()} disabled={uploading}>
-              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            </Button>
-          </div>
-        </div>
+        <Accordion type="multiple" className="w-full space-y-2">
+          {/* Hero Section (from siteSettings) */}
+          <AccordionItem value="hero" className="border rounded-lg bg-white px-4">
+            <AccordionTrigger className="hover:no-underline py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded bg-blue-100 flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-[#0033A0]" />
+                </div>
+                <span className="font-semibold">Hero Banner</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-2 pb-6 space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label>Hero Title</Label>
+                  <Input value={data.heroTitle || ''} onChange={(e) => onChange({ ...data, heroTitle: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hero Subtitle</Label>
+                  <Input value={data.heroSubtitle || ''} onChange={(e) => onChange({ ...data, heroSubtitle: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Hero Description</Label>
+                  <Textarea value={data.heroDescription || ''} onChange={(e) => onChange({ ...data, heroDescription: e.target.value })} rows={3} />
+                </div>
+              </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>CTA Text</Label>
-            <Input value={data.heroCtaText || ''} onChange={(e) => onChange({ ...data, heroCtaText: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label>CTA Link</Label>
-            <Input value={data.heroCtaLink || ''} onChange={(e) => onChange({ ...data, heroCtaLink: e.target.value })} />
-          </div>
-        </div>
+              <div className="space-y-2">
+                <Label>Hero Banner Image</Label>
+                <div className="flex items-center gap-2">
+                  <Input value={data.heroBannerImage || ''} onChange={(e) => onChange({ ...data, heroBannerImage: e.target.value })} placeholder="/uploads/..." />
+                  <input
+                    ref={bannerFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploading(true);
+                      try {
+                        const res = await apiUpload(file);
+                        onChange({ ...data, heroBannerImage: res.url });
+                      } catch {
+                        // silent
+                      } finally {
+                        setUploading(false);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <Button size="sm" variant="outline" onClick={() => bannerFileRef.current?.click()} disabled={uploading}>
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>CTA Text</Label>
+                  <Input value={data.heroCtaText || ''} onChange={(e) => onChange({ ...data, heroCtaText: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>CTA Link</Label>
+                  <Input value={data.heroCtaLink || ''} onChange={(e) => onChange({ ...data, heroCtaLink: e.target.value })} />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Dynamic Sections */}
+          {loadingSections ? (
+            <div className="p-4 text-center text-sm text-gray-500">Loading sections...</div>
+          ) : (
+            sections.filter(s => s.section !== 'hero').map((section) => (
+              <AccordionItem key={section.id} value={section.id} className="border rounded-lg bg-white px-4">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center justify-between w-full pr-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center">
+                        <span className="text-sm">📄</span>
+                      </div>
+                      <span className="font-semibold capitalize">{section.section} Section</span>
+                    </div>
+                    <Switch 
+                      checked={section.visible} 
+                      onCheckedChange={(v) => handleSectionToggle(section, v)}
+                      onClick={(e) => e.stopPropagation()} 
+                    />
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Title</Label>
+                      <Input 
+                        value={section.title || ''} 
+                        onChange={(e) => setSections(sections.map(s => s.id === section.id ? { ...s, title: e.target.value } : s))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Subtitle</Label>
+                      <Input 
+                        value={section.subtitle || ''} 
+                        onChange={(e) => setSections(sections.map(s => s.id === section.id ? { ...s, subtitle: e.target.value } : s))}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea 
+                      value={section.description || ''} 
+                      onChange={(e) => setSections(sections.map(s => s.id === section.id ? { ...s, description: e.target.value } : s))}
+                      rows={3}
+                    />
+                  </div>
+                  <Button size="sm" onClick={() => handleSectionSave(section)} className="bg-[#0033A0]">
+                    Save {section.section} Changes
+                  </Button>
+                </AccordionContent>
+              </AccordionItem>
+            ))
+          )}
+        </Accordion>
+
+        <Separator />
 
         <div className="flex gap-2 pt-2">
           <Button onClick={onSave} className="bg-[#0033A0] hover:bg-[#001e60]" disabled={isSaving}>
             {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-            Save Home Page
+            Save Site Branding & Hero
           </Button>
-          <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button variant="outline" onClick={onCancel}>Close Editor</Button>
         </div>
       </CardContent>
     </Card>
