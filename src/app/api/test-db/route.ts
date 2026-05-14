@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 export async function GET() {
-  const dbUrl = process.env.DATABASE_URL || "NOT SET";
+  const dbUrl = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL || "NOT SET";
   const maskedUrl = dbUrl.replace(/:[^:@]+@/, ":****@");
   
   try {
