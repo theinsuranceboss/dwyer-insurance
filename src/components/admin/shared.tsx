@@ -314,7 +314,7 @@ export const APPEARANCE_SECTIONS: {
   },
 ];
 
-export const FOOTER_KEYS = ['footerText', 'footerCopyright', 'footerColumn1Title', 'footerColumn2Title', 'footerColumn3Title', 'footerBgColor'];
+export const FOOTER_KEYS = ['footerText', 'footerCopyright', 'footerColumn1Title', 'footerColumn2Title', 'footerColumn3Title', 'footerBgColor', 'footerTitleSize', 'footerTitleCase'];
 
 // ─── Section icons ──────────────────────────────────────────────────────────────
 

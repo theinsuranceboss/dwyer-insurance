@@ -240,6 +240,47 @@ export default function SectionsTab() {
                          </div>
                        )}
 
+                       {(section.section === 'whyChooseUs' || section.section === 'services') && (
+                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t pt-4 mt-2">
+                           <div className="space-y-2">
+                             <Label className="text-xs">Item Icon Size (px)</Label>
+                             <Input 
+                               type="number"
+                               value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).itemIconSize || '') : ''} 
+                               onChange={(e) => {
+                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
+                                 setEditData({ ...editData, content: JSON.stringify({ ...current, itemIconSize: parseInt(e.target.value) || '' }) });
+                               }}
+                               placeholder="e.g. 32"
+                             />
+                           </div>
+                           <div className="space-y-2">
+                             <Label className="text-xs">Item Title Size (px)</Label>
+                             <Input 
+                               type="number"
+                               value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).itemTitleSize || '') : ''} 
+                               onChange={(e) => {
+                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
+                                 setEditData({ ...editData, content: JSON.stringify({ ...current, itemTitleSize: parseInt(e.target.value) || '' }) });
+                               }}
+                               placeholder="e.g. 24"
+                             />
+                           </div>
+                           <div className="space-y-2">
+                             <Label className="text-xs">Item Desc Size (px)</Label>
+                             <Input 
+                               type="number"
+                               value={editData.content && !Array.isArray(JSON.parse(editData.content)) ? (JSON.parse(editData.content).itemDescSize || '') : ''} 
+                               onChange={(e) => {
+                                 const current = editData.content && !Array.isArray(JSON.parse(editData.content)) ? JSON.parse(editData.content) : {};
+                                 setEditData({ ...editData, content: JSON.stringify({ ...current, itemDescSize: parseInt(e.target.value) || '' }) });
+                               }}
+                               placeholder="e.g. 16"
+                             />
+                           </div>
+                         </div>
+                       )}
+
                       {(section.section === 'whyChooseUs' || section.section === 'about') && (
                         <div className="space-y-4 border-t pt-4 mt-2">
                           <div className="flex items-center justify-between">

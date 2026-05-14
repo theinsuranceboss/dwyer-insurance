@@ -37,6 +37,9 @@ export default function Footer({
   const col2Title = settings.footerColumn2Title || "More Services";
   const col3Title = settings.footerColumn3Title || "Contact";
   const lightColor = settings.lightColor || "#57b6ff";
+  
+  const footerTitleSize = settings.footerTitleSize || "14";
+  const footerTitleCase = settings.footerTitleCase || "capitalize"; // "uppercase", "capitalize", "none"
 
   const halfIdx = Math.ceil(insurancePages.length / 2);
   const col1Pages = insurancePages.slice(0, halfIdx);
@@ -78,7 +81,16 @@ export default function Footer({
 
           {/* Insurance Column 1 */}
           <div>
-            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs opacity-70">{col1Title}</h4>
+            <h4 
+              className="font-bold text-white mb-6 opacity-80"
+              style={{ 
+                fontSize: `${footerTitleSize}px`,
+                textTransform: footerTitleCase as any,
+                letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal'
+              }}
+            >
+              {col1Title}
+            </h4>
             <ul className="space-y-3">
               {col1Pages.map((type) => (
                 <li key={type.id}>
@@ -97,7 +109,16 @@ export default function Footer({
 
           {/* Insurance Column 2 */}
           <div>
-            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs opacity-70">{col2Title}</h4>
+            <h4 
+              className="font-bold text-white mb-6 opacity-80"
+              style={{ 
+                fontSize: `${footerTitleSize}px`,
+                textTransform: footerTitleCase as any,
+                letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal'
+              }}
+            >
+              {col2Title}
+            </h4>
             <ul className="space-y-3">
               {col2Pages.map((type) => (
                 <li key={type.id}>
@@ -116,7 +137,16 @@ export default function Footer({
 
           {/* Contact */}
           <div>
-            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs opacity-70">{col3Title}</h4>
+            <h4 
+              className="font-bold text-white mb-6 opacity-80"
+              style={{ 
+                fontSize: `${footerTitleSize}px`,
+                textTransform: footerTitleCase as any,
+                letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal'
+              }}
+            >
+              {col3Title}
+            </h4>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 flex-shrink-0" style={{ color: lightColor }} />

@@ -368,6 +368,31 @@ export default function AppearanceTab() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm text-gray-600">Title Font Size (px)</Label>
+              <Input
+                type="number"
+                value={getValue('footerTitleSize')}
+                onChange={(e) => updateValue('footerTitleSize', e.target.value)}
+                placeholder="14"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm text-gray-600">Title Text Case</Label>
+              <Select value={getValue('footerTitleCase') || 'capitalize'} onValueChange={(v) => updateValue('footerTitleCase', v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="capitalize">Title Case</SelectItem>
+                  <SelectItem value="uppercase">Uppercase</SelectItem>
+                  <SelectItem value="none">Normal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <Separator className="my-2" />
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700">Footer Background Color</Label>

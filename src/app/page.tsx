@@ -516,10 +516,15 @@ function ServicesSection({
           </Badge>
           <h2
             className="text-3xl sm:text-4xl font-bold mb-4"
-            style={{ color: settings.secondaryColor, fontFamily: settings.headingFont }}
+            style={{ 
+              color: settings.secondaryColor, 
+              fontFamily: settings.headingFont,
+              fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).titleSize) 
+                ? `${JSON.parse(servicesSection.content).titleSize}px` 
+                : undefined
+            }}
           >
-            Comprehensive Insurance{" "}
-            <span style={{ color: settings.primaryColor }}>Solutions</span>
+            {servicesSection?.title || "Comprehensive Insurance Solutions"}
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             {servicesSection?.description ||
@@ -537,24 +542,56 @@ function ServicesSection({
                 >
                   <CardHeader className="pb-3">
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform mb-4"
-                      style={{ backgroundColor: `${settings.primaryColor}15` }}
+                      className="rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform mb-4"
+                      style={{ 
+                        backgroundColor: `${settings.primaryColor}15`,
+                        width: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
+                          ? `${JSON.parse(servicesSection.content).itemIconSize * 2}px`
+                          : '48px',
+                        height: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
+                          ? `${JSON.parse(servicesSection.content).itemIconSize * 2}px`
+                          : '48px'
+                      }}
                     >
                       {page.emoji ? (
-                        <span className="text-xl">{page.emoji}</span>
+                        <span style={{ 
+                          fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
+                            ? `${JSON.parse(servicesSection.content).itemIconSize}px`
+                            : '20px'
+                        }}>
+                          {page.emoji}
+                        </span>
                       ) : (
-                        <DynamicIcon name={page.iconName || 'Shield'} size={24} style={{ color: settings.primaryColor }} />
+                        <DynamicIcon 
+                          name={page.iconName || 'Shield'} 
+                          size={(servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
+                            ? JSON.parse(servicesSection.content).itemIconSize
+                            : 24} 
+                          style={{ color: settings.primaryColor }} 
+                        />
                       )}
                     </div>
                     <CardTitle
-                      className="text-lg group-hover:transition-colors"
-                      style={{ color: settings.secondaryColor }}
+                      className="group-hover:transition-colors"
+                      style={{ 
+                        color: settings.secondaryColor,
+                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemTitleSize)
+                          ? `${JSON.parse(servicesSection.content).itemTitleSize}px`
+                          : '18px'
+                      }}
                     >
                       {page.title}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="text-muted-foreground text-sm">
+                    <CardDescription 
+                      className="text-muted-foreground"
+                      style={{ 
+                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemDescSize)
+                          ? `${JSON.parse(servicesSection.content).itemDescSize}px`
+                          : '14px'
+                      }}
+                    >
                       {page.tagline}
                     </CardDescription>
                     <div
@@ -620,7 +657,8 @@ function WhyChooseUsSection({
 
   if (whySection?.content) {
     try {
-      const customReasons = JSON.parse(whySection.content);
+      const parsed = JSON.parse(whySection.content);
+      const customReasons = Array.isArray(parsed) ? parsed : parsed.items;
       if (Array.isArray(customReasons) && customReasons.length > 0) {
         reasons = customReasons;
       }
@@ -628,6 +666,11 @@ function WhyChooseUsSection({
       console.error("Error parsing whyChooseUs content:", e);
     }
   }
+
+  const sectionContent = (whySection?.content && !Array.isArray(JSON.parse(whySection.content))) ? JSON.parse(whySection.content) : {};
+  const globalIconSize = sectionContent.itemIconSize || 32;
+  const globalTitleSize = sectionContent.itemTitleSize || 24;
+  const globalDescSize = sectionContent.itemDescSize || 18;
 
   return (
     <section id="why-choose-us" className="py-20 lg:py-28 bg-white">
@@ -667,23 +710,28 @@ function WhyChooseUsSection({
             <AnimatedSection key={i} delay={i * 0.08}>
               <div className="group text-center">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform shadow-sm"
-                  style={{ backgroundColor: `${settings.primaryColor}08`, border: `1px solid ${settings.primaryColor}15` }}
+                  className="rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform shadow-sm"
+                  style={{ 
+                    backgroundColor: `${settings.primaryColor}08`, 
+                    border: `1px solid ${settings.primaryColor}15`,
+                    width: `${globalIconSize * 2}px`,
+                    height: `${globalIconSize * 2}px`
+                  }}
                 >
-                  <DynamicIcon name={reason.icon} className="w-8 h-8" style={{ color: settings.primaryColor }} />
+                  <DynamicIcon name={reason.icon} size={globalIconSize} style={{ color: settings.primaryColor }} />
                 </div>
                 <h3 
-                  className="text-xl sm:text-2xl font-bold mb-4 px-2" 
+                  className="font-bold mb-4 px-2" 
                   style={{ 
                     color: settings.secondaryColor,
-                    fontSize: reason.titleSize ? `${reason.titleSize}px` : undefined 
+                    fontSize: `${reason.titleSize || globalTitleSize}px` 
                   }}
                 >
                   {reason.title}
                 </h3>
                 <p 
-                  className="text-muted-foreground leading-relaxed text-base sm:text-lg"
-                  style={{ fontSize: reason.descSize ? `${reason.descSize}px` : undefined }}
+                  className="text-muted-foreground leading-relaxed"
+                  style={{ fontSize: `${reason.descSize || globalDescSize}px` }}
                 >
                   {reason.desc}
                 </p>
