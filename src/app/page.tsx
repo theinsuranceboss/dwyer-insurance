@@ -14,13 +14,6 @@ import {
   Users,
   Handshake,
   CheckCircle2,
-  Separator,
-  Badge,
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
   ArrowRight,
   Send,
   MessageCircle,
@@ -38,6 +31,13 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { cn, getScaledSize } from "@/lib/utils";
