@@ -5,10 +5,13 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 // Order of priority for connection strings:
-// Use the validated Supabase pooler URL (port 6543) on the db domain to bypass Vercel/Netlify port 5432 restrictions.
-// The password is properly URL-encoded (%21 instead of !).
-const connectionString = "postgres://postgres:ZqfjKZ%21FW5pG8Pj@db.icnznvlgwkagaupnjlit.supabase.co:6543/postgres?pgbouncer=true";
-
+// 1. Vercel Postgres (POSTGRES_PRISMA_URL) - DB is now synced!
+// 2. Environment DATABASE_URL (for Netlify/local)
+// 3. Verified Supabase pooler fallback (db domain, port 6543, properly encoded password)
+const connectionString = 
+  process.env.POSTGRES_PRISMA_URL || 
+  process.env.DATABASE_URL || 
+  "postgres://postgres:ZqfjKZ%21FW5pG8Pj@db.icnznvlgwkagaupnjlit.supabase.co:6543/postgres?pgbouncer=true";
 
 export const db =
   globalForPrisma.prisma ??
