@@ -541,7 +541,7 @@ function ServicesSection({
             }}
           >
             {servicesSection?.description ||
-              "From auto and home to life and business, we offer a full range of insurance products to protect every aspect of your life."}
+              "From auto and home to life and business, Insurance Agency offers a full range of insurance products to protect every aspect of your life."}
           </p>
         </AnimatedSection>
 
@@ -549,70 +549,65 @@ function ServicesSection({
           {insurancePages.map((page, i) => (
             <AnimatedSection key={page.id} delay={i * 0.04}>
               <a href={`/insurance/${page.slug}`}>
-                <div
-                  className="group h-full p-6 rounded-2xl transition-all duration-300 hover:shadow-md border border-transparent hover:border-gray-100 bg-white/50 backdrop-blur-sm cursor-pointer"
+                <Card
+                  className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full"
                   style={{ borderRadius: `${settings.borderRadius}px` }}
                 >
-                  <div
-                    className="rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform mb-4"
-                    style={{ 
-                      backgroundColor: `${settings.primaryColor}15`,
-                      width: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
-                        ? `${JSON.parse(servicesSection.content).itemIconSize * 1.8}px`
-                        : '40px',
-                      height: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
-                        ? `${JSON.parse(servicesSection.content).itemIconSize * 1.8}px`
-                        : '40px'
-                    }}
-                  >
-                    {page.emoji ? (
-                      <span style={{ 
-                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
-                          ? `${JSON.parse(servicesSection.content).itemIconSize}px`
-                          : '18px'
-                      }}>
-                        {page.emoji}
-                      </span>
-                    ) : (
-                      <DynamicIcon 
-                        name={page.iconName || 'Shield'} 
-                        size={(servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemIconSize)
-                          ? JSON.parse(servicesSection.content).itemIconSize
-                          : 20} 
-                        style={{ color: settings.primaryColor }} 
-                      />
-                    )}
-                  </div>
-                  <h3
-                    className="font-bold mb-3 group-hover:transition-colors"
-                    style={{ 
-                      color: settings.secondaryColor,
-                      fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemTitleSize)
-                        ? `${JSON.parse(servicesSection.content).itemTitleSize}px`
-                        : '14px',
-                      lineHeight: "1.4"
-                    }}
-                  >
-                    {page.title}
-                  </h3>
-                  <p 
-                    className="text-muted-foreground leading-relaxed"
-                    style={{ 
-                      fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemDescSize)
-                        ? `${JSON.parse(servicesSection.content).itemDescSize}px`
-                        : '12px',
-                      lineHeight: "1.6"
-                    }}
-                  >
-                    {page.tagline}
-                  </p>
-                  <div
-                    className="mt-4 flex items-center font-medium text-sm group-hover:gap-2 transition-all opacity-0 group-hover:opacity-100"
-                    style={{ color: settings.primaryColor }}
-                  >
-                    Learn More <ArrowRight className="w-4 h-4 ml-1" />
-                  </div>
-                </div>
+                  <CardHeader className="pb-3">
+                    <div
+                      className="rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform mb-4"
+                      style={{ 
+                        backgroundColor: `${settings.primaryColor}08`,
+                        width: '40px',
+                        height: '40px',
+                        border: `1px solid ${settings.primaryColor}10`
+                      }}
+                    >
+                      {page.emoji ? (
+                        <span style={{ fontSize: '18px' }}>
+                          {page.emoji}
+                        </span>
+                      ) : (
+                        <DynamicIcon 
+                          name={page.iconName || 'Shield'} 
+                          size={20} 
+                          style={{ color: settings.primaryColor }} 
+                        />
+                      )}
+                    </div>
+                    <CardTitle
+                      className="group-hover:transition-colors"
+                      style={{ 
+                        color: settings.secondaryColor,
+                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemTitleSize)
+                          ? `${JSON.parse(servicesSection.content).itemTitleSize}px`
+                          : '14px',
+                        lineHeight: "1.2"
+                      }}
+                    >
+                      {page.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription 
+                      className="text-muted-foreground"
+                      style={{ 
+                        fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemDescSize)
+                          ? `${JSON.parse(servicesSection.content).itemDescSize}px`
+                          : '12px',
+                        lineHeight: "1.4"
+                      }}
+                    >
+                      {page.tagline}
+                    </CardDescription>
+                    <div
+                      className="mt-4 flex items-center font-medium text-xs group-hover:gap-2 transition-all opacity-0 group-hover:opacity-100"
+                      style={{ color: settings.primaryColor }}
+                    >
+                      Learn More <ArrowRight className="w-4 h-4 ml-1" />
+                    </div>
+                  </CardContent>
+                </Card>
               </a>
             </AnimatedSection>
           ))}
@@ -679,9 +674,9 @@ function WhyChooseUsSection({
   }
 
   const sectionContent = (whySection?.content && !Array.isArray(JSON.parse(whySection.content))) ? JSON.parse(whySection.content) : {};
-  const globalIconSize = sectionContent.itemIconSize || 32;
-  const globalTitleSize = sectionContent.itemTitleSize || 14;
-  const globalDescSize = sectionContent.itemDescSize || 12;
+  const globalIconSize = sectionContent.itemIconSize || 24;
+  const globalTitleSize = sectionContent.itemTitleSize || 13;
+  const globalDescSize = sectionContent.itemDescSize || 11;
   const sectionTitleSize = sectionContent.titleSize;
   const sectionDescSize = sectionContent.descriptionSize;
 
@@ -726,42 +721,45 @@ function WhyChooseUsSection({
         </AnimatedSection>
  
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reasons.map((reason: any, i: number) => (
-            <AnimatedSection key={i} delay={i * 0.08}>
-              <div className="group h-full p-6 rounded-2xl transition-all duration-300 hover:shadow-md border border-transparent hover:border-gray-100 bg-white/50 backdrop-blur-sm">
-                <div
-                  className="rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-sm"
-                  style={{ 
-                    backgroundColor: `${settings.primaryColor}08`, 
-                    border: `1px solid ${settings.primaryColor}15`,
-                    width: `${globalIconSize * 1.8}px`,
-                    height: `${globalIconSize * 1.8}px`
-                  }}
-                >
-                  <DynamicIcon name={reason.icon} size={globalIconSize} style={{ color: settings.primaryColor }} />
+          {reasons.map((reason: any, i: number) => {
+            const displayTitle = reason.title === "Dwyer Insurance Group" ? "Insurance Agency" : reason.title;
+            return (
+              <AnimatedSection key={i} delay={i * 0.08}>
+                <div className="group h-full p-5 rounded-2xl transition-all duration-300 hover:shadow-md border border-transparent hover:border-gray-100 bg-white/50 backdrop-blur-sm">
+                  <div
+                    className="rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm"
+                    style={{ 
+                      backgroundColor: `${settings.primaryColor}08`, 
+                      border: `1px solid ${settings.primaryColor}10`,
+                      width: `${globalIconSize * 1.6}px`,
+                      height: `${globalIconSize * 1.6}px`
+                    }}
+                  >
+                    <DynamicIcon name={reason.icon} size={globalIconSize} style={{ color: settings.primaryColor }} />
+                  </div>
+                  <h3 
+                    className="font-bold mb-2" 
+                    style={{ 
+                      color: settings.secondaryColor,
+                      fontSize: `${reason.titleSize || globalTitleSize}px`,
+                      lineHeight: "1.3"
+                    }}
+                  >
+                    {displayTitle}
+                  </h3>
+                  <p 
+                    className="text-muted-foreground leading-relaxed"
+                    style={{ 
+                      fontSize: `${reason.descSize || globalDescSize}px`,
+                      lineHeight: "1.5"
+                    }}
+                  >
+                    {reason.desc}
+                  </p>
                 </div>
-                <h3 
-                  className="font-bold mb-3" 
-                  style={{ 
-                    color: settings.secondaryColor,
-                    fontSize: `${reason.titleSize || globalTitleSize}px`,
-                    lineHeight: "1.4"
-                  }}
-                >
-                  {reason.title}
-                </h3>
-                <p 
-                  className="text-muted-foreground leading-relaxed"
-                  style={{ 
-                    fontSize: `${reason.descSize || globalDescSize}px`,
-                    lineHeight: "1.6"
-                  }}
-                >
-                  {reason.desc}
-                </p>
-              </div>
-            </AnimatedSection>
-          ))}
+              </AnimatedSection>
+            );
+          })}
         </div>
       </div>
     </section>
