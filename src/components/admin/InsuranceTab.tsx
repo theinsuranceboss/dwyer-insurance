@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Plus, Save, X, Loader2, Upload, Palette, ChevronsUpDown, Image as ImageIcon } from 'lucide-react';
+import { Shield, Plus, Save, X, Loader2, Upload, Palette, ChevronsUpDown, Home, Image as ImageIcon } from 'lucide-react';
 import { type InsurancePage, apiFetch, apiUpload, LoadingSpinner, DeleteButton, ICON_OPTIONS } from './shared';
 
 export default function InsuranceTab() {
