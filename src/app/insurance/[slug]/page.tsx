@@ -650,6 +650,7 @@ export default function InsuranceSlugPage() {
   const slug = params.slug as string;
   const [siteData, setSiteData] = useState<SiteData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -658,8 +659,9 @@ export default function InsuranceSlugPage() {
         if (!res.ok) throw new Error("Failed to fetch site data");
         const data: SiteData = await res.json();
         setSiteData(data);
-      } catch (error) {
-        console.error("Error loading site data:", error);
+      } catch (err) {
+        console.error("Error loading site data:", err);
+        setError("Unable to load site data. Please ensure environment variables are configured in Vercel.");
       } finally {
         setLoading(false);
       }
@@ -679,6 +681,27 @@ export default function InsuranceSlugPage() {
           <div className="text-5xl mb-4 animate-pulse">🛡️</div>
           <p className="text-gray-900 font-semibold text-lg">Loading...</p>
         </motion.div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center border border-red-100">
+          <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Connection Error</h2>
+          <p className="text-gray-600 mb-6">{error || "Data could not be loaded."}</p>
+          <div className="text-sm text-left bg-gray-50 p-4 rounded-md text-gray-700 font-mono overflow-x-auto whitespace-pre-wrap">
+            Tip for Vercel Deployments:
+            <br/>
+            Check that <b>DATABASE_URL</b> and <b>DIRECT_URL</b> are correctly set in the Vercel project Environment Variables.
+          </div>
+        </div>
       </div>
     );
   }
