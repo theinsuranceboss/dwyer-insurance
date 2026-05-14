@@ -38,8 +38,9 @@ export default function Footer({
   const col3Title = settings.footerColumn3Title || "Contact";
   const lightColor = settings.lightColor || "#57b6ff";
   
-  const footerTitleSize = settings.footerTitleSize || "14";
+  const footerTitleSize = settings.footerTitleSize || "20";
   const footerTitleCase = settings.footerTitleCase || "capitalize"; // "uppercase", "capitalize", "none"
+  const footerTitleWeight = settings.footerTitleWeight || "700";
 
   const halfIdx = Math.ceil(insurancePages.length / 2);
   const col1Pages = insurancePages.slice(0, halfIdx);
@@ -85,6 +86,7 @@ export default function Footer({
               className="font-bold text-white mb-6 opacity-80"
               style={{ 
                 fontSize: `${footerTitleSize}px`,
+                fontWeight: footerTitleWeight,
                 textTransform: footerTitleCase as any,
                 letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal'
               }}
@@ -113,6 +115,7 @@ export default function Footer({
               className="font-bold text-white mb-6 opacity-80"
               style={{ 
                 fontSize: `${footerTitleSize}px`,
+                fontWeight: footerTitleWeight,
                 textTransform: footerTitleCase as any,
                 letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal'
               }}
@@ -141,6 +144,7 @@ export default function Footer({
               className="font-bold text-white mb-6 opacity-80"
               style={{ 
                 fontSize: `${footerTitleSize}px`,
+                fontWeight: footerTitleWeight,
                 textTransform: footerTitleCase as any,
                 letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal'
               }}

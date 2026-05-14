@@ -545,32 +545,30 @@ function ServicesSection({
           </p>
         </AnimatedSection>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {insurancePages.map((page, i) => (
             <AnimatedSection key={page.id} delay={i * 0.04}>
               <a href={`/insurance/${page.slug}`}>
                 <Card
-                  className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full"
+                  className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full border-gray-100"
                   style={{ borderRadius: `${settings.borderRadius}px` }}
                 >
                   <CardHeader className="pb-3">
                     <div
-                      className="rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform mb-4"
+                      className="rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform mb-4 bg-gray-50 border border-gray-100"
                       style={{ 
-                        backgroundColor: `${settings.primaryColor}08`,
-                        width: '40px',
-                        height: '40px',
-                        border: `1px solid ${settings.primaryColor}10`
+                        width: '44px',
+                        height: '44px',
                       }}
                     >
                       {page.emoji ? (
-                        <span style={{ fontSize: '18px' }}>
+                        <span style={{ fontSize: '20px' }}>
                           {page.emoji}
                         </span>
                       ) : (
                         <DynamicIcon 
                           name={page.iconName || 'Shield'} 
-                          size={20} 
+                          size={22} 
                           style={{ color: settings.primaryColor }} 
                         />
                       )}
@@ -581,8 +579,9 @@ function ServicesSection({
                         color: settings.secondaryColor,
                         fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemTitleSize)
                           ? `${JSON.parse(servicesSection.content).itemTitleSize}px`
-                          : '13px',
-                        lineHeight: "1.2"
+                          : '14px',
+                        lineHeight: "1.2",
+                        fontWeight: "700"
                       }}
                     >
                       {page.title}
@@ -590,7 +589,7 @@ function ServicesSection({
                   </CardHeader>
                   <CardContent>
                     <CardDescription 
-                      className="text-muted-foreground"
+                      className="text-muted-foreground mb-4"
                       style={{ 
                         fontSize: (servicesSection?.content && !Array.isArray(JSON.parse(servicesSection.content)) && JSON.parse(servicesSection.content).itemDescSize)
                           ? `${JSON.parse(servicesSection.content).itemDescSize}px`
@@ -601,7 +600,7 @@ function ServicesSection({
                       {page.tagline}
                     </CardDescription>
                     <div
-                      className="mt-4 flex items-center font-medium text-xs group-hover:gap-2 transition-all opacity-0 group-hover:opacity-100"
+                      className="flex items-center font-semibold text-[13px] group-hover:gap-2 transition-all"
                       style={{ color: settings.primaryColor }}
                     >
                       Learn More <ArrowRight className="w-4 h-4 ml-1" />
@@ -675,7 +674,7 @@ function WhyChooseUsSection({
 
   const sectionContent = (whySection?.content && !Array.isArray(JSON.parse(whySection.content))) ? JSON.parse(whySection.content) : {};
   const globalIconSize = sectionContent.itemIconSize || 24;
-  const globalTitleSize = sectionContent.itemTitleSize || 13;
+  const globalTitleSize = sectionContent.itemTitleSize || 16;
   const globalDescSize = sectionContent.itemDescSize || 11;
   const sectionTitleSize = sectionContent.titleSize;
   const sectionDescSize = sectionContent.descriptionSize;

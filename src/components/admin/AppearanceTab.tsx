@@ -368,15 +368,30 @@ export default function AppearanceTab() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label className="text-sm text-gray-600">Title Font Size (px)</Label>
               <Input
                 type="number"
                 value={getValue('footerTitleSize')}
                 onChange={(e) => updateValue('footerTitleSize', e.target.value)}
-                placeholder="14"
+                placeholder="20"
               />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm text-gray-600">Title Font Weight</Label>
+              <Select value={getValue('footerTitleWeight') || '700'} onValueChange={(v) => updateValue('footerTitleWeight', v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="400">Regular</SelectItem>
+                  <SelectItem value="500">Medium</SelectItem>
+                  <SelectItem value="600">Semi-Bold</SelectItem>
+                  <SelectItem value="700">Bold</SelectItem>
+                  <SelectItem value="800">Extra-Bold</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label className="text-sm text-gray-600">Title Text Case</Label>
