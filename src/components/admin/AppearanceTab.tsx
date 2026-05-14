@@ -11,7 +11,22 @@ import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { Image as ImageIcon, Loader2, Save, Palette, Eye, MessageSquare, Upload, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
-import { type SiteSetting, apiFetch, apiUpload, LoadingSpinner, APPEARANCE_SECTIONS, FOOTER_KEYS } from './shared';
+import { 
+  APPEARANCE_SECTIONS, 
+  FOOTER_KEYS, 
+  apiFetch, 
+  apiUpload,
+  LoadingSpinner, 
+  type SiteSetting 
+} from './shared';
+
+function getPreviewScaledSize(baseRem: number, percentage: number | string | undefined, defaultRem: number): string {
+  const pct = typeof percentage === 'string' ? parseInt(percentage) : percentage;
+  if (pct === undefined || isNaN(Number(pct))) return `${defaultRem}rem`;
+  const scaled = (baseRem * Number(pct)) / 100;
+  return `${scaled}rem`;
+}
+
 import {
   Select,
   SelectContent,
@@ -437,41 +452,127 @@ export default function AppearanceTab() {
           </div>
 
           <Separator className="my-2" />
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700">Footer Background Color</Label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={getValue('footerBgColor') || '#001e60'}
-                onChange={(e) => updateValue('footerBgColor', e.target.value)}
-                className="w-10 h-10 rounded cursor-pointer border border-gray-200"
-              />
-              <Input
-                value={getValue('footerBgColor')}
-                onChange={(e) => updateValue('footerBgColor', e.target.value)}
-                className="w-36 font-mono text-sm"
-                placeholder="#001e60"
-              />
-              <div
-                className="w-10 h-10 rounded-lg border shadow-sm"
-                style={{ backgroundColor: getValue('footerBgColor') || '#001e60' }}
-              />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Background Color</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={getValue('footerBgColor') || '#001e60'}
+                  onChange={(e) => updateValue('footerBgColor', e.target.value)}
+                  className="w-10 h-10 rounded cursor-pointer border border-gray-200"
+                />
+                <Input
+                  value={getValue('footerBgColor')}
+                  onChange={(e) => updateValue('footerBgColor', e.target.value)}
+                  className="font-mono text-sm"
+                  placeholder="#001e60"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Text Color</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={getValue('footerTextColor') || '#ffffff'}
+                  onChange={(e) => updateValue('footerTextColor', e.target.value)}
+                  className="w-10 h-10 rounded cursor-pointer border border-gray-200"
+                />
+                <Input
+                  value={getValue('footerTextColor')}
+                  onChange={(e) => updateValue('footerTextColor', e.target.value)}
+                  className="font-mono text-sm"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Links Color</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={getValue('footerLinkColor') || '#ffffff'}
+                  onChange={(e) => updateValue('footerLinkColor', e.target.value)}
+                  className="w-10 h-10 rounded cursor-pointer border border-gray-200"
+                />
+                <Input
+                  value={getValue('footerLinkColor')}
+                  onChange={(e) => updateValue('footerLinkColor', e.target.value)}
+                  className="font-mono text-sm"
+                  placeholder="#ffffff"
+                />
+              </div>
             </div>
           </div>
 
           {/* Footer Preview */}
           <div className="mt-2 rounded-xl overflow-hidden border">
             <div
-              className="p-4 text-white"
+              className="p-6 text-white"
               style={{ backgroundColor: getValue('footerBgColor') || '#001e60' }}
             >
-              <p className="text-sm font-bold">{getValue('footerText') || 'Footer text preview'}</p>
-              <div className="flex gap-6 mt-2">
-                <span className="text-xs text-blue-200">{getValue('footerColumn1Title') || 'Column 1'}</span>
-                <span className="text-xs text-blue-200">{getValue('footerColumn2Title') || 'Column 2'}</span>
-                <span className="text-xs text-blue-200">{getValue('footerColumn3Title') || 'Column 3'}</span>
+              <div className="flex flex-col sm:flex-row justify-between gap-8">
+                <div className="max-w-[200px]">
+                  <p 
+                    className="font-bold leading-tight mb-1"
+                    style={{ fontSize: getPreviewScaledSize(1, getValue('footerLinkSizePct'), 1) }}
+                  >
+                    {getValue('logoText') || 'Dwyer Insurance'}
+                  </p>
+                  <p 
+                    className="text-xs opacity-70"
+                    style={{ fontSize: getPreviewScaledSize(0.75, getValue('footerLinkSizePct'), 0.75) }}
+                  >
+                    {getValue('logoSubtext') || 'Insurance Agency'}
+                  </p>
+                  <p 
+                    className="mt-3 text-white/60 leading-relaxed"
+                    style={{ fontSize: getPreviewScaledSize(0.875, getValue('footerLinkSizePct'), 0.875) }}
+                  >
+                    {getValue('footerText') || 'Elite Agency serving PA, NY, and DE.'}
+                  </p>
+                </div>
+                <div className="flex gap-12">
+                  <div>
+                    <h4 
+                      className="font-bold mb-4 opacity-80"
+                      style={{ 
+                        fontSize: getPreviewScaledSize(1.25, getValue('footerTitleSizePct'), 1.25),
+                        fontWeight: getValue('footerTitleWeight') || '700',
+                        textTransform: (getValue('footerTitleCase') || 'capitalize') as any
+                      }}
+                    >
+                      {getValue('footerColumn1Title') || 'Insurance'}
+                    </h4>
+                    <ul className="space-y-2 opacity-60">
+                      {['Auto', 'Home', 'Life'].map(l => (
+                        <li key={l} style={{ fontSize: getPreviewScaledSize(0.875, getValue('footerLinkSizePct'), 0.875) }}>{l}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 
+                      className="font-bold mb-4 opacity-80"
+                      style={{ 
+                        fontSize: getPreviewScaledSize(1.25, getValue('footerTitleSizePct'), 1.25),
+                        fontWeight: getValue('footerTitleWeight') || '700',
+                        textTransform: (getValue('footerTitleCase') || 'capitalize') as any
+                      }}
+                    >
+                      {getValue('footerColumn3Title') || 'Contact'}
+                    </h4>
+                    <p style={{ fontSize: getPreviewScaledSize(0.875, getValue('footerLinkSizePct'), 0.875) }} className="opacity-60">(610) 725-9900</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-[10px] text-blue-300 mt-2">{getValue('footerCopyright') || 'Copyright preview'}</p>
+              <Separator className="bg-white/10 my-4" />
+              <p 
+                className="text-center sm:text-left text-white/40"
+                style={{ fontSize: getPreviewScaledSize(0.875, getValue('footerLinkSizePct'), 0.875) }}
+              >
+                {getValue('footerCopyright') || '© 2024 Dwyer Insurance Group.'}
+              </p>
             </div>
           </div>
         </CardContent>

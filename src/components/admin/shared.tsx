@@ -315,7 +315,7 @@ export const APPEARANCE_SECTIONS: {
   },
 ];
 
-export const FOOTER_KEYS = ['footerText', 'footerCopyright', 'footerColumn1Title', 'footerColumn2Title', 'footerColumn3Title', 'footerBgColor', 'footerTitleSizePct', 'footerLinkSizePct', 'footerTitleCase', 'footerTitleWeight'];
+export const FOOTER_KEYS = ['footerText', 'footerCopyright', 'footerColumn1Title', 'footerColumn2Title', 'footerColumn3Title', 'footerBgColor', 'footerTextColor', 'footerLinkColor', 'footerTitleSizePct', 'footerLinkSizePct', 'footerTitleCase', 'footerTitleWeight'];
 
 // ─── Section icons ──────────────────────────────────────────────────────────────
 

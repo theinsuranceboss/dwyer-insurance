@@ -48,8 +48,11 @@ export default function Footer({
   const col1Pages = insurancePages.slice(0, halfIdx);
   const col2Pages = insurancePages.slice(halfIdx);
 
+  const footerTextColor = settings.footerTextColor || "#ffffff";
+  const footerLinkColor = settings.footerLinkColor || "#ffffff";
+
   return (
-    <footer style={{ backgroundColor: footerBg }} className={`text-white${className ? ` ${className}` : ""}`}>
+    <footer style={{ backgroundColor: footerBg, color: footerTextColor }} className={`w-full${className ? ` ${className}` : ""}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
@@ -65,15 +68,15 @@ export default function Footer({
               ) : (
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: `rgba(255,255,255,0.1)` }}
+                  style={{ backgroundColor: `${footerTextColor}15` }}
                 >
-                  <Shield className="w-5 h-5 text-white" />
+                  <Shield className="w-5 h-5" style={{ color: footerTextColor }} />
                 </div>
               )}
               <div>
                 <p 
                   className="font-bold leading-tight"
-                  style={{ fontSize: getScaledSize(1, linkSizePct, 1) }}
+                  style={{ fontSize: getScaledSize(1, linkSizePct, 1), color: footerTextColor }}
                 >
                   {settings.logoText || logoText}
                 </p>
@@ -89,8 +92,8 @@ export default function Footer({
               </div>
             </div>
             <p 
-              className="text-white/60 mb-4"
-              style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875) }}
+              className="mb-4"
+              style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875), color: footerTextColor, opacity: 0.7 }}
             >
               Elite Agency serving PA, NY, and DE.
             </p>
@@ -111,12 +114,14 @@ export default function Footer({
           {/* Insurance Column 1 */}
           <div>
             <h4 
-              className="font-bold text-white mb-6 opacity-80"
+              className="font-bold mb-6"
               style={{ 
+                color: footerTextColor,
                 fontSize: getScaledSize(1.25, titleSizePct, 1.25), // Base 20px
                 fontWeight: footerTitleWeight,
                 textTransform: footerTitleCase as any,
-                letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal'
+                letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal',
+                opacity: 0.9
               }}
             >
               {col1Title}
@@ -126,8 +131,12 @@ export default function Footer({
                 <li key={type.id}>
                   <a 
                     href={`/insurance/${type.slug}`} 
-                    className="text-white/60 hover:text-white transition-colors flex items-center gap-2"
-                    style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875) }}
+                    className="transition-colors flex items-center gap-2 hover:opacity-100"
+                    style={{ 
+                      fontSize: getScaledSize(0.875, linkSizePct, 0.875),
+                      color: footerLinkColor,
+                      opacity: 0.7
+                    }}
                   >
                     {type.emoji ? (
                       <span className="text-sm">{type.emoji}</span>
@@ -144,12 +153,14 @@ export default function Footer({
           {/* Insurance Column 2 */}
           <div>
             <h4 
-              className="font-bold text-white mb-6 opacity-80"
+              className="font-bold mb-6"
               style={{ 
+                color: footerTextColor,
                 fontSize: getScaledSize(1.25, titleSizePct, 1.25),
                 fontWeight: footerTitleWeight,
                 textTransform: footerTitleCase as any,
-                letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal'
+                letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal',
+                opacity: 0.9
               }}
             >
               {col2Title}
@@ -159,8 +170,12 @@ export default function Footer({
                 <li key={type.id}>
                   <a 
                     href={`/insurance/${type.slug}`} 
-                    className="text-white/60 hover:text-white transition-colors flex items-center gap-2"
-                    style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875) }}
+                    className="transition-colors flex items-center gap-2 hover:opacity-100"
+                    style={{ 
+                      fontSize: getScaledSize(0.875, linkSizePct, 0.875),
+                      color: footerLinkColor,
+                      opacity: 0.7
+                    }}
                   >
                     {type.emoji ? (
                       <span className="text-sm">{type.emoji}</span>
@@ -177,12 +192,14 @@ export default function Footer({
           {/* Contact */}
           <div>
             <h4 
-              className="font-bold text-white mb-6 opacity-80"
+              className="font-bold mb-6"
               style={{ 
+                color: footerTextColor,
                 fontSize: getScaledSize(1.25, titleSizePct, 1.25),
                 fontWeight: footerTitleWeight,
                 textTransform: footerTitleCase as any,
-                letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal'
+                letterSpacing: footerTitleCase === 'uppercase' ? '0.1em' : 'normal',
+                opacity: 0.9
               }}
             >
               {col3Title}
@@ -192,8 +209,12 @@ export default function Footer({
                 <Phone className="w-4 h-4 flex-shrink-0" style={{ color: lightColor }} />
                 <a 
                   href={phoneLink} 
-                  className="text-white/60 hover:text-white"
-                  style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875) }}
+                  className="hover:opacity-100"
+                  style={{ 
+                    fontSize: getScaledSize(0.875, linkSizePct, 0.875),
+                    color: footerLinkColor,
+                    opacity: 0.7
+                  }}
                 >
                   {phone}
                 </a>
@@ -202,8 +223,12 @@ export default function Footer({
                 <Mail className="w-4 h-4 flex-shrink-0" style={{ color: lightColor }} />
                 <a 
                   href={`mailto:${email}`} 
-                  className="text-white/60 hover:text-white break-all"
-                  style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875) }}
+                  className="hover:opacity-100 break-all"
+                  style={{ 
+                    fontSize: getScaledSize(0.875, linkSizePct, 0.875),
+                    color: footerLinkColor,
+                    opacity: 0.7
+                  }}
                 >
                   {email}
                 </a>
@@ -211,8 +236,11 @@ export default function Footer({
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: lightColor }} />
                 <span 
-                  className="text-white/60"
-                  style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875) }}
+                  style={{ 
+                    fontSize: getScaledSize(0.875, linkSizePct, 0.875),
+                    color: footerTextColor,
+                    opacity: 0.7
+                  }}
                 >
                   {address}
                 </span>
@@ -221,8 +249,11 @@ export default function Footer({
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 flex-shrink-0" style={{ color: lightColor }} />
                   <span 
-                    className="text-white/60"
-                    style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875) }}
+                    style={{ 
+                      fontSize: getScaledSize(0.875, linkSizePct, 0.875),
+                      color: footerTextColor,
+                      opacity: 0.7
+                    }}
                   >
                     Mon-Fri: 8:30 AM - 5:00 PM
                   </span>
@@ -230,8 +261,11 @@ export default function Footer({
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 flex-shrink-0 opacity-0" />
                   <span 
-                    className="text-white/60"
-                    style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875) }}
+                    style={{ 
+                      fontSize: getScaledSize(0.875, linkSizePct, 0.875),
+                      color: footerTextColor,
+                      opacity: 0.7
+                    }}
                   >
                     Saturday: By Appointment
                   </span>
@@ -245,14 +279,17 @@ export default function Footer({
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div 
-            className="text-center sm:text-left text-white/50"
-            style={{ fontSize: getScaledSize(0.875, linkSizePct, 0.875) }}
+            className="flex flex-wrap justify-center sm:justify-start gap-x-6 gap-y-2"
+            style={{ color: footerLinkColor, opacity: 0.6 }}
           >
-            © {new Date().getFullYear()} {footerCopyright}
+            <p style={{ fontSize: getScaledSize(0.75, linkSizePct, 0.75) }}>© {new Date().getFullYear()} {footerCopyright}</p>
           </div>
           <div 
-            className="text-white/40"
-            style={{ fontSize: getScaledSize(0.75, linkSizePct, 0.75) }}
+            style={{ 
+              fontSize: getScaledSize(0.75, linkSizePct, 0.75),
+              color: footerTextColor,
+              opacity: 0.4
+            }}
           >
             Serving PA, NY, and DE
           </div>

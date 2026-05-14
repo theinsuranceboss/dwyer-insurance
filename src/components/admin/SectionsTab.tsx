@@ -208,8 +208,30 @@ function SortableSection({
                           <Input type="number" value={cd.descSizePct ?? 100} onChange={e => set('descSizePct', Number(e.target.value))} className="h-8 text-xs" />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs">Items Scaling (%)</Label>
+                          <Label className="text-xs">Item Title Scale (%)</Label>
                           <Input type="number" value={cd.itemTitleSizePct ?? 100} onChange={e => set('itemTitleSizePct', Number(e.target.value))} className="h-8 text-xs" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Item Desc Scale (%)</Label>
+                          <Input type="number" value={cd.itemDescSizePct ?? 100} onChange={e => set('itemDescSizePct', Number(e.target.value))} className="h-8 text-xs" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Icon Size (px)</Label>
+                          <Input type="number" value={cd.itemIconSize ?? 24} onChange={e => set('itemIconSize', Number(e.target.value))} className="h-8 text-xs" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Item Title Color</Label>
+                          <div className="flex items-center gap-2">
+                            <input type="color" value={cd.itemTitleColor || '#001e60'} onChange={e => set('itemTitleColor', e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
+                            <Input value={cd.itemTitleColor || '#001e60'} onChange={e => set('itemTitleColor', e.target.value)} className="h-7 text-[10px] font-mono" />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Item Desc Color</Label>
+                          <div className="flex items-center gap-2">
+                            <input type="color" value={cd.itemDescColor || '#6b7280'} onChange={e => set('itemDescColor', e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
+                            <Input value={cd.itemDescColor || '#6b7280'} onChange={e => set('itemDescColor', e.target.value)} className="h-7 text-[10px] font-mono" />
+                          </div>
                         </div>
                       </div>
 

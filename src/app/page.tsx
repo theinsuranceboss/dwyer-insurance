@@ -735,37 +735,40 @@ function WhyChooseUsSection({
             const displayTitle = reason.title === "Dwyer Insurance Group" ? "Insurance Agency" : reason.title;
             return (
               <AnimatedSection key={i} delay={i * 0.08}>
-                <div className="group h-full p-5 rounded-2xl transition-all duration-300 hover:shadow-md border border-transparent hover:border-gray-100 bg-white/50 backdrop-blur-sm">
+                <div className="group h-full p-6 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-xl border border-gray-100 bg-white flex items-start gap-5">
                   <div
-                    className="rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm"
+                    className="rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm"
                     style={{ 
                       backgroundColor: `${settings.primaryColor}08`, 
-                      border: `1px solid ${settings.primaryColor}10`,
-                      width: `${globalIconSize * 1.6}px`,
-                      height: `${globalIconSize * 1.6}px`
+                      border: `1px solid ${settings.primaryColor}15`,
+                      width: `${globalIconSize * 1.8}px`,
+                      height: `${globalIconSize * 1.8}px`
                     }}
                   >
                     <DynamicIcon name={reason.icon} size={globalIconSize} style={{ color: settings.primaryColor }} />
                   </div>
-                  <h3 
-                    className="font-bold mb-2" 
-                    style={{ 
-                      color: settings.secondaryColor,
-                      fontSize: getScaledSize(1, itemTitleSizePct, 1),
-                      lineHeight: "1.3"
-                    }}
-                  >
-                    {displayTitle}
-                  </h3>
-                  <p 
-                    className="text-muted-foreground leading-relaxed"
-                    style={{ 
-                      fontSize: getScaledSize(0.875, itemDescSizePct, 0.875),
-                      lineHeight: "1.5"
-                    }}
-                  >
-                    {reason.desc}
-                  </p>
+                  <div className="flex-1">
+                    <h3 
+                      className="font-bold mb-1.5" 
+                      style={{ 
+                        color: itemTitleColor,
+                        fontSize: getScaledSize(1, itemTitleSizePct, 1),
+                        lineHeight: "1.3"
+                      }}
+                    >
+                      {displayTitle}
+                    </h3>
+                    <p 
+                      className={itemDescColor === "text-muted-foreground" ? "text-muted-foreground leading-relaxed" : "leading-relaxed"}
+                      style={{ 
+                        color: itemDescColor !== "text-muted-foreground" ? itemDescColor : undefined,
+                        fontSize: getScaledSize(0.875, itemDescSizePct, 0.875),
+                        lineHeight: "1.5"
+                      }}
+                    >
+                      {reason.desc}
+                    </p>
+                  </div>
                 </div>
               </AnimatedSection>
             );

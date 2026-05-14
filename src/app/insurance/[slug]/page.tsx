@@ -177,7 +177,7 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
             >
               <Badge 
                 className="bg-white/20 text-white border-white/30 mb-6 px-4 py-2 font-semibold"
-                style={{ fontSize: getScaledSize(page.bannerTaglineSize || 100, 0.875) }}
+                style={{ fontSize: getScaledSize(0.875, page.bannerTaglineSize, 0.875) }}
               >
                 {page.tagline}
               </Badge>
@@ -191,7 +191,7 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
             className="font-bold text-white leading-tight"
-            style={{ fontSize: getScaledSize(page.bannerTitleSize || 100, 3.25) }}
+            style={{ fontSize: getScaledSize(3.25, page.bannerTitleSize, 3.25) }}
           >
             {page.title}
           </motion.h1>
@@ -201,7 +201,7 @@ function InsuranceHero({ page, settings }: { page: InsurancePageData; settings: 
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mt-6 text-white/80"
-            style={{ fontSize: getScaledSize(page.bannerDescriptionSize || 100, 1.25) }}
+            style={{ fontSize: getScaledSize(1.25, page.bannerDescriptionSize, 1.25) }}
           >
             {page.description}
           </motion.p>
@@ -402,15 +402,15 @@ function FeaturesGrid({ page, settings }: { page: InsurancePageData; settings: R
                         style={{ color: accentColor }}
                       />
                     </div>
-                    <p 
-                      className={`font-medium leading-relaxed ${!textOverride ? "text-gray-900" : ""}`} 
-                      style={{ 
-                        color: textOverride || undefined,
-                        fontSize: getScaledSize(page.featureTextSize || 100, 0.875)
-                      }}
-                    >
-                      {feature}
-                    </p>
+                      <p 
+                        className={`font-medium leading-relaxed ${!textOverride ? "text-gray-900" : ""}`} 
+                        style={{ 
+                          color: textOverride || undefined,
+                          fontSize: getScaledSize(0.875, page.featureTextSize, 0.875)
+                        }}
+                      >
+                        {feature}
+                      </p>
                   </div>
                 </CardContent>
               </Card>
