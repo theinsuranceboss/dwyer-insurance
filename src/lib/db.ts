@@ -4,18 +4,12 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Default fallback to the verified Supabase direct connection
-const DEFAULT_URL = "postgres://postgres:ZqfjKZ!FW5pG8Pj@db.icnznvlgwkagaupnjlit.supabase.co:5432/postgres";
-
-// Prioritize connection strings: 
-// 1. Vercel Postgres (POSTGRES_PRISMA_URL) 
-// 2. Standard DATABASE_URL 
-// 3. Hardcoded fallback
+// Use the transaction pooler (port 6543) which is more reliable in serverless environments
+// We prioritize Vercel's native Postgres (Neon) if available, then fallback to Supabase Pooler
 const connectionString = 
   process.env.POSTGRES_PRISMA_URL || 
   process.env.DATABASE_URL || 
-  process.env.SUPABASE_DATABASE_URL || 
-  DEFAULT_URL;
+  "postgres://postgres.icnznvlgwkagaupnjlit:ZqfjKZ%21FW5pG8Pj@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
 
 export const db =
   globalForPrisma.prisma ??
@@ -28,5 +22,6 @@ export const db =
   })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+
 
 
